@@ -54,6 +54,9 @@ const STUBS = {
   ], total: 2 },
 
   // ── MOD-02 ────────────────────────────────────────────────────
+  'GET /api/v1/mod02/alerts/summary': {
+    pending_approval: 0, review_overdue: 1, review_due_soon: 1,
+  },
   'GET /api/v1/mod02/documents': { items: [
     { doc_id:1, doc_number:'ATCA-QP-001',     title:'Quality Manual',          category:'Quality Procedure', process_area:'All', current_revision:'Rev 4', status:'APPROVED', effective_date:'2025-01-01', review_due_date:'2026-01-01', owner_name:'Gary Tan Beng Huat' },
     { doc_id:2, doc_number:'ATCA-WI-FPI-001', title:'FPI Process Instruction', category:'Work Instruction',  process_area:'FPI', current_revision:'Rev 2', status:'APPROVED', effective_date:'2024-06-01', review_due_date:'2025-06-01', owner_name:'James Tan Wei Liang' },

@@ -1,218 +1,226 @@
 <!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-02: Retention Schedule
+  AS9100D §7.5.3 — Control of Documented Information
+  ATC Aviation Pte Ltd | LAN-Only
+-->
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Retention Schedule — ATCA-ERP MOD-02</title>
-  <link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css"/>
-  <link rel="stylesheet" href="/assets/css/atca-erp.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Retention Schedule — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
 </head>
 <body>
 
-<div class="atca-sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <span class="sidebar-logo-title">ATCA-ERP</span>
-    <span class="sidebar-logo-sub">AS9100D · NADCAP AC7114</span>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">Core QMS</div>
-    <a href="/modules/mod01-qms-core/index.html" class="nav-item"><i class="bi bi-shield-check"></i>QMS Core</a>
-    <a href="/modules/mod02-doc-control/index.html" class="nav-item active"><i class="bi bi-file-earmark-text"></i>Document Control</a>
-    <div class="nav-section">NDT</div>
-    <a href="#" class="nav-item"><i class="bi bi-droplet"></i>FPI Process</a>
-    <a href="#" class="nav-item"><i class="bi bi-people"></i>Personnel / NAS410</a>
-    <a href="#" class="nav-item"><i class="bi bi-tools"></i>Equipment & Cal.</a>
-  </nav>
-  <div class="sidebar-footer"><div id="sb-user-pill"></div></div>
-</div>
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"    class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/" class="nav-link active"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"    class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"       class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi/"         class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-personnel/"   class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment/"   class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath/"        class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod13-traveler/"    class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"         class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"   class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-users/"       class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
 
-<div class="atca-main">
-  <div class="atca-topbar">
-    <div class="topbar-left">
-      <a href="/modules/mod02-doc-control/index.html" class="text-muted me-2"><i class="bi bi-arrow-left"></i></a>
-      <i class="bi bi-archive me-2 text-atca-blue"></i>
-      <span class="topbar-module">Record Retention Schedule</span>
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-archive me-1"></i>Retention Schedule</p>
+      <p class="topbar-subtitle mb-0">AS9100D §7.5.3 — Control of documented information</p>
     </div>
-    <div class="topbar-right">
-      <div class="topbar-alert-bell ms-3" id="alert-bell">
+    <div class="topbar-alerts">
+      <a href="index.html" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-arrow-left me-1"></i>Back</a>
+      <div class="alert-badge ms-2" id="topbar-alert-btn" tabindex="0" role="button">
         <i class="bi bi-bell"></i>
-        <span class="alert-badge d-none" id="alert-count">0</span>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
       </div>
-      <div class="topbar-user ms-3" id="topbar-user"></div>
+      <div class="user-pill ms-2" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
     </div>
-  </div>
+  </header>
 
   <div class="page-content">
-    <div class="page-header">
-      <div class="page-clause">AS9100D §7.5.3 (c) — Retention of Documented Information</div>
-      <div class="page-title">Record Retention Schedule</div>
-    </div>
 
-    <div class="alert alert-info d-flex align-items-start gap-2 mb-4">
-      <i class="bi bi-info-circle-fill mt-1"></i>
+    <!-- REGULATORY NOTE -->
+    <div class="alert alert-info d-flex gap-2 mb-4" role="alert">
+      <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
       <div>
-        <strong>Regulatory basis:</strong> Retention periods comply with AS9100D §7.5.3, NADCAP AC7114 §3.10, and NAS410 §12.
-        QA Manager authorization required to modify retention periods.
+        <strong>AS9100D §7.5.3</strong> requires the organisation to control documented information
+        to ensure it is available, suitable for use, and adequately protected. Retention periods
+        below are minimum requirements; NADCAP / customer-specific requirements may be longer.
       </div>
     </div>
 
-    <div class="atca-panel">
-      <div class="panel-header">
-        <span class="panel-title"><i class="bi bi-table me-2"></i>Retention Periods by Category</span>
+    <!-- RETENTION TABLE -->
+    <div class="atca-card mb-4">
+      <div class="atca-card-header">
+        <span class="module-badge">MOD-02</span>
+        <h5>Retention Schedule by Document Category</h5>
       </div>
-      <div class="panel-body p-0">
-        <table class="atca-table mb-0" id="retention-table">
+      <div class="atca-card-body p-0">
+        <table class="atca-table">
           <thead>
             <tr>
-              <th>Category</th>
-              <th>Document Type</th>
-              <th>Regulation Ref.</th>
-              <th style="width:80px">Min. Years</th>
-              <th>Disposal Method</th>
-              <th>Notes</th>
-              <th id="edit-col" class="d-none"></th>
+              <th>Document Category</th>
+              <th>Examples</th>
+              <th>Min. Retention</th>
+              <th>Regulatory Basis</th>
+              <th>Storage</th>
+              <th>Disposition</th>
             </tr>
           </thead>
-          <tbody id="retention-tbody">
-            <tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr>
+          <tbody>
+            <tr>
+              <td><strong>Quality Records</strong></td>
+              <td>NCR, CAPA, internal audits, management review minutes</td>
+              <td><strong>10 years</strong></td>
+              <td>AS9100D §10.2, §9.3</td>
+              <td>ERP + secure archive</td>
+              <td>QA Manager approval required</td>
+            </tr>
+            <tr>
+              <td><strong>NDT Process Records</strong></td>
+              <td>FPI job travelers, inspection reports, bath logs</td>
+              <td><strong>10 years</strong></td>
+              <td>NAS410 §6, ASTM E1417</td>
+              <td>ERP + physical file</td>
+              <td>QA Manager approval required</td>
+            </tr>
+            <tr>
+              <td><strong>Calibration Records</strong></td>
+              <td>Calibration certificates, equipment logs</td>
+              <td><strong>10 years</strong></td>
+              <td>AS9100D §7.1.5, NADCAP AC7114</td>
+              <td>ERP + physical file</td>
+              <td>QA Manager approval required</td>
+            </tr>
+            <tr>
+              <td><strong>Personnel / Training Records</strong></td>
+              <td>NAS410 certifications, eye exam records, OJT logs</td>
+              <td><strong>Life of employment + 5 years</strong></td>
+              <td>NAS410 §9, AS9100D §7.2</td>
+              <td>ERP + HR file</td>
+              <td>HR + QA Manager approval</td>
+            </tr>
+            <tr>
+              <td><strong>Work Orders / CoC</strong></td>
+              <td>Job travelers, certificates of conformance</td>
+              <td><strong>15 years</strong></td>
+              <td>AS9100D §8.1, Customer contracts</td>
+              <td>ERP + physical archive</td>
+              <td>QA Manager + GM approval</td>
+            </tr>
+            <tr>
+              <td><strong>Work Instructions</strong></td>
+              <td>Process instructions, SOPs, technique sheets</td>
+              <td><strong>Current + 3 superseded revisions</strong></td>
+              <td>AS9100D §7.5.2</td>
+              <td>ERP (controlled)</td>
+              <td>Superseded on approval of new rev</td>
+            </tr>
+            <tr>
+              <td><strong>Forms / Templates</strong></td>
+              <td>Blank forms, checklists</td>
+              <td><strong>Current revision only</strong></td>
+              <td>AS9100D §7.5</td>
+              <td>ERP (controlled)</td>
+              <td>Superseded on approval of new rev</td>
+            </tr>
+            <tr>
+              <td><strong>Supplier / Customer Documents</strong></td>
+              <td>Purchase orders, customer specs, supplier approvals</td>
+              <td><strong>10 years</strong></td>
+              <td>AS9100D §8.4, §8.2</td>
+              <td>ERP + physical file</td>
+              <td>QA Manager approval required</td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- EDIT RETENTION MODAL -->
-<div class="modal fade" id="modalEditRet" tabindex="-1" aria-labelledby="modalEditRetLabel" aria-modal="true" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header atca-modal-header">
-        <h5 class="modal-title" id="modalEditRetLabel"><i class="bi bi-pencil me-2"></i>Update Retention Period</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    <!-- CATEGORY SUMMARY -->
+    <div class="atca-card">
+      <div class="atca-card-header">
+        <span class="module-badge">MOD-02</span>
+        <h5>Categories in System</h5>
       </div>
-      <div class="modal-body">
-        <div class="mb-3">
-          <span class="badge bg-secondary fs-6" id="edit-cat-name"></span>
-        </div>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label atca-field-label">Regulation Reference</label>
-            <input type="text" class="form-control" id="e-reg"/>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label atca-field-label">Retention Years</label>
-            <input type="number" class="form-control" id="e-years" min="1" max="99"/>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label atca-field-label">Disposal Method</label>
-            <select class="form-select" id="e-disposal">
-              <option>Archive</option>
-              <option>Archive/Delete</option>
-              <option>Shred</option>
-              <option>Delete</option>
-              <option>Shred/Delete</option>
-            </select>
-          </div>
-          <div class="col-12">
-            <label class="form-label atca-field-label">Notes</label>
-            <textarea class="form-control" id="e-notes" rows="2"></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-atca-primary" id="btn-save-retention">Save Changes</button>
+      <div class="atca-card-body p-0">
+        <table class="atca-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Documents in System</th>
+              <th>Default Retention</th>
+            </tr>
+          </thead>
+          <tbody id="cat-tbody">
+            <tr><td colspan="3" class="text-center text-muted py-3">Loading…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-  </div>
-</div>
+
+  </div><!-- /page-content -->
+</div><!-- /main-content -->
 
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-core.js"></script>
 <script>
-(async function() {
+(async function () {
   await ATCA.user.load();
+  ATCA.sidebar.init();
   ATCA.session.init();
   ATCA.alerts.startPolling();
 
-  const u = ATCA.user.current;
+  const u = ATCA.currentUser;
   if (u) {
-    document.getElementById('sb-user-pill').innerHTML = `
-      <div class="d-flex align-items-center gap-2">
-        <div class="user-avatar">${ATCA.user.initials()}</div>
-        <div><div class="user-name">${ATCA.utils.escHtml(u.full_name)}</div>
-        <div class="user-role">${u.role}</div></div>
-      </div>`;
-    document.getElementById('topbar-user').innerHTML = `<span class="user-avatar sm">${ATCA.user.initials()}</span>`;
+    document.getElementById('user-avatar-initials').textContent = ATCA.utils.initials(u.full_name);
+    document.getElementById('user-display-name').textContent = u.full_name;
   }
 
-  const isQA = ATCA.user.isQA();
-  if (isQA) document.getElementById('edit-col').classList.remove('d-none');
+  function esc(s) { const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
 
-  let editId = null;
-  const modal = new bootstrap.Modal(document.getElementById('modalEditRet'));
-
-  async function loadRetention() {
-    try {
-      const rows = await ATCA.api.get('/mod02/retention');
-      const tbody = document.getElementById('retention-tbody');
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No retention schedule found</td></tr>';
-        return;
-      }
-      tbody.innerHTML = rows.map(r => `
-        <tr>
-          <td><span class="badge bg-atca-navy text-white">${ATCA.utils.escHtml(r.category_code)}</span></td>
-          <td>${ATCA.utils.escHtml(r.category_name)}</td>
-          <td><code class="small">${ATCA.utils.escHtml(r.regulation_ref)}</code></td>
-          <td class="fw-semibold text-center">${r.retention_years} yr${r.retention_years > 1 ? 's' : ''}</td>
-          <td>${ATCA.utils.escHtml(r.disposal_method || '—')}</td>
-          <td class="small text-muted">${ATCA.utils.escHtml(r.notes || '—')}</td>
-          ${isQA ? `<td><button class="btn btn-sm btn-outline-secondary edit-ret-btn"
-            data-id="${r.retention_id}"
-            data-cat="${ATCA.utils.escHtml(r.category_name)}"
-            data-reg="${ATCA.utils.escHtml(r.regulation_ref)}"
-            data-years="${r.retention_years}"
-            data-disposal="${ATCA.utils.escHtml(r.disposal_method || '')}"
-            data-notes="${ATCA.utils.escHtml(r.notes || '')}">
-            <i class="bi bi-pencil"></i></button></td>` : '<td></td>'}
-        </tr>`).join('');
-
-      document.querySelectorAll('.edit-ret-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          editId = parseInt(btn.dataset.id, 10);
-          document.getElementById('edit-cat-name').textContent = btn.dataset.cat;
-          document.getElementById('e-reg').value      = btn.dataset.reg;
-          document.getElementById('e-years').value    = btn.dataset.years;
-          document.getElementById('e-disposal').value = btn.dataset.disposal;
-          document.getElementById('e-notes').value    = btn.dataset.notes;
-          modal.show();
-        });
-      });
-    } catch(e) {
-      document.getElementById('retention-tbody').innerHTML = '<tr><td colspan="7" class="text-danger py-2">Error loading retention schedule</td></tr>';
-    }
+  try {
+    const [cats, docs] = await Promise.all([
+      ATCA.api.get('/mod02/categories'),
+      ATCA.api.get('/mod02/documents'),
+    ]);
+    const items = docs.items || [];
+    const tbody = document.getElementById('cat-tbody');
+    tbody.innerHTML = cats.map(c => {
+      const count = items.filter(d => d.category === c.name).length;
+      return `<tr>
+        <td>${esc(c.name)}</td>
+        <td>${count}</td>
+        <td>10 years (default)</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="3" class="text-center text-muted py-3">No categories defined</td></tr>';
+  } catch(e) {
+    document.getElementById('cat-tbody').innerHTML =
+      '<tr><td colspan="3" class="text-danger py-2 px-3">Error loading categories</td></tr>';
   }
-
-  document.getElementById('btn-save-retention').addEventListener('click', async () => {
-    if (!editId) return;
-    try {
-      await ATCA.api.put(`/mod02/retention/${editId}`, {
-        regulation_ref:  document.getElementById('e-reg').value,
-        retention_years: document.getElementById('e-years').value,
-        disposal_method: document.getElementById('e-disposal').value,
-        notes:           document.getElementById('e-notes').value,
-      });
-      modal.hide();
-      ATCA.utils.toast('Retention schedule updated.', 'success');
-      loadRetention();
-    } catch(e) {
-      ATCA.utils.toast(e.message || 'Error updating.', 'danger');
-    }
-  });
-
-  loadRetention();
 })();
 </script>
 </body>

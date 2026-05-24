@@ -1,131 +1,139 @@
 <!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-02: Document & Record Control
+  AS9100D §7.5 | NADCAP AC7114 | NAS410
+  ATC Aviation Pte Ltd | LAN-Only
+-->
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MOD-02 Document & Record Control — ATCA-ERP</title>
-  <link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css"/>
-  <link rel="stylesheet" href="/assets/css/atca-erp.css"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Document Control — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
 </head>
 <body>
 
 <!-- SIDEBAR -->
-<div class="atca-sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <span class="sidebar-logo-title">ATCA-ERP</span>
-    <span class="sidebar-logo-sub">AS9100D · NADCAP AC7114</span>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">Core QMS</div>
-    <a href="/modules/mod01-qms-core/index.html" class="nav-item"><i class="bi bi-shield-check"></i>QMS Core</a>
-    <a href="/modules/mod02-doc-control/index.html" class="nav-item active"><i class="bi bi-file-earmark-text"></i>Document Control</a>
-    <div class="nav-section">NDT</div>
-    <a href="#" class="nav-item"><i class="bi bi-droplet"></i>FPI Process</a>
-    <a href="#" class="nav-item"><i class="bi bi-people"></i>Personnel / NAS410</a>
-    <a href="#" class="nav-item"><i class="bi bi-tools"></i>Equipment & Cal.</a>
-    <div class="nav-section">Operations</div>
-    <a href="#" class="nav-item"><i class="bi bi-clipboard-list"></i>Work Orders</a>
-    <a href="#" class="nav-item"><i class="bi bi-award"></i>CoC Generation</a>
-    <a href="#" class="nav-item"><i class="bi bi-exclamation-triangle"></i>NCR / CAPA</a>
-  </nav>
-  <div class="sidebar-footer">
-    <div id="sb-user-pill"></div>
-  </div>
-</div>
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"  class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/" class="nav-link active"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"    class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi/"      class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-personnel/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath/"     class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod13-traveler/" class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"      class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/" class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-users/"    class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
 
 <!-- MAIN -->
-<div class="atca-main">
-  <!-- TOPBAR -->
-  <div class="atca-topbar">
-    <div class="topbar-left">
-      <i class="bi bi-file-earmark-text me-2 text-atca-blue"></i>
-      <span class="topbar-module">MOD-02 — Document &amp; Record Control</span>
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-folder2-open me-1"></i>MOD-02 — Document &amp; Record Control</p>
+      <p class="topbar-subtitle mb-0">AS9100D §7.5 — Documented Information</p>
     </div>
-    <div class="topbar-right">
+    <div class="topbar-alerts">
       <button class="btn btn-sm btn-atca-primary" id="btn-new-doc">
         <i class="bi bi-plus-lg me-1"></i>New Document
       </button>
-      <div class="topbar-alert-bell ms-3" id="alert-bell">
+      <div class="alert-badge ms-2" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
         <i class="bi bi-bell"></i>
-        <span class="alert-badge d-none" id="alert-count">0</span>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
       </div>
-      <div class="topbar-user ms-3" id="topbar-user"></div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
     </div>
-  </div>
+  </header>
 
-  <!-- PAGE CONTENT -->
   <div class="page-content">
-    <div class="page-header">
-      <div class="page-clause">AS9100D §7.5 — Documented Information</div>
-      <div class="page-title">Document &amp; Record Control</div>
-    </div>
 
     <!-- KPI STRIP -->
-    <div class="row g-3 mb-4" id="kpi-strip">
-      <div class="col-6 col-md-3">
-        <div class="atca-kpi-card">
-          <div class="kpi-label">Controlled Documents</div>
-          <div class="kpi-value" id="kpi-total">—</div>
-          <div class="kpi-sub">Active in system</div>
-        </div>
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-total">
+        <div class="kpi-label">Controlled Documents</div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-sub">Active in system</div>
       </div>
-      <div class="col-6 col-md-3">
-        <div class="atca-kpi-card">
-          <div class="kpi-label">Pending Approval</div>
-          <div class="kpi-value text-amber" id="kpi-pending">—</div>
-          <div class="kpi-sub">DRAFT / REVIEW</div>
-        </div>
+      <div class="kpi-card" id="kpi-pending">
+        <div class="kpi-label">Pending Approval</div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-sub">DRAFT / IN REVIEW</div>
       </div>
-      <div class="col-6 col-md-3">
-        <div class="atca-kpi-card">
-          <div class="kpi-label">Review Overdue</div>
-          <div class="kpi-value text-red" id="kpi-overdue">—</div>
-          <div class="kpi-sub">Past review due date</div>
-        </div>
+      <div class="kpi-card" id="kpi-overdue">
+        <div class="kpi-label">Review Overdue</div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-sub">Past review due date</div>
       </div>
-      <div class="col-6 col-md-3">
-        <div class="atca-kpi-card">
-          <div class="kpi-label">Due for Review (30d)</div>
-          <div class="kpi-value text-amber" id="kpi-due-soon">—</div>
-          <div class="kpi-sub">Within 30 days</div>
-        </div>
+      <div class="kpi-card" id="kpi-due-soon">
+        <div class="kpi-label">Due for Review (30d)</div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-sub">Within 30 days</div>
       </div>
     </div>
 
-    <!-- SUB-MODULE NAV CARDS -->
+    <!-- SUB-MODULE CARDS -->
     <div class="row g-3 mb-4">
       <div class="col-md-4">
-        <a href="/modules/mod02-doc-control/documents.html" class="atca-module-card">
-          <div class="module-card-icon"><i class="bi bi-files"></i></div>
-          <div class="module-card-title">Document Master List</div>
-          <div class="module-card-sub">All controlled documents, current revisions, status</div>
+        <a href="/modules/mod02-doc-control/documents.html" class="atca-card text-decoration-none d-block p-3">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:1.8rem; color:var(--atca-blue);"><i class="bi bi-files"></i></div>
+            <div>
+              <div class="fw-bold" style="color:var(--atca-navy);">Document Master List</div>
+              <div class="text-muted" style="font-size:0.78rem;">All controlled documents, current revisions &amp; status</div>
+            </div>
+          </div>
         </a>
       </div>
       <div class="col-md-4">
-        <a href="/modules/mod02-doc-control/revision.html" class="atca-module-card">
-          <div class="module-card-icon"><i class="bi bi-arrow-repeat"></i></div>
-          <div class="module-card-title">Revision Workflow</div>
-          <div class="module-card-sub">DRAFT → REVIEW → APPROVED approval pipeline</div>
+        <a href="/modules/mod02-doc-control/revision.html" class="atca-card text-decoration-none d-block p-3">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:1.8rem; color:var(--atca-blue);"><i class="bi bi-arrow-repeat"></i></div>
+            <div>
+              <div class="fw-bold" style="color:var(--atca-navy);">Revision Workflow</div>
+              <div class="text-muted" style="font-size:0.78rem;">DRAFT → REVIEW → APPROVED approval pipeline</div>
+            </div>
+          </div>
         </a>
       </div>
       <div class="col-md-4">
-        <a href="/modules/mod02-doc-control/retention.html" class="atca-module-card">
-          <div class="module-card-icon"><i class="bi bi-archive"></i></div>
-          <div class="module-card-title">Retention Schedule</div>
-          <div class="module-card-sub">§7.5.3 retention periods by document category</div>
+        <a href="/modules/mod02-doc-control/retention.html" class="atca-card text-decoration-none d-block p-3">
+          <div class="d-flex align-items-center gap-3">
+            <div style="font-size:1.8rem; color:var(--atca-blue);"><i class="bi bi-archive"></i></div>
+            <div>
+              <div class="fw-bold" style="color:var(--atca-navy);">Retention Schedule</div>
+              <div class="text-muted" style="font-size:0.78rem;">§7.5.3 retention periods by document category</div>
+            </div>
+          </div>
         </a>
       </div>
     </div>
 
-    <!-- DOCUMENTS REQUIRING ACTION -->
-    <div class="atca-panel mb-4">
-      <div class="panel-header">
-        <span class="panel-title"><i class="bi bi-exclamation-circle text-amber me-2"></i>Requires Action</span>
-        <span class="badge bg-atca-amber text-white" id="action-count">0</span>
+    <!-- RECENTLY UPDATED -->
+    <div class="atca-card">
+      <div class="atca-card-header">
+        <span class="module-badge">MOD-02</span>
+        <h5><i class="bi bi-clock-history me-1"></i>Recently Updated Documents</h5>
+        <a href="/modules/mod02-doc-control/documents.html" class="btn btn-sm btn-outline-secondary ms-auto">View All</a>
       </div>
-      <div class="panel-body">
-        <table class="atca-table" id="action-table">
+      <div class="atca-card-body p-0">
+        <table class="atca-table">
           <thead>
             <tr>
               <th>Doc Number</th>
@@ -133,101 +141,67 @@
               <th>Category</th>
               <th>Rev</th>
               <th>Status</th>
-              <th>Review Due</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="action-tbody">
-            <tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- RECENT DOCUMENTS -->
-    <div class="atca-panel">
-      <div class="panel-header">
-        <span class="panel-title"><i class="bi bi-clock-history me-2"></i>Recently Updated</span>
-        <a href="/modules/mod02-doc-control/documents.html" class="btn btn-sm btn-outline-secondary">View All</a>
-      </div>
-      <div class="panel-body">
-        <table class="atca-table" id="recent-table">
-          <thead>
-            <tr>
-              <th>Doc Number</th>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Rev</th>
-              <th>Status</th>
-              <th>Approved By</th>
+              <th>Owner</th>
               <th>Effective</th>
+              <th>Review Due</th>
             </tr>
           </thead>
           <tbody id="recent-tbody">
-            <tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr>
+            <tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr>
           </tbody>
         </table>
       </div>
     </div>
+
   </div><!-- /page-content -->
-</div><!-- /atca-main -->
+</div><!-- /main-content -->
 
 <!-- NEW DOCUMENT MODAL -->
 <div class="modal fade" id="modalNewDoc" tabindex="-1" aria-labelledby="modalNewDocLabel" aria-modal="true" role="dialog">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-      <div class="modal-header atca-modal-header">
+      <div class="modal-header" style="background:var(--atca-navy); color:#fff;">
         <h5 class="modal-title" id="modalNewDocLabel"><i class="bi bi-file-earmark-plus me-2"></i>Register New Controlled Document</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div id="form-error" class="alert alert-danger d-none"></div>
-        <form id="form-new-doc">
-          <div class="row g-3">
-            <div class="col-md-4">
-              <label class="form-label atca-field-label">Document Number <span class="clause-ref">§7.5.2</span></label>
-              <input type="text" class="form-control" id="f-doc-number" placeholder="ATCA-QMS-001" required/>
-            </div>
-            <div class="col-md-8">
-              <label class="form-label atca-field-label">Document Title</label>
-              <input type="text" class="form-control" id="f-title" required/>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label atca-field-label">Category</label>
-              <select class="form-select" id="f-category" required>
-                <option value="">Select…</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label atca-field-label">Process Area</label>
-              <select class="form-select" id="f-process-area">
-                <option value="">General</option>
-                <option>FPI</option>
-                <option>MPT</option>
-                <option>ECT</option>
-                <option>UT</option>
-                <option>Electroplating</option>
-                <option>HR / Training</option>
-                <option>Purchasing</option>
-                <option>Customer Interface</option>
-              </select>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label atca-field-label">Retention (years) <span class="clause-ref">§7.5.3</span></label>
-              <input type="number" class="form-control" id="f-retention" value="10" min="1" max="99"/>
-            </div>
-            <div class="col-md-6">
-              <div class="form-check mt-4">
-                <input class="form-check-input" type="checkbox" id="f-controlled" checked/>
-                <label class="form-check-label" for="f-controlled">Controlled document (requires approval workflow)</label>
-              </div>
-            </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="atca-label">Document Number <span class="clause">§7.5.2</span> <span class="req">*</span></label>
+            <input type="text" class="form-control" id="f-doc-number" placeholder="ATCA-QP-001">
           </div>
-        </form>
+          <div class="col-md-8">
+            <label class="atca-label">Document Title <span class="req">*</span></label>
+            <input type="text" class="form-control" id="f-title">
+          </div>
+          <div class="col-md-4">
+            <label class="atca-label">Category <span class="req">*</span></label>
+            <select class="form-select" id="f-category">
+              <option value="">Select…</option>
+              <option value="1">Quality Procedure</option>
+              <option value="2">Work Instruction</option>
+              <option value="3">Form</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="atca-label">Process Area</label>
+            <select class="form-select" id="f-process-area">
+              <option value="">General / All</option>
+              <option>FPI</option><option>MPT</option><option>ECT</option>
+              <option>UT</option><option>Electroplating</option>
+              <option>HR / Training</option><option>Purchasing</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="atca-label">Retention (years) <span class="clause">§7.5.3</span></label>
+            <input type="number" class="form-control" id="f-retention" value="10" min="1" max="99">
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-atca-primary" id="btn-save-doc">Register Document</button>
+        <button type="button" class="btn btn-atca-primary" id="btn-save-doc"><i class="bi bi-check-lg me-1"></i>Register Document</button>
       </div>
     </div>
   </div>
@@ -236,137 +210,88 @@
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-core.js"></script>
 <script>
-(async function() {
+(async function () {
   await ATCA.user.load();
+  ATCA.sidebar.init();
   ATCA.session.init();
   ATCA.alerts.startPolling();
 
-  // Render user pill
-  const u = ATCA.user.current;
+  // User pill
+  const u = ATCA.currentUser;
   if (u) {
-    document.getElementById('sb-user-pill').innerHTML = `
-      <div class="d-flex align-items-center gap-2">
-        <div class="user-avatar">${ATCA.user.initials()}</div>
-        <div><div class="user-name">${ATCA.utils.escHtml(u.full_name)}</div>
-        <div class="user-role">${u.role}</div></div>
-      </div>`;
-    document.getElementById('topbar-user').innerHTML = `<span class="user-avatar sm">${ATCA.user.initials()}</span>`;
+    const ini = ATCA.utils.initials(u.full_name);
+    document.getElementById('user-avatar-initials').textContent = ini;
+    document.getElementById('user-display-name').textContent = u.full_name;
   }
 
-  // Load KPIs
-  async function loadKPIs() {
-    try {
-      const a = await ATCA.api.get('/mod02/alerts/summary');
-      document.getElementById('kpi-pending').textContent  = a.pending_approval;
-      document.getElementById('kpi-overdue').textContent  = a.review_overdue;
-      document.getElementById('kpi-due-soon').textContent = a.review_due_soon;
-    } catch(e) {}
-    try {
-      const d = await ATCA.api.get('/mod02/documents?limit=1');
-      document.getElementById('kpi-total').textContent = d.total || 0;
-    } catch(e) {}
+  function docStatusBadge(s) {
+    const m = { APPROVED:'approved', DRAFT:'draft', REVIEW:'open', SUPERSEDED:'superseded', OBSOLETE:'closed' };
+    return `<span class="status-badge ${m[s]||'draft'}">${s||'—'}</span>`;
   }
+  function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-SG', {day:'2-digit',month:'short',year:'numeric'}) : '—'; }
+  function esc(s) { const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
 
-  // Load action-required documents (DRAFT/REVIEW or overdue review)
-  async function loadActionDocs() {
-    try {
-      const res = await ATCA.api.get('/mod02/documents?status=DRAFT&limit=20');
-      const res2 = await ATCA.api.get('/mod02/documents?status=REVIEW&limit=20');
-      const rows = [...(res.rows || []), ...(res2.rows || [])];
-      document.getElementById('action-count').textContent = rows.length;
-      const tbody = document.getElementById('action-tbody');
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No documents require action</td></tr>';
-        return;
-      }
-      tbody.innerHTML = rows.map(r => `
+  // KPIs
+  try {
+    const a = await ATCA.api.get('/mod02/alerts/summary');
+    const kv = n => document.querySelector(`#${n} .kpi-value`);
+    kv('kpi-pending').textContent  = a.pending_approval ?? '—';
+    kv('kpi-overdue').textContent  = a.review_overdue   ?? '—';
+    kv('kpi-due-soon').textContent = a.review_due_soon  ?? '—';
+    if ((a.review_overdue||0) > 0) document.getElementById('kpi-overdue').classList.add('rag-red');
+    if ((a.pending_approval||0) > 0) document.getElementById('kpi-pending').classList.add('rag-amber');
+  } catch(e) {}
+
+  try {
+    const d = await ATCA.api.get('/mod02/documents');
+    document.querySelector('#kpi-total .kpi-value').textContent = d.total ?? d.items?.length ?? 0;
+
+    const tbody = document.getElementById('recent-tbody');
+    const items = d.items || [];
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No documents registered yet</td></tr>';
+    } else {
+      tbody.innerHTML = items.map(r => `
         <tr>
-          <td><code>${ATCA.utils.escHtml(r.doc_number)}</code></td>
-          <td>${ATCA.utils.escHtml(r.title)}</td>
-          <td><span class="badge bg-secondary">${ATCA.utils.escHtml(r.category_code)}</span></td>
-          <td>${ATCA.utils.escHtml(r.revision_no || '—')}</td>
-          <td>${ATCA.utils.statusBadge(r.revision_status || 'NO REV')}</td>
-          <td>${r.review_due_date ? ATCA.utils.fmtDate(r.review_due_date) : '—'}</td>
-          <td><a href="/modules/mod02-doc-control/revision.html?id=${r.document_id}" class="btn btn-sm btn-outline-primary">Open</a></td>
+          <td><a href="documents.html"><code>${esc(r.doc_number)}</code></a></td>
+          <td>${esc(r.title)}</td>
+          <td><span class="badge bg-secondary">${esc(r.category)}</span></td>
+          <td>${esc(r.current_revision||'—')}</td>
+          <td>${docStatusBadge(r.status)}</td>
+          <td>${esc(r.owner_name||'—')}</td>
+          <td>${fmtDate(r.effective_date)}</td>
+          <td>${fmtDate(r.review_due_date)}</td>
         </tr>`).join('');
-    } catch(e) {
-      document.getElementById('action-tbody').innerHTML = '<tr><td colspan="7" class="text-danger py-2">Error loading data</td></tr>';
     }
+  } catch(e) {
+    document.getElementById('recent-tbody').innerHTML =
+      '<tr><td colspan="8" class="text-danger py-2 px-3">Error loading documents</td></tr>';
   }
-
-  // Load recently updated documents
-  async function loadRecent() {
-    try {
-      const res = await ATCA.api.get('/mod02/documents?limit=8');
-      const rows = res.rows || [];
-      const tbody = document.getElementById('recent-tbody');
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No documents registered yet</td></tr>';
-        return;
-      }
-      tbody.innerHTML = rows.map(r => `
-        <tr>
-          <td><a href="/modules/mod02-doc-control/revision.html?id=${r.document_id}"><code>${ATCA.utils.escHtml(r.doc_number)}</code></a></td>
-          <td>${ATCA.utils.escHtml(r.title)}</td>
-          <td><span class="badge bg-secondary">${ATCA.utils.escHtml(r.category_code)}</span></td>
-          <td>${ATCA.utils.escHtml(r.revision_no || '—')}</td>
-          <td>${ATCA.utils.statusBadge(r.revision_status || 'NO REV')}</td>
-          <td>${ATCA.utils.escHtml(r.approved_by_name || '—')}</td>
-          <td>${r.effective_date ? ATCA.utils.fmtDate(r.effective_date) : '—'}</td>
-        </tr>`).join('');
-    } catch(e) {
-      document.getElementById('recent-tbody').innerHTML = '<tr><td colspan="7" class="text-danger py-2">Error loading data</td></tr>';
-    }
-  }
-
-  // Load categories for new doc modal
-  async function loadCategories() {
-    try {
-      const cats = await ATCA.api.get('/mod02/documents/categories');
-      const sel = document.getElementById('f-category');
-      cats.forEach(c => {
-        const o = document.createElement('option');
-        o.value = c.category_id;
-        o.textContent = `${c.code} — ${c.name}`;
-        sel.appendChild(o);
-      });
-    } catch(e) {}
-  }
-
-  loadKPIs();
-  loadActionDocs();
-  loadRecent();
-  loadCategories();
 
   // New doc modal
-  const modalEl = document.getElementById('modalNewDoc');
-  const modal = new bootstrap.Modal(modalEl);
+  const modal = new bootstrap.Modal(document.getElementById('modalNewDoc'));
   document.getElementById('btn-new-doc').addEventListener('click', () => modal.show());
-
   document.getElementById('btn-save-doc').addEventListener('click', async () => {
-    const errEl = document.getElementById('form-error');
-    errEl.classList.add('d-none');
+    const err = document.getElementById('form-error');
+    err.classList.add('d-none');
     const body = {
-      doc_number:     document.getElementById('f-doc-number').value.trim(),
-      title:          document.getElementById('f-title').value.trim(),
-      category_id:    document.getElementById('f-category').value,
-      process_area:   document.getElementById('f-process-area').value || null,
-      retention_years:document.getElementById('f-retention').value,
-      is_controlled:  document.getElementById('f-controlled').checked,
+      doc_number:   document.getElementById('f-doc-number').value.trim(),
+      title:        document.getElementById('f-title').value.trim(),
+      category_id:  document.getElementById('f-category').value,
+      process_area: document.getElementById('f-process-area').value || null,
+      retention_years: +document.getElementById('f-retention').value,
     };
     if (!body.doc_number || !body.title || !body.category_id) {
-      errEl.textContent = 'Document number, title, and category are required.';
-      errEl.classList.remove('d-none');
-      return;
+      err.textContent = 'Document number, title and category are required.';
+      err.classList.remove('d-none'); return;
     }
     try {
-      const r = await ATCA.api.post('/mod02/documents', body);
+      await ATCA.api.post('/mod02/documents', body);
       modal.hide();
-      ATCA.utils.toast('Document registered successfully.', 'success');
-      setTimeout(() => window.location.href = `/modules/mod02-doc-control/revision.html?id=${r.document_id}`, 800);
+      window.location.reload();
     } catch(e) {
-      errEl.textContent = e.message || 'Error registering document.';
-      errEl.classList.remove('d-none');
+      err.textContent = e.message || 'Error registering document.';
+      err.classList.remove('d-none');
     }
   });
 })();
