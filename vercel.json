@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": "src/frontend",
+  "rewrites": [
+    { "source": "/login",  "destination": "/login.html"  },
+    { "source": "/logout", "destination": "/api/v1/auth/logout" }
+  ]
+}

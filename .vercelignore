@@ -1,0 +1,12 @@
+# Exclude backend source and DB migrations (not needed for Vercel preview)
+src/backend/
+database/
+
+# Python preview server (replaced by Vercel serverless functions)
+preview_server.py
+
+# Dev tooling
+node_modules/
+.env
+.claude/
+MEMORY.md
