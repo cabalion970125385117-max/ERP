@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment secrets — copy .env.example to .env and fill in locally
+.env
+
+# Runtime / OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Session store (if file-based in dev)
+sessions/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Build output (if any)
+dist/
+build/

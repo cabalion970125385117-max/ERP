@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-04: Personnel & NAS410 Certifications
+  NAS410 Rev 5B | EN4179 | AS9100D §7.2 | NADCAP AC7114 §7
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Personnel / NAS410 — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"    class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"    class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"       class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi/"         class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-personnel/"   class="nav-link active"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment/"   class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath/"        class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod13-traveler/"    class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"         class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"   class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-users/"       class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-person-badge me-1"></i>MOD-04 — Personnel &amp; NAS410 Certifications</p>
+      <p class="topbar-subtitle mb-0">NAS410 Rev 5B · EN4179 | AS9100D §7.2 | NADCAP AC7114 §7</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-04 Personnel / NAS410</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card rag-green" id="kpi-active-personnel">
+        <div class="kpi-label">Active Personnel</div>
+        <div class="kpi-value" id="val-active-personnel">—</div>
+        <div class="kpi-sub">NDT qualified staff</div>
+      </div>
+      <div class="kpi-card" id="kpi-certs-expiring">
+        <div class="kpi-label">Certs Expiring &lt;90 days</div>
+        <div class="kpi-value" id="val-certs-expiring">—</div>
+        <div class="kpi-sub">Renewal action required</div>
+      </div>
+      <div class="kpi-card" id="kpi-certs-expired">
+        <div class="kpi-label">Expired Certs</div>
+        <div class="kpi-value" id="val-certs-expired">—</div>
+        <div class="kpi-sub">Immediate action required</div>
+      </div>
+      <div class="kpi-card" id="kpi-eye-expiring">
+        <div class="kpi-label">Eye Exams &lt;60 days</div>
+        <div class="kpi-value" id="val-eye-expiring">—</div>
+        <div class="kpi-sub">NAS410 §9.3 — annual exam</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="personnel-tabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" id="tab-personnel" data-bs-toggle="tab" data-bs-target="#pane-personnel" type="button">
+          <i class="bi bi-people me-1"></i>Personnel
+          <span class="badge bg-secondary ms-1" id="personnel-count-badge"></span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="tab-certs" data-bs-toggle="tab" data-bs-target="#pane-certs" type="button">
+          <i class="bi bi-patch-check me-1"></i>NAS410 Certifications
+          <span class="badge bg-warning text-dark ms-1" id="certs-alert-badge" style="display:none;"></span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="tab-eye" data-bs-toggle="tab" data-bs-target="#pane-eye" type="button">
+          <i class="bi bi-eye me-1"></i>Eye Exam Log
+          <span class="badge bg-warning text-dark ms-1" id="eye-alert-badge" style="display:none;"></span>
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ═══ PERSONNEL PANE ═══ -->
+      <div class="tab-pane fade show active" id="pane-personnel">
+        <div class="atca-card">
+          <div class="atca-card-header">
+            <span class="module-badge">§7.2</span>
+            <h5>NDT Personnel Register</h5>
+            <div class="ms-auto d-flex gap-2 align-items-center">
+              <select class="form-select form-select-sm" id="f-desig" style="width:160px;" title="Filter by designation">
+                <option value="">All Designations</option>
+                <option value="LEVEL_1">Level I</option>
+                <option value="LEVEL_2">Level II</option>
+                <option value="LEVEL_3">Level III</option>
+                <option value="TRAINEE">Trainee</option>
+                <option value="SUPERVISOR">Supervisor</option>
+                <option value="ADMIN_STAFF">Admin Staff</option>
+              </select>
+              <button class="btn btn-sm btn-atca-primary" id="btn-new-personnel" title="Add new personnel (SUPERVISOR+)">
+                <i class="bi bi-person-plus me-1"></i>Add Personnel
+              </button>
+            </div>
+          </div>
+          <div class="atca-card-body p-0">
+            <table class="atca-table">
+              <thead>
+                <tr>
+                  <th>Employee ID</th>
+                  <th>Name</th>
+                  <th>Designation</th>
+                  <th>Employment</th>
+                  <th>Active Certs</th>
+                  <th>Eye Exam Expiry</th>
+                  <th>Eye Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="personnel-tbody">
+                <tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CERTIFICATIONS PANE ═══ -->
+      <div class="tab-pane fade" id="pane-certs">
+        <div class="atca-card">
+          <div class="atca-card-header">
+            <span class="module-badge">NAS410</span>
+            <h5>NDT Certification Records</h5>
+            <div class="ms-auto d-flex gap-2 align-items-center flex-wrap">
+              <select class="form-select form-select-sm" id="f-cert-method" style="width:100px;">
+                <option value="">All Methods</option>
+                <option value="PT">PT</option>
+                <option value="MT">MT</option>
+                <option value="ET">ET</option>
+                <option value="UT">UT</option>
+                <option value="VT">VT</option>
+                <option value="RT">RT</option>
+              </select>
+              <select class="form-select form-select-sm" id="f-cert-level" style="width:110px;">
+                <option value="">All Levels</option>
+                <option value="I">Level I</option>
+                <option value="II">Level II</option>
+                <option value="III">Level III</option>
+                <option value="TRAINEE">Trainee</option>
+              </select>
+              <select class="form-select form-select-sm" id="f-cert-status" style="width:110px;">
+                <option value="">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="EXPIRED">Expired</option>
+                <option value="SUSPENDED">Suspended</option>
+              </select>
+              <button class="btn btn-sm btn-atca-primary" id="btn-new-cert" title="Record new certification (SUPERVISOR+)">
+                <i class="bi bi-plus-lg me-1"></i>Record Cert
+              </button>
+            </div>
+          </div>
+          <div class="atca-card-body p-0">
+            <table class="atca-table">
+              <thead>
+                <tr>
+                  <th>Personnel</th>
+                  <th>Method</th>
+                  <th>Level</th>
+                  <th>Scheme</th>
+                  <th>Cert No.</th>
+                  <th>Issuing Authority</th>
+                  <th>Issue Date</th>
+                  <th>Expiry Date</th>
+                  <th>Days Left</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="certs-tbody">
+                <tr><td colspan="11" class="text-center text-muted py-3">Loading…</td></tr>
+              </tbody>
+            </table>
+            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top">
+              <div class="text-muted small" id="certs-page-info"></div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="certs-prev" disabled><i class="bi bi-chevron-left"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" id="certs-next" disabled>Next <i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ EYE EXAM PANE ═══ -->
+      <div class="tab-pane fade" id="pane-eye">
+        <div class="atca-card">
+          <div class="atca-card-header">
+            <span class="module-badge">§9.3</span>
+            <h5>Eye Examination Log</h5>
+            <div class="ms-auto d-flex gap-2 align-items-center">
+              <select class="form-select form-select-sm" id="f-eye-personnel" style="width:180px;">
+                <option value="">All Personnel</option>
+              </select>
+              <button class="btn btn-sm btn-atca-primary" id="btn-new-eye" title="Record eye exam (SUPERVISOR+)">
+                <i class="bi bi-plus-lg me-1"></i>Record Eye Exam
+              </button>
+            </div>
+          </div>
+          <div class="atca-card-body p-0">
+            <table class="atca-table">
+              <thead>
+                <tr>
+                  <th>Personnel</th>
+                  <th>Exam Date</th>
+                  <th>Near Vision</th>
+                  <th>Colour Vision</th>
+                  <th>Overall Result</th>
+                  <th>Expiry Date</th>
+                  <th>Days Remaining</th>
+                  <th>Examiner</th>
+                </tr>
+              </thead>
+              <tbody id="eye-tbody">
+                <tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr>
+              </tbody>
+            </table>
+            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top">
+              <div class="text-muted small" id="eye-page-info"></div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="eye-prev" disabled><i class="bi bi-chevron-left"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" id="eye-next" disabled>Next <i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-content -->
+  </main>
+</div>
+
+<!-- ═════════════════════════════════════════════
+     MODAL: ADD PERSONNEL
+═════════════════════════════════════════════ -->
+<div class="modal fade" id="modalNewPersonnel" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Add NDT Personnel</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="personnel-form-error" class="alert alert-danger d-none"></div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Employee ID <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="p-empid" placeholder="ATCA-001">
+          </div>
+          <div class="col-md-8">
+            <label class="form-label atca-field-label">Full Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="p-name" placeholder="e.g. James Tan Wei Liang">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Designation <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="p-desig">
+              <option value="LEVEL_1">NDT Level I</option>
+              <option value="LEVEL_2">NDT Level II</option>
+              <option value="LEVEL_3">NDT Level III</option>
+              <option value="TRAINEE">Trainee</option>
+              <option value="SUPERVISOR">Supervisor</option>
+              <option value="ADMIN_STAFF">Admin Staff</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Employment Type</label>
+            <select class="form-select form-select-sm" id="p-emp-type">
+              <option value="PERMANENT">Permanent</option>
+              <option value="CONTRACT">Contract</option>
+              <option value="TRAINEE">Trainee</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Date Joined</label>
+            <input type="date" class="form-control form-control-sm" id="p-joined">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label atca-field-label">NDT Org Role</label>
+            <input type="text" class="form-control form-control-sm" id="p-role" placeholder="e.g. FPI Inspector, Level II">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label atca-field-label">Authorised Methods</label>
+            <input type="text" class="form-control form-control-sm" id="p-methods" placeholder="e.g. PT, MT, ET">
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Notes</label>
+            <textarea class="form-control form-control-sm" id="p-notes" rows="2" placeholder="Any additional information…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary" id="btn-save-personnel">Add Personnel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════
+     MODAL: RECORD CERTIFICATION
+═════════════════════════════════════════════ -->
+<div class="modal fade" id="modalNewCert" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-patch-check me-2"></i>Record NAS410 Certification</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="cert-form-error" class="alert alert-danger d-none"></div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label atca-field-label">Personnel <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="c-personnel-id">
+              <option value="">Select personnel…</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label atca-field-label">Method <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="c-method">
+              <option value="PT">PT — Penetrant</option>
+              <option value="MT">MT — Magnetic Particle</option>
+              <option value="ET">ET — Eddy Current</option>
+              <option value="UT">UT — Ultrasonic</option>
+              <option value="VT">VT — Visual</option>
+              <option value="RT">RT — Radiographic</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label atca-field-label">NDT Level <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="c-level">
+              <option value="I">Level I</option>
+              <option value="II">Level II</option>
+              <option value="III">Level III</option>
+              <option value="TRAINEE">Trainee</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Cert Scheme</label>
+            <select class="form-select form-select-sm" id="c-scheme">
+              <option value="NAS410">NAS410</option>
+              <option value="EN4179">EN4179</option>
+              <option value="ASNT">ASNT SNT-TC-1A</option>
+              <option value="CSWIP">CSWIP</option>
+              <option value="PCN">PCN</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Certificate Number</label>
+            <input type="text" class="form-control form-control-sm" id="c-certno" placeholder="e.g. ATCA-PT-II-0001">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Issuing Authority</label>
+            <input type="text" class="form-control form-control-sm" id="c-issuer" placeholder="e.g. ATCA QA Manager">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Issue Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control form-control-sm" id="c-issue-date">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Expiry Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control form-control-sm" id="c-expiry-date">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Vision Exam Due</label>
+            <input type="date" class="form-control form-control-sm" id="c-vision-due" readonly
+              title="Auto-calculated as issue date + 12 months (NAS410 §9.3)">
+            <div class="form-text">Auto-calculated from issue date</div>
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Notes</label>
+            <textarea class="form-control form-control-sm" id="c-notes" rows="2" placeholder="Training records, examination scores, conditions…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary" id="btn-save-cert">Record Certification</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════
+     MODAL: RECORD EYE EXAM
+═════════════════════════════════════════════ -->
+<div class="modal fade" id="modalNewEye" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Record Eye Examination</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="eye-form-error" class="alert alert-danger d-none"></div>
+        <div class="alert alert-info py-2 mb-3" style="font-size:0.8rem;">
+          <i class="bi bi-info-circle me-1"></i>
+          <strong>NAS410 §9.3:</strong> All NDT personnel must have annual vision examination. Near vision: Jaeger J1 or equivalent at reading distance. Colour vision: Ishihara test or equivalent.
+        </div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label atca-field-label">Personnel <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="e-personnel-id">
+              <option value="">Select personnel…</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label atca-field-label">Exam Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control form-control-sm" id="e-date">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label atca-field-label">Expiry Date</label>
+            <input type="date" class="form-control form-control-sm" id="e-expiry" readonly>
+            <div class="form-text">Auto: exam date + 12 months</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Near Vision</label>
+            <select class="form-select form-select-sm" id="e-near">
+              <option value="J1">J1 (Pass)</option>
+              <option value="J2">J2 (Marginal)</option>
+              <option value="J3">J3 (Fail)</option>
+              <option value="FAIL">FAIL</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Colour Vision</label>
+            <select class="form-select form-select-sm" id="e-colour">
+              <option value="PASS">Pass</option>
+              <option value="FAIL">Fail</option>
+              <option value="WAIVED">Waived</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Overall Result</label>
+            <select class="form-select form-select-sm" id="e-result">
+              <option value="PASS">PASS</option>
+              <option value="FAIL">FAIL</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Examiner</label>
+            <input type="text" class="form-control form-control-sm" id="e-examiner" placeholder="Name of examining physician or optician">
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Notes</label>
+            <textarea class="form-control form-control-sm" id="e-notes" rows="2" placeholder="Any remarks, waivers, or conditions…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary" id="btn-save-eye">Record Exam</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════════════════════════════════
+     MODAL: PERSONNEL DETAIL
+═════════════════════════════════════════════ -->
+<div class="modal fade" id="modalPersonnelDetail" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-badge me-2"></i>Personnel Record</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="personnel-detail-body">
+        <p class="text-center text-muted py-4">Loading…</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6></div>
+      <div class="modal-body text-center py-3">
+        <p class="mb-1">Your session expires in <strong id="timeout-countdown">5:00</strong></p>
+        <p class="text-muted" style="font-size:0.75rem;">Click to stay logged in.</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+'use strict';
+
+const PAGE_CERTS = 50;
+const PAGE_EYE   = 50;
+
+let certsOffset = 0, certsTotal = 0;
+let eyeOffset   = 0, eyeTotal   = 0;
+
+/* ─── Modals ─── */
+const mNewPersonnel = new bootstrap.Modal(document.getElementById('modalNewPersonnel'));
+const mNewCert      = new bootstrap.Modal(document.getElementById('modalNewCert'));
+const mNewEye       = new bootstrap.Modal(document.getElementById('modalNewEye'));
+const mDetail       = new bootstrap.Modal(document.getElementById('modalPersonnelDetail'));
+
+/* ─── Helpers ─── */
+const esc = ATCA.utils.escHtml;
+const fmtD = ATCA.utils.fmtDate;
+
+function eyeRagClass(days) {
+  if (days === null || days === undefined) return '';
+  if (days < 0)  return 'rag-red';
+  if (days <= 60) return 'rag-amber';
+  return 'rag-green';
+}
+
+function certRagClass(days) {
+  if (days === null || days === undefined) return '';
+  if (days < 0)  return 'text-danger fw-semibold';
+  if (days <= 90) return 'text-warning fw-semibold';
+  return 'text-success';
+}
+
+function certStatusBadge(status) {
+  const map = {
+    ACTIVE:    'bg-success',
+    EXPIRED:   'bg-danger',
+    SUSPENDED: 'bg-warning text-dark',
+    REVOKED:   'bg-dark',
+    PENDING:   'bg-secondary',
+  };
+  return `<span class="badge ${map[status] || 'bg-secondary'}">${esc(status)}</span>`;
+}
+
+function eyeResultBadge(result) {
+  return result === 'PASS'
+    ? '<span class="badge bg-success">PASS</span>'
+    : '<span class="badge bg-danger">FAIL</span>';
+}
+
+function designationLabel(d) {
+  const map = {
+    LEVEL_1: 'Level I', LEVEL_2: 'Level II', LEVEL_3: 'Level III',
+    TRAINEE: 'Trainee', SUPERVISOR: 'Supervisor', ADMIN_STAFF: 'Admin',
+  };
+  return map[d] || d;
+}
+
+/* ─── Alerts / KPIs ─── */
+async function loadAlerts() {
+  const d = await ATCA.api.get('/mod04/alerts/summary');
+  if (!d) return;
+
+  document.getElementById('val-certs-expiring').textContent = d.certs_expiring_90d ?? '—';
+  document.getElementById('val-certs-expired').textContent  = d.expired_certs ?? '—';
+  document.getElementById('val-eye-expiring').textContent   = d.eye_expiring_60d ?? '—';
+
+  const kpiCertsExp  = document.getElementById('kpi-certs-expiring');
+  const kpiCertsOvr  = document.getElementById('kpi-certs-expired');
+  const kpiEyeExp    = document.getElementById('kpi-eye-expiring');
+
+  kpiCertsExp.className = `kpi-card ${d.certs_expiring_90d === 0 ? 'rag-green' : 'rag-amber'}`;
+  kpiCertsOvr.className = `kpi-card ${d.expired_certs === 0 ? 'rag-green' : 'rag-red'}`;
+  kpiEyeExp.className   = `kpi-card ${d.eye_expiring_60d === 0 ? 'rag-green' : 'rag-amber'}`;
+
+  // Show alert badges on cert/eye tabs
+  if (d.certs_expiring_90d > 0 || d.expired_certs > 0) {
+    const b = document.getElementById('certs-alert-badge');
+    b.textContent = d.certs_expiring_90d + d.expired_certs;
+    b.style.display = '';
+  }
+  if (d.eye_expiring_60d > 0) {
+    const b = document.getElementById('eye-alert-badge');
+    b.textContent = d.eye_expiring_60d;
+    b.style.display = '';
+  }
+}
+
+/* ─── Personnel List ─── */
+async function loadPersonnel() {
+  const desig = document.getElementById('f-desig').value;
+  const params = new URLSearchParams();
+  if (desig) params.set('designation', desig);
+
+  const d = await ATCA.api.get(`/mod04/personnel?${params}`);
+  if (!d) return;
+
+  document.getElementById('personnel-count-badge').textContent = d.total;
+  document.getElementById('val-active-personnel').textContent  = d.total;
+
+  ATCA.table.render('personnel-tbody', d.items, p => {
+    const eyeDays   = p.eye_days_remaining;
+    const eyeCls    = eyeRagClass(eyeDays);
+    const eyeExpiry = p.eye_exam_expiry ? fmtD(p.eye_exam_expiry) : '—';
+    const eyeStr    = eyeDays !== null && eyeDays !== undefined
+      ? `${eyeDays < 0 ? '<span class="text-danger">' : ''}${Math.abs(eyeDays)}d${eyeDays < 0 ? ' overdue</span>' : ' left'}`
+      : '<span class="text-muted">No exam</span>';
+
+    return `
+    <tr class="${eyeCls}" style="background:transparent;">
+      <td><code>${esc(p.employee_id)}</code></td>
+      <td><strong>${esc(p.full_name)}</strong></td>
+      <td><span class="badge bg-secondary">${esc(designationLabel(p.designation))}</span></td>
+      <td>${esc(p.employment_type)}</td>
+      <td class="text-center">
+        ${p.active_certs > 0
+          ? `<span class="badge bg-success">${p.active_certs}</span>`
+          : '<span class="badge bg-warning text-dark">0</span>'}
+      </td>
+      <td>${eyeExpiry}</td>
+      <td>${eyeStr}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary btn-view-personnel" data-id="${p.personnel_id}">View</button>
+      </td>
+    </tr>`;
+  });
+
+  document.querySelectorAll('.btn-view-personnel').forEach(btn =>
+    btn.addEventListener('click', () => openPersonnelDetail(parseInt(btn.dataset.id))));
+}
+
+/* ─── Certifications List ─── */
+async function loadCerts() {
+  const method = document.getElementById('f-cert-method').value;
+  const level  = document.getElementById('f-cert-level').value;
+  const status = document.getElementById('f-cert-status').value;
+
+  const params = new URLSearchParams({ limit: PAGE_CERTS, offset: certsOffset });
+  if (method) params.set('method', method);
+  if (level)  params.set('ndt_level', level);
+  if (status) params.set('status', status);
+
+  const d = await ATCA.api.get(`/mod04/certifications?${params}`);
+  if (!d) return;
+  certsTotal = d.total;
+
+  const start = certsOffset + 1;
+  const end   = Math.min(certsOffset + PAGE_CERTS, certsTotal);
+  document.getElementById('certs-page-info').textContent =
+    certsTotal === 0 ? 'No certifications found' : `Showing ${start}–${end} of ${certsTotal}`;
+  document.getElementById('certs-prev').disabled = certsOffset === 0;
+  document.getElementById('certs-next').disabled = certsOffset + PAGE_CERTS >= certsTotal;
+
+  ATCA.table.render('certs-tbody', d.items, c => {
+    const days    = c.days_until_expiry;
+    const dayCls  = certRagClass(days);
+    const dayStr  = days !== null && days !== undefined
+      ? `<span class="${dayCls}">${days < 0 ? `${Math.abs(days)}d OVERDUE` : `${days}d`}</span>`
+      : '—';
+
+    return `
+    <tr>
+      <td>${esc(c.personnel_name)}<br><small class="text-muted">${esc(c.employee_id)}</small></td>
+      <td><span class="badge bg-primary">${esc(c.method)}</span></td>
+      <td><span class="badge bg-dark">${esc(c.ndt_level)}</span></td>
+      <td>${esc(c.cert_scheme)}</td>
+      <td><small>${esc(c.cert_number || '—')}</small></td>
+      <td>${esc(c.issuing_authority || '—')}</td>
+      <td>${fmtD(c.issue_date)}</td>
+      <td>${fmtD(c.expiry_date)}</td>
+      <td>${dayStr}</td>
+      <td>${certStatusBadge(c.status)}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary btn-edit-cert" data-id="${c.cert_id}" title="Edit certification">
+          <i class="bi bi-pencil"></i>
+        </button>
+      </td>
+    </tr>`;
+  });
+
+  document.querySelectorAll('.btn-edit-cert').forEach(btn =>
+    btn.addEventListener('click', () => ATCA.utils.toast(`Cert edit — next build. ID: ${btn.dataset.id}`, 'info')));
+}
+
+/* ─── Eye Exam Log ─── */
+let allEyeRecords = []; // cache all personnel eye exams
+
+async function loadEyeExams() {
+  const pid = document.getElementById('f-eye-personnel').value;
+  // Eye exams are fetched per-personnel or via a combined view
+  // We'll load all personnel and their latest eye exam from personnel list
+  const params = new URLSearchParams();
+
+  // Use personnel list and expand — or call per-person if filter set
+  const d = await ATCA.api.get('/mod04/personnel');
+  if (!d) return;
+
+  // Build combined eye exam list from personnel data
+  const rows = d.items
+    .filter(p => p.eye_exam_date) // only those who have exams
+    .filter(p => !pid || String(p.personnel_id) === pid);
+
+  eyeTotal = rows.length;
+  const slice = rows.slice(eyeOffset, eyeOffset + PAGE_EYE);
+
+  const start = eyeOffset + 1;
+  const end   = Math.min(eyeOffset + PAGE_EYE, eyeTotal);
+  document.getElementById('eye-page-info').textContent =
+    eyeTotal === 0 ? 'No eye exams recorded' : `Showing ${start}–${end} of ${eyeTotal}`;
+  document.getElementById('eye-prev').disabled = eyeOffset === 0;
+  document.getElementById('eye-next').disabled = eyeOffset + PAGE_EYE >= eyeTotal;
+
+  ATCA.table.render('eye-tbody', slice, p => {
+    const days   = p.eye_days_remaining;
+    const dayCls = certRagClass(days);
+    const dayStr = days !== null && days !== undefined
+      ? `<span class="${dayCls}">${days < 0 ? `${Math.abs(days)}d OVERDUE` : `${days}d`}</span>`
+      : '—';
+    const res    = p.eye_exam_result;
+
+    return `
+    <tr>
+      <td><strong>${esc(p.full_name)}</strong><br><small class="text-muted">${esc(p.employee_id)}</small></td>
+      <td>${fmtD(p.eye_exam_date)}</td>
+      <td>—</td>
+      <td>—</td>
+      <td>${res ? eyeResultBadge(res) : '—'}</td>
+      <td>${p.eye_exam_expiry ? fmtD(p.eye_exam_expiry) : '—'}</td>
+      <td>${dayStr}</td>
+      <td>—</td>
+    </tr>`;
+  });
+}
+
+/* ─── Personnel Detail Modal ─── */
+async function openPersonnelDetail(id) {
+  document.getElementById('personnel-detail-body').innerHTML =
+    '<p class="text-center text-muted py-4"><i class="bi bi-arrow-repeat"></i> Loading…</p>';
+  mDetail.show();
+
+  const p = await ATCA.api.get(`/mod04/personnel/${id}`);
+  if (!p) {
+    document.getElementById('personnel-detail-body').innerHTML =
+      '<div class="alert alert-danger m-3">Failed to load personnel record.</div>';
+    return;
+  }
+
+  const certsHtml = (p.certifications || []).map(c => {
+    const days = ATCA.utils.daysUntil(c.expiry_date);
+    return `
+    <tr>
+      <td><span class="badge bg-primary">${esc(c.method)}</span></td>
+      <td>${esc(c.ndt_level)}</td>
+      <td>${esc(c.cert_scheme)}</td>
+      <td>${esc(c.cert_number || '—')}</td>
+      <td>${fmtD(c.issue_date)}</td>
+      <td>${fmtD(c.expiry_date)}</td>
+      <td><span class="${certRagClass(days)}">${days !== null ? (days < 0 ? `${Math.abs(days)}d OVR` : `${days}d`) : '—'}</span></td>
+      <td>${certStatusBadge(c.status)}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" class="text-muted text-center">No certifications on file.</td></tr>';
+
+  const eyeHtml = (p.eye_exams || []).slice(0, 5).map(e => `
+    <tr>
+      <td>${fmtD(e.exam_date)}</td>
+      <td>${esc(e.near_vision || '—')}</td>
+      <td>${esc(e.colour_vision || '—')}</td>
+      <td>${e.result ? eyeResultBadge(e.result) : '—'}</td>
+      <td>${fmtD(e.expiry_date)}</td>
+    </tr>`).join('') || '<tr><td colspan="5" class="text-muted text-center">No eye exams recorded.</td></tr>';
+
+  const trainRows = (p.training_summary || []).map(t =>
+    `<tr><td>${esc(t.method)}</td><td>${esc(t.training_type)}</td><td>${t.total_hours}h</td><td>${t.sessions}</td></tr>`
+  ).join('') || '<tr><td colspan="4" class="text-muted text-center">No training records.</td></tr>';
+
+  document.getElementById('personnel-detail-body').innerHTML = `
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="fw-semibold text-muted" style="font-size:0.7rem;">EMPLOYEE ID</div>
+        <div><code>${esc(p.employee_id)}</code></div>
+      </div>
+      <div class="col-md-5">
+        <div class="fw-semibold text-muted" style="font-size:0.7rem;">FULL NAME</div>
+        <div class="fw-bold">${esc(p.full_name)}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="fw-semibold text-muted" style="font-size:0.7rem;">DESIGNATION</div>
+        <div>${esc(designationLabel(p.designation))}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="fw-semibold text-muted" style="font-size:0.7rem;">NDT ORG ROLE</div>
+        <div>${esc(p.ndt_org_role || '—')}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="fw-semibold text-muted" style="font-size:0.7rem;">AUTHORISED METHODS</div>
+        <div>${esc(p.authorised_methods || '—')}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="fw-semibold text-muted" style="font-size:0.7rem;">DATE JOINED</div>
+        <div>${fmtD(p.date_joined)}</div>
+      </div>
+    </div>
+
+    <h6 class="border-bottom pb-1 mb-2"><i class="bi bi-patch-check me-1"></i>NAS410 Certifications</h6>
+    <div class="table-responsive mb-3">
+      <table class="atca-table">
+        <thead><tr><th>Method</th><th>Level</th><th>Scheme</th><th>Cert No.</th><th>Issued</th><th>Expiry</th><th>Days</th><th>Status</th></tr></thead>
+        <tbody>${certsHtml}</tbody>
+      </table>
+    </div>
+
+    <h6 class="border-bottom pb-1 mb-2"><i class="bi bi-eye me-1"></i>Eye Examination History</h6>
+    <div class="table-responsive mb-3">
+      <table class="atca-table">
+        <thead><tr><th>Exam Date</th><th>Near Vision</th><th>Colour Vision</th><th>Result</th><th>Expiry</th></tr></thead>
+        <tbody>${eyeHtml}</tbody>
+      </table>
+    </div>
+
+    <h6 class="border-bottom pb-1 mb-2"><i class="bi bi-journal-bookmark me-1"></i>Training Summary</h6>
+    <div class="table-responsive">
+      <table class="atca-table">
+        <thead><tr><th>Method</th><th>Type</th><th>Total Hours</th><th>Sessions</th></tr></thead>
+        <tbody>${trainRows}</tbody>
+      </table>
+    </div>`;
+}
+
+/* ─── Populate Personnel Dropdowns ─── */
+async function populatePersonnelDropdowns() {
+  const d = await ATCA.api.get('/mod04/personnel');
+  if (!d) return;
+
+  const makeOptions = items => items.map(p =>
+    `<option value="${p.personnel_id}">${esc(p.full_name)} (${esc(p.employee_id)})</option>`
+  ).join('');
+
+  ['c-personnel-id', 'e-personnel-id'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.insertAdjacentHTML('beforeend', makeOptions(d.items));
+  });
+
+  // Eye exam filter
+  const eyeSel = document.getElementById('f-eye-personnel');
+  eyeSel.insertAdjacentHTML('beforeend', makeOptions(d.items));
+}
+
+/* ─── SAVE: New Personnel ─── */
+document.getElementById('btn-save-personnel').addEventListener('click', async () => {
+  const err = document.getElementById('personnel-form-error');
+  err.classList.add('d-none');
+
+  const body = {
+    employee_id:    document.getElementById('p-empid').value.trim(),
+    full_name:      document.getElementById('p-name').value.trim(),
+    designation:    document.getElementById('p-desig').value,
+    employment_type: document.getElementById('p-emp-type').value,
+    date_joined:    document.getElementById('p-joined').value || null,
+    ndt_org_role:   document.getElementById('p-role').value.trim() || null,
+    authorised_methods: document.getElementById('p-methods').value.trim() || null,
+    notes:          document.getElementById('p-notes').value.trim() || null,
+  };
+
+  if (!body.employee_id || !body.full_name) {
+    err.textContent = 'Employee ID and Full Name are required.';
+    err.classList.remove('d-none');
+    return;
+  }
+
+  const btn = document.getElementById('btn-save-personnel');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const r = await ATCA.api.post('/mod04/personnel', body);
+  btn.disabled = false; btn.textContent = 'Add Personnel';
+
+  if (r && r.personnel_id) {
+    mNewPersonnel.hide();
+    ATCA.utils.toast(`Personnel added: ${body.full_name}`, 'success');
+    document.getElementById('p-empid').value = '';
+    document.getElementById('p-name').value  = '';
+    document.getElementById('p-notes').value = '';
+    document.getElementById('p-role').value  = '';
+    document.getElementById('p-methods').value = '';
+    loadPersonnel();
+    populatePersonnelDropdowns(); // refresh dropdowns
+  } else {
+    err.textContent = r?.message || 'Failed to add personnel.';
+    err.classList.remove('d-none');
+  }
+});
+
+/* ─── Auto-compute vision_exam_due when issue_date changes ─── */
+document.getElementById('c-issue-date').addEventListener('change', function () {
+  const d = new Date(this.value);
+  if (isNaN(d.getTime())) return;
+  d.setFullYear(d.getFullYear() + 1);
+  document.getElementById('c-vision-due').value = d.toISOString().split('T')[0];
+});
+
+/* ─── SAVE: New Certification ─── */
+document.getElementById('btn-save-cert').addEventListener('click', async () => {
+  const err = document.getElementById('cert-form-error');
+  err.classList.add('d-none');
+
+  const body = {
+    personnel_id:      document.getElementById('c-personnel-id').value,
+    method:            document.getElementById('c-method').value,
+    ndt_level:         document.getElementById('c-level').value,
+    cert_scheme:       document.getElementById('c-scheme').value,
+    cert_number:       document.getElementById('c-certno').value.trim() || null,
+    issuing_authority: document.getElementById('c-issuer').value.trim() || null,
+    issue_date:        document.getElementById('c-issue-date').value,
+    expiry_date:       document.getElementById('c-expiry-date').value,
+    notes:             document.getElementById('c-notes').value.trim() || null,
+  };
+
+  if (!body.personnel_id || !body.issue_date || !body.expiry_date) {
+    err.textContent = 'Personnel, Issue Date, and Expiry Date are required.';
+    err.classList.remove('d-none');
+    return;
+  }
+
+  const btn = document.getElementById('btn-save-cert');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const r = await ATCA.api.post('/mod04/certifications', body);
+  btn.disabled = false; btn.textContent = 'Record Certification';
+
+  if (r && r.cert_id) {
+    mNewCert.hide();
+    ATCA.utils.toast(`Certification recorded (ID: ${r.cert_id})`, 'success');
+    loadCerts();
+    loadAlerts();
+  } else {
+    err.textContent = r?.message || 'Failed to record certification.';
+    err.classList.remove('d-none');
+  }
+});
+
+/* ─── Auto-compute eye exam expiry ─── */
+document.getElementById('e-date').addEventListener('change', function () {
+  const d = new Date(this.value);
+  if (isNaN(d.getTime())) return;
+  d.setFullYear(d.getFullYear() + 1);
+  document.getElementById('e-expiry').value = d.toISOString().split('T')[0];
+});
+
+/* ─── SAVE: New Eye Exam ─── */
+document.getElementById('btn-save-eye').addEventListener('click', async () => {
+  const err = document.getElementById('eye-form-error');
+  err.classList.add('d-none');
+
+  const pid  = document.getElementById('e-personnel-id').value;
+  const body = {
+    exam_date:     document.getElementById('e-date').value,
+    near_vision:   document.getElementById('e-near').value,
+    colour_vision: document.getElementById('e-colour').value,
+    result:        document.getElementById('e-result').value,
+    examiner:      document.getElementById('e-examiner').value.trim() || null,
+    notes:         document.getElementById('e-notes').value.trim() || null,
+  };
+
+  if (!pid || !body.exam_date) {
+    err.textContent = 'Personnel and Exam Date are required.';
+    err.classList.remove('d-none');
+    return;
+  }
+
+  const btn = document.getElementById('btn-save-eye');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const r = await ATCA.api.post(`/mod04/personnel/${pid}/eye-exams`, body);
+  btn.disabled = false; btn.textContent = 'Record Exam';
+
+  if (r && r.exam_id) {
+    mNewEye.hide();
+    ATCA.utils.toast('Eye examination recorded.', 'success');
+    loadPersonnel();
+    loadEyeExams();
+    loadAlerts();
+  } else {
+    err.textContent = r?.message || 'Failed to record eye exam.';
+    err.classList.remove('d-none');
+  }
+});
+
+/* ─── Button Wire-ups ─── */
+document.getElementById('btn-new-personnel').addEventListener('click', () => mNewPersonnel.show());
+document.getElementById('btn-new-cert').addEventListener('click', () => mNewCert.show());
+document.getElementById('btn-new-eye').addEventListener('click', () => mNewEye.show());
+
+document.getElementById('f-desig').addEventListener('change', loadPersonnel);
+document.getElementById('f-cert-method').addEventListener('change', () => { certsOffset = 0; loadCerts(); });
+document.getElementById('f-cert-level').addEventListener('change', () => { certsOffset = 0; loadCerts(); });
+document.getElementById('f-cert-status').addEventListener('change', () => { certsOffset = 0; loadCerts(); });
+document.getElementById('f-eye-personnel').addEventListener('change', () => { eyeOffset = 0; loadEyeExams(); });
+
+document.getElementById('certs-prev').addEventListener('click', () => { certsOffset = Math.max(0, certsOffset - PAGE_CERTS); loadCerts(); });
+document.getElementById('certs-next').addEventListener('click', () => { certsOffset += PAGE_CERTS; loadCerts(); });
+document.getElementById('eye-prev').addEventListener('click', () => { eyeOffset = Math.max(0, eyeOffset - PAGE_EYE); loadEyeExams(); });
+document.getElementById('eye-next').addEventListener('click', () => { eyeOffset += PAGE_EYE; loadEyeExams(); });
+
+/* ─── Tab switch triggers lazy loads ─── */
+document.getElementById('tab-certs').addEventListener('shown.bs.tab', () => { certsOffset = 0; loadCerts(); });
+document.getElementById('tab-eye').addEventListener('shown.bs.tab', () => { eyeOffset = 0; loadEyeExams(); });
+
+/* ─── Init ─── */
+(async () => {
+  await ATCA.session.init();
+  await ATCA.user.load();
+  ATCA.clock.start('sidebar-datetime');
+  ATCA.alerts.startPolling();
+  await populatePersonnelDropdowns();
+  await Promise.all([loadAlerts(), loadPersonnel()]);
+})();
+</script>
+</body>
+</html>

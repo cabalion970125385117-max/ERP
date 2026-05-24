@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-07: NCR & CAPA Management
+  AS9100D §8.7 | §10.2 | NADCAP AC7114 | NAS410 §10
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>NCR &amp; CAPA — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"    class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"    class="nav-link active"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"       class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi/"         class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-personnel/"   class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment/"   class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath/"        class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod13-traveler/"    class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"         class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"   class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-users/"       class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-exclamation-triangle me-1"></i>MOD-07 — NCR &amp; CAPA Management</p>
+      <p class="topbar-subtitle mb-0">AS9100D §8.7 · §10.2 | NADCAP AC7114 | NAS410 §10</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-07 NCR &amp; CAPA</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4" id="kpi-grid">
+      <div class="kpi-card" id="kpi-open-ncr">
+        <div class="kpi-label">Open NCRs</div>
+        <div class="kpi-value" id="val-open-ncr">—</div>
+        <div class="kpi-sub">Awaiting disposition</div>
+      </div>
+      <div class="kpi-card" id="kpi-overdue-capa">
+        <div class="kpi-label">Overdue CAPAs</div>
+        <div class="kpi-value" id="val-overdue-capa">—</div>
+        <div class="kpi-sub">Past target date</div>
+      </div>
+      <div class="kpi-card" id="kpi-pending-verify">
+        <div class="kpi-label">Pending Verification</div>
+        <div class="kpi-value" id="val-pending-verify">—</div>
+        <div class="kpi-sub">Effectiveness review due</div>
+      </div>
+      <div class="kpi-card rag-green" id="kpi-total-closed">
+        <div class="kpi-label">Closed This Year</div>
+        <div class="kpi-value" id="val-closed-year">—</div>
+        <div class="kpi-sub">NCRs closed YTD</div>
+      </div>
+    </div>
+
+    <!-- TABS: NCR / CAPA -->
+    <ul class="nav nav-tabs mb-3" id="ncr-tabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active" id="tab-ncr" data-bs-toggle="tab" data-bs-target="#pane-ncr" type="button">
+          <i class="bi bi-file-earmark-x me-1"></i>NCR Register
+          <span class="badge bg-warning text-dark ms-1" id="ncr-count-badge"></span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="tab-capa" data-bs-toggle="tab" data-bs-target="#pane-capa" type="button">
+          <i class="bi bi-arrow-repeat me-1"></i>CAPA Register
+          <span class="badge bg-danger ms-1" id="capa-count-badge" style="display:none;"></span>
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- NCR PANE -->
+      <div class="tab-pane fade show active" id="pane-ncr">
+        <div class="atca-card">
+          <div class="atca-card-header">
+            <span class="module-badge">§8.7</span>
+            <h5>Nonconformance Reports</h5>
+            <div class="ms-auto d-flex gap-2 align-items-center">
+              <select class="form-select form-select-sm" id="f-ncr-status" style="width:140px;">
+                <option value="">All Statuses</option>
+                <option value="OPEN" selected>Open</option>
+                <option value="IN_REVIEW">In Review</option>
+                <option value="CAPA_REQUIRED">CAPA Required</option>
+                <option value="CAPA_IN_PROGRESS">CAPA In Progress</option>
+                <option value="CLOSED">Closed</option>
+              </select>
+              <select class="form-select form-select-sm" id="f-ncr-type" style="width:130px;">
+                <option value="">All Types</option>
+                <option value="PRODUCT">Product</option>
+                <option value="PROCESS">Process</option>
+                <option value="SYSTEM">System</option>
+                <option value="CUSTOMER">Customer</option>
+                <option value="SUPPLIER">Supplier</option>
+              </select>
+              <button class="btn btn-sm btn-atca-primary" id="btn-new-ncr">
+                <i class="bi bi-plus-lg me-1"></i>Raise NCR
+              </button>
+            </div>
+          </div>
+          <div class="atca-card-body p-0">
+            <table class="atca-table">
+              <thead>
+                <tr>
+                  <th>NCR Ref</th>
+                  <th>Type</th>
+                  <th>Process Area</th>
+                  <th>Description</th>
+                  <th>Detected</th>
+                  <th>Disposition</th>
+                  <th>CAPA</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="ncr-tbody">
+                <tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr>
+              </tbody>
+            </table>
+            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top">
+              <div class="text-muted small" id="ncr-page-info"></div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="ncr-prev" disabled><i class="bi bi-chevron-left"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" id="ncr-next" disabled>Next <i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAPA PANE -->
+      <div class="tab-pane fade" id="pane-capa">
+        <div class="atca-card">
+          <div class="atca-card-header">
+            <span class="module-badge">§10.2</span>
+            <h5>Corrective &amp; Preventive Actions</h5>
+            <div class="ms-auto d-flex gap-2 align-items-center">
+              <select class="form-select form-select-sm" id="f-capa-status" style="width:160px;">
+                <option value="">All Statuses</option>
+                <option value="OPEN" selected>Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="PENDING_VERIFICATION">Pending Verification</option>
+                <option value="CLOSED">Closed</option>
+              </select>
+              <button class="btn btn-sm btn-atca-primary" id="btn-new-capa">
+                <i class="bi bi-plus-lg me-1"></i>New CAPA
+              </button>
+            </div>
+          </div>
+          <div class="atca-card-body p-0">
+            <table class="atca-table">
+              <thead>
+                <tr>
+                  <th>CAPA Ref</th>
+                  <th>Type</th>
+                  <th>Linked NCR</th>
+                  <th>Root Cause Method</th>
+                  <th>Owner</th>
+                  <th>Target Date</th>
+                  <th>Effectiveness</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="capa-tbody">
+                <tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr>
+              </tbody>
+            </table>
+            <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top">
+              <div class="text-muted small" id="capa-page-info"></div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="capa-prev" disabled><i class="bi bi-chevron-left"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" id="capa-next" disabled>Next <i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-content -->
+  </main>
+</div>
+
+<!-- ===== RAISE NCR MODAL ===== -->
+<div class="modal fade" id="modalNewNcr" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-file-earmark-x me-2"></i>Raise Nonconformance Report</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="ncr-form-error" class="alert alert-danger d-none"></div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">NCR Reference <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="n-ref" placeholder="NCR-2026-001">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Type <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="n-type">
+              <option value="PRODUCT">Product</option>
+              <option value="PROCESS">Process</option>
+              <option value="SYSTEM">System</option>
+              <option value="CUSTOMER">Customer</option>
+              <option value="SUPPLIER">Supplier</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Source</label>
+            <select class="form-select form-select-sm" id="n-source">
+              <option value="INTERNAL">Internal</option>
+              <option value="CUSTOMER">Customer</option>
+              <option value="AUDIT">Audit</option>
+              <option value="SUPPLIER">Supplier</option>
+              <option value="SELF_INSPECTION">Self Inspection</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Detected Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control form-control-sm" id="n-date">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Process Area</label>
+            <select class="form-select form-select-sm" id="n-area">
+              <option value="">General</option>
+              <option value="FPI">FPI</option>
+              <option value="MPT">MPT</option>
+              <option value="ECT">ECT</option>
+              <option value="UT">UT</option>
+              <option value="Electroplating">Electroplating</option>
+              <option value="Coating">Coating</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Part Number</label>
+            <input type="text" class="form-control form-control-sm" id="n-pn">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Lot / Job Number</label>
+            <input type="text" class="form-control form-control-sm" id="n-lot">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Work Order Ref</label>
+            <input type="text" class="form-control form-control-sm" id="n-wo">
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Description of Nonconformance <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" id="n-desc" rows="3" placeholder="Describe what was found nonconforming…"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Immediate Containment Action</label>
+            <textarea class="form-control form-control-sm" id="n-imm" rows="2" placeholder="What was done immediately to contain the nonconformance…"></textarea>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="n-capa-req">
+              <label class="form-check-label" for="n-capa-req">CAPA required (root cause analysis needed)</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary" id="btn-save-ncr">Raise NCR</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NEW CAPA MODAL ===== -->
+<div class="modal fade" id="modalNewCapa" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-arrow-repeat me-2"></i>New Corrective / Preventive Action</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="capa-form-error" class="alert alert-danger d-none"></div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">CAPA Reference <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="c-ref" placeholder="CAPA-2026-001">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Type</label>
+            <select class="form-select form-select-sm" id="c-type">
+              <option value="CORRECTIVE">Corrective</option>
+              <option value="PREVENTIVE">Preventive</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Linked NCR</label>
+            <select class="form-select form-select-sm" id="c-ncr-id">
+              <option value="">None (standalone)</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Root Cause Method</label>
+            <select class="form-select form-select-sm" id="c-rcm">
+              <option value="">Select…</option>
+              <option value="5WHY">5 Why</option>
+              <option value="FISHBONE">Fishbone / Ishikawa</option>
+              <option value="FMEA">FMEA</option>
+              <option value="FAULT_TREE">Fault Tree</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Target Completion <span class="text-danger">*</span></label>
+            <input type="date" class="form-control form-control-sm" id="c-target-date">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Effectiveness Review Date</label>
+            <input type="date" class="form-control form-control-sm" id="c-eff-date">
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Root Cause Description</label>
+            <textarea class="form-control form-control-sm" id="c-rcd" rows="2" placeholder="Describe the identified root cause…"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Corrective Action</label>
+            <textarea class="form-control form-control-sm" id="c-ca" rows="2" placeholder="Actions taken to eliminate the root cause…"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label atca-field-label">Preventive Action</label>
+            <textarea class="form-control form-control-sm" id="c-pa" rows="2" placeholder="Actions to prevent recurrence…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary" id="btn-save-capa">Create CAPA</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6></div>
+      <div class="modal-body text-center py-3">
+        <p class="mb-1">Your session expires in <strong id="timeout-countdown">5:00</strong></p>
+        <p class="text-muted" style="font-size:0.75rem;">Click to stay logged in.</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+'use strict';
+
+const PAGE = 25;
+let ncrOffset = 0, ncrTotal = 0;
+let capaOffset = 0, capaTotal = 0;
+
+/* ---- Alerts / KPIs ---- */
+async function loadAlerts() {
+  const d = await ATCA.api.get('/mod07/alerts/summary');
+  if (!d) return;
+  document.getElementById('val-open-ncr').textContent      = d.open_ncr ?? '—';
+  document.getElementById('val-overdue-capa').textContent  = d.overdue_capa ?? '—';
+  document.getElementById('val-pending-verify').textContent = d.pending_verify ?? '—';
+
+  const kpiOpenNcr  = document.getElementById('kpi-open-ncr');
+  const kpiOverdue  = document.getElementById('kpi-overdue-capa');
+  const kpiVerify   = document.getElementById('kpi-pending-verify');
+  kpiOpenNcr.className  = `kpi-card ${d.open_ncr     === 0 ? 'rag-green' : d.open_ncr     <= 3 ? 'rag-amber' : 'rag-red'}`;
+  kpiOverdue.className  = `kpi-card ${d.overdue_capa === 0 ? 'rag-green' : 'rag-red'}`;
+  kpiVerify.className   = `kpi-card ${d.pending_verify === 0 ? 'rag-green' : 'rag-amber'}`;
+}
+
+/* ---- NCR Table ---- */
+async function loadNcrs() {
+  const status = document.getElementById('f-ncr-status').value;
+  const type   = document.getElementById('f-ncr-type').value;
+  const params = new URLSearchParams({ limit: PAGE, offset: ncrOffset });
+  if (status) params.set('status', status);
+  if (type)   params.set('type', type);
+
+  const d = await ATCA.api.get(`/mod07/ncr?${params}`);
+  if (!d) return;
+  ncrTotal = d.total;
+
+  document.getElementById('ncr-page-info').textContent =
+    `Showing ${ncrOffset + 1}–${Math.min(ncrOffset + PAGE, ncrTotal)} of ${ncrTotal} NCRs`;
+  document.getElementById('ncr-prev').disabled = ncrOffset === 0;
+  document.getElementById('ncr-next').disabled = ncrOffset + PAGE >= ncrTotal;
+  document.getElementById('ncr-count-badge').textContent = ncrTotal;
+
+  ATCA.table.render('ncr-tbody', d.items, r => `
+    <tr>
+      <td><code>${ATCA.utils.escHtml(r.ncr_ref)}</code></td>
+      <td><span class="badge bg-secondary">${ATCA.utils.escHtml(r.ncr_type)}</span></td>
+      <td>${ATCA.utils.escHtml(r.process_area || '—')}</td>
+      <td class="text-truncate" style="max-width:220px;" title="${ATCA.utils.escHtml(r.description)}">${ATCA.utils.escHtml(r.description?.substring(0,60))}${r.description?.length > 60 ? '…' : ''}</td>
+      <td>${ATCA.utils.fmtDate(r.detected_date)}</td>
+      <td>${r.disposition ? `<span class="badge bg-info text-dark">${ATCA.utils.escHtml(r.disposition)}</span>` : '<span class="text-muted">TBD</span>'}</td>
+      <td>${r.open_capa_count > 0
+        ? `<span class="badge bg-warning text-dark">${r.open_capa_count} open</span>`
+        : r.capa_required ? '<span class="badge bg-danger">Required</span>' : '<span class="text-muted">N/A</span>'}</td>
+      <td>${ATCA.utils.statusBadge(r.status)}</td>
+      <td><button class="btn btn-sm btn-outline-primary btn-open-ncr" data-id="${r.ncr_id}">Open</button></td>
+    </tr>`);
+
+  document.querySelectorAll('.btn-open-ncr').forEach(btn =>
+    btn.addEventListener('click', () => openNcrDetail(btn.dataset.id)));
+}
+
+/* ---- CAPA Table ---- */
+async function loadCapas() {
+  const status = document.getElementById('f-capa-status').value;
+  const params = new URLSearchParams({ limit: PAGE, offset: capaOffset });
+  if (status) params.set('status', status);
+
+  const d = await ATCA.api.get(`/mod07/capa?${params}`);
+  if (!d) return;
+  capaTotal = d.total;
+
+  document.getElementById('capa-page-info').textContent =
+    `Showing ${capaOffset + 1}–${Math.min(capaOffset + PAGE, capaTotal)} of ${capaTotal} CAPAs`;
+  document.getElementById('capa-prev').disabled = capaOffset === 0;
+  document.getElementById('capa-next').disabled = capaOffset + PAGE >= capaTotal;
+
+  ATCA.table.render('capa-tbody', d.items, r => {
+    const days = r.target_completion_date
+      ? ATCA.utils.daysUntil(r.target_completion_date) : null;
+    const dueCls = days !== null && days < 0 && r.status !== 'CLOSED' ? 'text-danger fw-semibold' :
+                   days !== null && days <= 14 ? 'text-warning fw-semibold' : '';
+    return `
+    <tr>
+      <td><code>${ATCA.utils.escHtml(r.capa_ref)}</code></td>
+      <td><span class="badge ${r.capa_type === 'CORRECTIVE' ? 'bg-danger' : 'bg-primary'}">${ATCA.utils.escHtml(r.capa_type)}</span></td>
+      <td>${r.ncr_ref ? `<code>${ATCA.utils.escHtml(r.ncr_ref)}</code>` : '<span class="text-muted">—</span>'}</td>
+      <td>${ATCA.utils.escHtml(r.root_cause_method || '—')}</td>
+      <td>${ATCA.utils.escHtml(r.owner_name || '—')}</td>
+      <td><span class="${dueCls}">${ATCA.utils.fmtDate(r.target_completion_date)}</span></td>
+      <td>${r.effectiveness_result
+        ? `<span class="badge ${r.effectiveness_result === 'EFFECTIVE' ? 'bg-success' : r.effectiveness_result === 'NOT_EFFECTIVE' ? 'bg-danger' : 'bg-warning text-dark'}">${ATCA.utils.escHtml(r.effectiveness_result)}</span>`
+        : '<span class="text-muted">Pending</span>'}</td>
+      <td>${ATCA.utils.statusBadge(r.status)}</td>
+      <td><button class="btn btn-sm btn-outline-primary btn-open-capa" data-id="${r.capa_id}">Open</button></td>
+    </tr>`;
+  });
+
+  document.querySelectorAll('.btn-open-capa').forEach(btn =>
+    btn.addEventListener('click', () => openCapaDetail(btn.dataset.id)));
+}
+
+function openNcrDetail(id) {
+  // TODO: Phase 2 — navigate to ncr-detail.html?id=X
+  ATCA.utils.toast(`NCR detail view — coming in next build. ID: ${id}`, 'info');
+}
+
+function openCapaDetail(id) {
+  ATCA.utils.toast(`CAPA detail view — coming in next build. ID: ${id}`, 'info');
+}
+
+/* ---- Modals ---- */
+const modalNcr  = () => new bootstrap.Modal(document.getElementById('modalNewNcr'));
+const modalCapa = () => new bootstrap.Modal(document.getElementById('modalNewCapa'));
+
+async function loadOpenNcrsForCapa() {
+  const d = await ATCA.api.get('/mod07/ncr?status=OPEN&limit=100');
+  if (!d) return;
+  const sel = document.getElementById('c-ncr-id');
+  sel.innerHTML = '<option value="">None (standalone)</option>';
+  d.items.forEach(n => {
+    const o = document.createElement('option');
+    o.value = n.ncr_id;
+    o.textContent = `${n.ncr_ref} — ${n.description?.substring(0,50)}`;
+    sel.appendChild(o);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Set today as default detected date
+  document.getElementById('n-date').value = new Date().toISOString().split('T')[0];
+
+  await loadAlerts();
+  await loadNcrs();
+
+  // Tab switch → load CAPAs
+  document.getElementById('tab-capa').addEventListener('shown.bs.tab', () => {
+    capaOffset = 0;
+    loadCapas();
+  });
+
+  // NCR filters / pagination
+  document.getElementById('f-ncr-status').addEventListener('change', () => { ncrOffset = 0; loadNcrs(); });
+  document.getElementById('f-ncr-type').addEventListener('change',   () => { ncrOffset = 0; loadNcrs(); });
+  document.getElementById('ncr-prev').addEventListener('click', () => { ncrOffset = Math.max(0, ncrOffset - PAGE); loadNcrs(); });
+  document.getElementById('ncr-next').addEventListener('click', () => { ncrOffset += PAGE; loadNcrs(); });
+
+  // CAPA filters / pagination
+  document.getElementById('f-capa-status').addEventListener('change', () => { capaOffset = 0; loadCapas(); });
+  document.getElementById('capa-prev').addEventListener('click', () => { capaOffset = Math.max(0, capaOffset - PAGE); loadCapas(); });
+  document.getElementById('capa-next').addEventListener('click', () => { capaOffset += PAGE; loadCapas(); });
+
+  // New NCR
+  document.getElementById('btn-new-ncr').addEventListener('click', () => modalNcr().show());
+  document.getElementById('btn-save-ncr').addEventListener('click', async () => {
+    const errEl = document.getElementById('ncr-form-error');
+    errEl.classList.add('d-none');
+    const body = {
+      ncr_ref:         document.getElementById('n-ref').value.trim(),
+      ncr_type:        document.getElementById('n-type').value,
+      source:          document.getElementById('n-source').value,
+      detected_date:   document.getElementById('n-date').value,
+      process_area:    document.getElementById('n-area').value || null,
+      part_number:     document.getElementById('n-pn').value.trim() || null,
+      lot_number:      document.getElementById('n-lot').value.trim() || null,
+      work_order_ref:  document.getElementById('n-wo').value.trim() || null,
+      description:     document.getElementById('n-desc').value.trim(),
+      immediate_action:document.getElementById('n-imm').value.trim() || null,
+      capa_required:   document.getElementById('n-capa-req').checked,
+    };
+    if (!body.ncr_ref || !body.detected_date || !body.description) {
+      errEl.textContent = 'NCR reference, detected date, and description are required.';
+      errEl.classList.remove('d-none');
+      return;
+    }
+    const r = await ATCA.api.post('/mod07/ncr', body);
+    if (!r) return;
+    bootstrap.Modal.getInstance(document.getElementById('modalNewNcr'))?.hide();
+    ATCA.utils.toast(`NCR ${body.ncr_ref} raised successfully.`, 'success');
+    ncrOffset = 0;
+    loadNcrs();
+    loadAlerts();
+  });
+
+  // New CAPA
+  document.getElementById('btn-new-capa').addEventListener('click', async () => {
+    await loadOpenNcrsForCapa();
+    modalCapa().show();
+  });
+  document.getElementById('btn-save-capa').addEventListener('click', async () => {
+    const errEl = document.getElementById('capa-form-error');
+    errEl.classList.add('d-none');
+    const body = {
+      capa_ref:               document.getElementById('c-ref').value.trim(),
+      ncr_id:                 document.getElementById('c-ncr-id').value || null,
+      capa_type:              document.getElementById('c-type').value,
+      root_cause_method:      document.getElementById('c-rcm').value || null,
+      root_cause_description: document.getElementById('c-rcd').value.trim() || null,
+      corrective_action:      document.getElementById('c-ca').value.trim() || null,
+      preventive_action:      document.getElementById('c-pa').value.trim() || null,
+      target_completion_date: document.getElementById('c-target-date').value,
+      effectiveness_review_date: document.getElementById('c-eff-date').value || null,
+    };
+    if (!body.capa_ref || !body.target_completion_date) {
+      errEl.textContent = 'CAPA reference and target completion date are required.';
+      errEl.classList.remove('d-none');
+      return;
+    }
+    const r = await ATCA.api.post('/mod07/capa', body);
+    if (!r) return;
+    bootstrap.Modal.getInstance(document.getElementById('modalNewCapa'))?.hide();
+    ATCA.utils.toast(`CAPA ${body.capa_ref} created.`, 'success');
+    capaOffset = 0;
+    loadCapas();
+    loadAlerts();
+  });
+});
+</script>
+</body>
+</html>

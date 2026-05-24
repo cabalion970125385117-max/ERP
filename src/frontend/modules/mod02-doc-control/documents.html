@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Document Master List — ATCA-ERP MOD-02</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css"/>
+  <link rel="stylesheet" href="/assets/css/atca-erp.css"/>
+</head>
+<body>
+
+<div class="atca-sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="sidebar-logo-title">ATCA-ERP</span>
+    <span class="sidebar-logo-sub">AS9100D · NADCAP AC7114</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Core QMS</div>
+    <a href="/modules/mod01-qms-core/index.html" class="nav-item"><i class="bi bi-shield-check"></i>QMS Core</a>
+    <a href="/modules/mod02-doc-control/index.html" class="nav-item active"><i class="bi bi-file-earmark-text"></i>Document Control</a>
+    <div class="nav-section">NDT</div>
+    <a href="#" class="nav-item"><i class="bi bi-droplet"></i>FPI Process</a>
+    <a href="#" class="nav-item"><i class="bi bi-people"></i>Personnel / NAS410</a>
+    <a href="#" class="nav-item"><i class="bi bi-tools"></i>Equipment & Cal.</a>
+  </nav>
+  <div class="sidebar-footer"><div id="sb-user-pill"></div></div>
+</div>
+
+<div class="atca-main">
+  <div class="atca-topbar">
+    <div class="topbar-left">
+      <a href="/modules/mod02-doc-control/index.html" class="text-muted me-2"><i class="bi bi-arrow-left"></i></a>
+      <i class="bi bi-files me-2 text-atca-blue"></i>
+      <span class="topbar-module">Document Master List</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-sm btn-atca-primary" id="btn-new-doc"><i class="bi bi-plus-lg me-1"></i>New Document</button>
+      <div class="topbar-alert-bell ms-3" id="alert-bell">
+        <i class="bi bi-bell"></i>
+        <span class="alert-badge d-none" id="alert-count">0</span>
+      </div>
+      <div class="topbar-user ms-3" id="topbar-user"></div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <div class="page-header">
+      <div class="page-clause">AS9100D §7.5.3 — Control of Documented Information</div>
+      <div class="page-title">Document Master List</div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="atca-filter-bar mb-3">
+      <input type="text" class="form-control form-control-sm" id="f-search" placeholder="Search doc number or title…" style="max-width:260px"/>
+      <select class="form-select form-select-sm" id="f-category" style="max-width:160px">
+        <option value="">All Categories</option>
+      </select>
+      <select class="form-select form-select-sm" id="f-process" style="max-width:160px">
+        <option value="">All Areas</option>
+        <option>FPI</option><option>MPT</option><option>ECT</option><option>UT</option>
+        <option>Electroplating</option><option>HR / Training</option><option>Purchasing</option>
+      </select>
+      <select class="form-select form-select-sm" id="f-status" style="max-width:140px">
+        <option value="">All Statuses</option>
+        <option value="APPROVED">Approved</option>
+        <option value="DRAFT">Draft</option>
+        <option value="REVIEW">In Review</option>
+      </select>
+      <button class="btn btn-sm btn-outline-secondary" id="btn-filter"><i class="bi bi-funnel me-1"></i>Filter</button>
+      <button class="btn btn-sm btn-outline-secondary" id="btn-reset">Reset</button>
+    </div>
+
+    <!-- DOCUMENT TABLE -->
+    <div class="atca-panel">
+      <div class="panel-header">
+        <span class="panel-title">Controlled Documents</span>
+        <span class="text-muted small" id="result-count"></span>
+      </div>
+      <div class="panel-body p-0">
+        <table class="atca-table" id="doc-table">
+          <thead>
+            <tr>
+              <th>Doc Number</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Area</th>
+              <th>Rev</th>
+              <th>Status</th>
+              <th>Effective</th>
+              <th>Review Due</th>
+              <th>Owner</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="doc-tbody">
+            <tr><td colspan="10" class="text-center text-muted py-3">Loading…</td></tr>
+          </tbody>
+        </table>
+        <!-- PAGINATION -->
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top" id="pagination-bar">
+          <div class="text-muted small" id="page-info"></div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" id="btn-prev" disabled>
+              <i class="bi bi-chevron-left"></i> Prev
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="btn-next" disabled>
+              Next <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW DOCUMENT MODAL (same as index.html) -->
+<div class="modal fade" id="modalNewDoc" tabindex="-1" aria-labelledby="modalNewDocLabel" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="modalNewDocLabel"><i class="bi bi-file-earmark-plus me-2"></i>Register New Controlled Document</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="form-error" class="alert alert-danger d-none"></div>
+        <form id="form-new-doc">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label atca-field-label">Document Number <span class="clause-ref">§7.5.2</span></label>
+              <input type="text" class="form-control" id="f-doc-number" placeholder="ATCA-NDT-001" required/>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label atca-field-label">Title</label>
+              <input type="text" class="form-control" id="f-title" required/>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label atca-field-label">Category</label>
+              <select class="form-select" id="f-category-modal" required>
+                <option value="">Select…</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label atca-field-label">Process Area</label>
+              <select class="form-select" id="f-process-area">
+                <option value="">General</option>
+                <option>FPI</option><option>MPT</option><option>ECT</option><option>UT</option>
+                <option>Electroplating</option><option>HR / Training</option><option>Purchasing</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label atca-field-label">Retention (years)</label>
+              <input type="number" class="form-control" id="f-retention" value="10" min="1" max="99"/>
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="f-controlled" checked/>
+                <label class="form-check-label" for="f-controlled">Controlled document (approval workflow required)</label>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary" id="btn-save-doc">Register</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+(async function() {
+  await ATCA.user.load();
+  ATCA.session.init();
+  ATCA.alerts.startPolling();
+
+  const u = ATCA.user.current;
+  if (u) {
+    document.getElementById('sb-user-pill').innerHTML = `
+      <div class="d-flex align-items-center gap-2">
+        <div class="user-avatar">${ATCA.user.initials()}</div>
+        <div><div class="user-name">${ATCA.utils.escHtml(u.full_name)}</div>
+        <div class="user-role">${u.role}</div></div>
+      </div>`;
+    document.getElementById('topbar-user').innerHTML = `<span class="user-avatar sm">${ATCA.user.initials()}</span>`;
+  }
+
+  // Load category filter options
+  try {
+    const cats = await ATCA.api.get('/mod02/documents/categories');
+    const sel = document.getElementById('f-category');
+    const selM = document.getElementById('f-category-modal');
+    cats.forEach(c => {
+      [sel, selM].forEach(s => {
+        const o = document.createElement('option');
+        o.value = c.category_id;
+        o.textContent = `${c.code} — ${c.name}`;
+        s.appendChild(o);
+      });
+    });
+  } catch(e) {}
+
+  // Pagination state
+  let currentOffset = 0;
+  const PAGE_SIZE = 25;
+  let totalDocs = 0;
+
+  function buildParams() {
+    const p = new URLSearchParams();
+    const s = document.getElementById('f-search').value.trim();
+    const c = document.getElementById('f-category').value;
+    const pr = document.getElementById('f-process').value;
+    const st = document.getElementById('f-status').value;
+    if (s)  p.set('search',   s);
+    if (c)  p.set('category', c);
+    if (pr) p.set('process_area', pr);
+    if (st) p.set('status',   st);
+    p.set('limit',  PAGE_SIZE);
+    p.set('offset', currentOffset);
+    return p.toString();
+  }
+
+  function ragClass(days) {
+    if (days === null || days === undefined) return '';
+    if (days < 0)  return 'text-red fw-semibold';
+    if (days <= 30) return 'text-amber fw-semibold';
+    return 'text-green';
+  }
+
+  async function loadDocs() {
+    try {
+      const res = await ATCA.api.get(`/mod02/documents?${buildParams()}`);
+      totalDocs = res.total || 0;
+      const rows = res.rows || [];
+
+      document.getElementById('result-count').textContent = `${totalDocs} document${totalDocs !== 1 ? 's' : ''}`;
+      document.getElementById('page-info').textContent =
+        `Showing ${currentOffset + 1}–${Math.min(currentOffset + PAGE_SIZE, totalDocs)} of ${totalDocs}`;
+      document.getElementById('btn-prev').disabled = currentOffset === 0;
+      document.getElementById('btn-next').disabled = currentOffset + PAGE_SIZE >= totalDocs;
+
+      const tbody = document.getElementById('doc-tbody');
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">No documents found</td></tr>';
+        return;
+      }
+      tbody.innerHTML = rows.map(r => {
+        const days = r.days_until_review;
+        const dueStr = r.review_due_date
+          ? `<span class="${ragClass(days)}">${ATCA.utils.fmtDate(r.review_due_date)}</span>`
+          : '<span class="text-muted">—</span>';
+        return `
+        <tr>
+          <td><code><a href="/modules/mod02-doc-control/revision.html?id=${r.document_id}">${ATCA.utils.escHtml(r.doc_number)}</a></code></td>
+          <td>${ATCA.utils.escHtml(r.title)}</td>
+          <td><span class="badge bg-secondary">${ATCA.utils.escHtml(r.category_code || '')}</span></td>
+          <td>${ATCA.utils.escHtml(r.process_area || '—')}</td>
+          <td>${ATCA.utils.escHtml(r.revision_no || '—')}</td>
+          <td>${ATCA.utils.statusBadge(r.revision_status || 'NO REV')}</td>
+          <td>${r.effective_date ? ATCA.utils.fmtDate(r.effective_date) : '—'}</td>
+          <td>${dueStr}</td>
+          <td>${ATCA.utils.escHtml(r.owner_name || '—')}</td>
+          <td>
+            <a href="/modules/mod02-doc-control/revision.html?id=${r.document_id}" class="btn btn-sm btn-outline-primary">Open</a>
+          </td>
+        </tr>`;
+      }).join('');
+    } catch(e) {
+      document.getElementById('doc-tbody').innerHTML = '<tr><td colspan="10" class="text-danger py-2">Error loading documents</td></tr>';
+    }
+  }
+
+  document.getElementById('btn-filter').addEventListener('click', () => { currentOffset = 0; loadDocs(); });
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    document.getElementById('f-search').value = '';
+    document.getElementById('f-category').value = '';
+    document.getElementById('f-process').value = '';
+    document.getElementById('f-status').value = '';
+    currentOffset = 0;
+    loadDocs();
+  });
+  document.getElementById('btn-prev').addEventListener('click', () => { currentOffset = Math.max(0, currentOffset - PAGE_SIZE); loadDocs(); });
+  document.getElementById('btn-next').addEventListener('click', () => { currentOffset += PAGE_SIZE; loadDocs(); });
+  document.getElementById('f-search').addEventListener('keydown', e => { if (e.key === 'Enter') { currentOffset = 0; loadDocs(); } });
+
+  loadDocs();
+
+  // New doc
+  const modal = new bootstrap.Modal(document.getElementById('modalNewDoc'));
+  document.getElementById('btn-new-doc').addEventListener('click', () => modal.show());
+  document.getElementById('btn-save-doc').addEventListener('click', async () => {
+    const errEl = document.getElementById('form-error');
+    errEl.classList.add('d-none');
+    const body = {
+      doc_number:     document.getElementById('f-doc-number').value.trim(),
+      title:          document.getElementById('f-title').value.trim(),
+      category_id:    document.getElementById('f-category-modal').value,
+      process_area:   document.getElementById('f-process-area').value || null,
+      retention_years:document.getElementById('f-retention').value,
+      is_controlled:  document.getElementById('f-controlled').checked,
+    };
+    if (!body.doc_number || !body.title || !body.category_id) {
+      errEl.textContent = 'Document number, title, and category are required.';
+      errEl.classList.remove('d-none');
+      return;
+    }
+    try {
+      const r = await ATCA.api.post('/mod02/documents', body);
+      modal.hide();
+      ATCA.utils.toast('Document registered.', 'success');
+      setTimeout(() => window.location.href = `/modules/mod02-doc-control/revision.html?id=${r.document_id}`, 700);
+    } catch(e) {
+      errEl.textContent = e.message || 'Error registering document.';
+      errEl.classList.remove('d-none');
+    }
+  });
+})();
+</script>
+</body>
+</html>

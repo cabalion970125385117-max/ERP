@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — Login Page
+  ATC Aviation Pte Ltd | AS9100D | NADCAP AC7114 | NAS410
+  LAN-Only: All assets from /assets/ — no internet CDN calls
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Login — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    /* Override body flex — login is full-page centered */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: var(--atca-navy);
+      padding: 1rem;
+    }
+
+    .login-wrap {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 2rem 2.25rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .login-logo .logo-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--atca-navy);
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .login-logo .logo-icon i {
+      font-size: 2rem;
+      color: var(--atca-gold);
+    }
+
+    .login-logo h4 {
+      color: var(--atca-navy);
+      font-weight: 800;
+      margin: 0 0 0.2rem;
+      letter-spacing: 0.02em;
+    }
+
+    .login-logo .login-subtitle {
+      font-size: 0.75rem;
+      color: var(--atca-muted);
+    }
+
+    .login-footer {
+      text-align: center;
+      margin-top: 1.25rem;
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.45);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-wrap">
+    <div class="login-card">
+
+      <!-- Logo / Brand -->
+      <div class="login-logo">
+        <div class="logo-icon">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <h4>ATCA-ERP</h4>
+        <div class="login-subtitle">ATC Aviation Pte Ltd &nbsp;&middot;&nbsp; AS9100D &nbsp;&middot;&nbsp; NADCAP AC7114</div>
+      </div>
+
+      <!-- Session / Timeout Reason Alert -->
+      <div id="reason-alert" class="alert alert-warning py-2 mb-3" role="alert" style="display:none;font-size:0.82rem;">
+        <i class="bi bi-clock-history me-1"></i>
+        <span id="reason-text"></span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" novalidate autocomplete="on">
+
+        <div class="mb-3">
+          <label class="atca-label" for="inp-username">
+            Username <span class="req">*</span>
+          </label>
+          <input type="text"
+                 class="form-control"
+                 id="inp-username"
+                 name="username"
+                 placeholder="e.g. james.tan"
+                 autocomplete="username"
+                 required
+                 autofocus>
+        </div>
+
+        <div class="mb-3">
+          <label class="atca-label" for="inp-password">
+            Password <span class="req">*</span>
+          </label>
+          <div class="input-group">
+            <input type="password"
+                   class="form-control"
+                   id="inp-password"
+                   name="password"
+                   placeholder="Enter your password"
+                   autocomplete="current-password"
+                   required>
+            <button class="btn btn-outline-secondary" type="button" id="toggle-pw" tabindex="-1"
+                    title="Show/hide password" aria-label="Toggle password visibility">
+              <i class="bi bi-eye" id="toggle-pw-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="login-error" class="alert alert-danger py-2 mb-3" role="alert" style="display:none;font-size:0.82rem;">
+          <i class="bi bi-x-circle me-1"></i>
+          <span id="login-error-text"></span>
+        </div>
+
+        <button type="submit" class="btn btn-atca-primary w-100" id="login-btn">
+          <span class="spinner-border spinner-border-sm me-2" id="login-spinner" style="display:none;" aria-hidden="true"></span>
+          Sign In
+        </button>
+
+      </form>
+
+    </div><!-- /.login-card -->
+
+    <div class="login-footer">
+      Authorised Personnel Only &nbsp;&middot;&nbsp; LAN-Only System<br>
+      AS9100D §7.5 Access Control &nbsp;&middot;&nbsp; NADCAP AC7114
+    </div>
+  </div>
+
+  <script src="/assets/js/bootstrap.bundle.min.js"></script>
+  <script>
+    'use strict';
+
+    /* ── Reason Banner ────────────────────────────────────── */
+    const params = new URLSearchParams(window.location.search);
+    const reason = params.get('reason');
+    if (reason) {
+      const messages = {
+        session_expired: 'Your session has expired. Please sign in again.',
+        timeout:         'You were signed out due to inactivity.',
+        logged_out:      'You have been signed out.',
+      };
+      document.getElementById('reason-text').textContent =
+        messages[reason] || 'Please sign in to continue.';
+      document.getElementById('reason-alert').style.display = '';
+    }
+
+    /* ── Password Toggle ──────────────────────────────────── */
+    document.getElementById('toggle-pw').addEventListener('click', function () {
+      const inp  = document.getElementById('inp-password');
+      const icon = document.getElementById('toggle-pw-icon');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.className = 'bi bi-eye-slash';
+      } else {
+        inp.type = 'password';
+        icon.className = 'bi bi-eye';
+      }
+    });
+
+    /* ── Login Submit ─────────────────────────────────────── */
+    const form    = document.getElementById('login-form');
+    const errEl   = document.getElementById('login-error');
+    const errText = document.getElementById('login-error-text');
+    const btn     = document.getElementById('login-btn');
+    const spinner = document.getElementById('login-spinner');
+
+    function showError(msg) {
+      errText.textContent = msg;
+      errEl.style.display = '';
+      btn.disabled = false;
+      spinner.style.display = 'none';
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      errEl.style.display = 'none';
+
+      const username = document.getElementById('inp-username').value.trim();
+      const password = document.getElementById('inp-password').value;
+
+      if (!username || !password) {
+        showError('Username and password are required.');
+        return;
+      }
+
+      btn.disabled = true;
+      spinner.style.display = '';
+
+      try {
+        const res  = await fetch('/api/v1/auth/login', {
+          method:      'POST',
+          headers:     { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body:        JSON.stringify({ username, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          // Redirect to intended page or home
+          const next = params.get('next') || '/';
+          window.location.href = next;
+        } else {
+          showError(data.message || 'Login failed. Please try again.');
+        }
+
+      } catch {
+        showError('Network error — check LAN connection and try again.');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — Home Dashboard
+  ATC Aviation Pte Ltd | AS9100D | NADCAP AC7114 | NAS410
+  LAN-Only: All assets from /assets/ — no internet CDN calls
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Home — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    /* Module card grid */
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .module-card {
+      background: #fff;
+      border: 1px solid var(--atca-border);
+      border-radius: 6px;
+      padding: 1rem 1rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      text-decoration: none;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      border-top: 3px solid var(--atca-blue);
+    }
+
+    .module-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-color: var(--atca-blue);
+      text-decoration: none;
+    }
+
+    .module-card.inactive {
+      opacity: 0.45;
+      pointer-events: none;
+      border-top-color: var(--atca-muted);
+    }
+
+    .module-card .mc-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      background: var(--atca-navy);
+      color: #fff;
+      border-radius: 3px;
+      padding: 1px 5px;
+      align-self: flex-start;
+    }
+
+    .module-card .mc-icon {
+      font-size: 1.5rem;
+      color: var(--atca-blue);
+      line-height: 1;
+    }
+
+    .module-card .mc-title {
+      font-size: 0.83rem;
+      font-weight: 700;
+      color: var(--atca-navy);
+      margin: 0;
+    }
+
+    .module-card .mc-sub {
+      font-size: 0.68rem;
+      color: var(--atca-muted);
+    }
+
+    .module-card.inactive .mc-icon,
+    .module-card.inactive .mc-title { color: var(--atca-muted); }
+
+    /* Welcome banner */
+    .welcome-banner {
+      background: var(--atca-navy);
+      color: #fff;
+      border-radius: 6px;
+      padding: 1.1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .welcome-banner .wb-icon {
+      font-size: 2rem;
+      color: var(--atca-gold);
+      flex-shrink: 0;
+    }
+
+    .welcome-banner h5 {
+      margin: 0 0 0.15rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .welcome-banner small {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.55);
+    }
+
+    /* Status row pill */
+    .system-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      background: rgba(25,135,84,0.15);
+      color: #198754;
+      border: 1px solid rgba(25,135,84,0.3);
+      border-radius: 20px;
+      padding: 0.15rem 0.65rem;
+      margin-top: 0.4rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     SIDEBAR
+     ============================================================ -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <h6>ATCA-ERP</h6>
+    <small>ATC Aviation Pte Ltd</small>
+  </div>
+
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"     class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/"  class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"     class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"        class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi/"          class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-personnel/"    class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment/"    class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath/"         class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <a href="/modules/mod17-mpt/"          class="nav-link"><span class="nav-icon"><i class="bi bi-magnet"></i></span>MPT Process</a>
+
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod13-traveler/"     class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod12-traceability/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Traceability &amp; Lot</a>
+  <a href="/modules/mod24-coc/"          class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <a href="/modules/mod09-customer/"     class="nav-link"><span class="nav-icon"><i class="bi bi-building"></i></span>Customer &amp; Contract</a>
+  <a href="/modules/mod10-vendor/"       class="nav-link"><span class="nav-icon"><i class="bi bi-truck"></i></span>Approved Vendor List</a>
+
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"    class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-users/"        class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <a href="/modules/mod26-config/"       class="nav-link"><span class="nav-icon"><i class="bi bi-gear"></i></span>Configuration</a>
+
+  <div class="sidebar-footer">
+    ATCA-ERP v1.0 · AS9100D · NADCAP<br>
+    LAN-Only · <span id="sidebar-datetime"></span>
+  </div>
+</nav>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<div id="main-content">
+
+  <!-- Top Bar -->
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle" aria-label="Toggle navigation">
+      <i class="bi bi-list"></i>
+    </button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-house me-1"></i>ATCA-ERP — Home</p>
+      <p class="topbar-subtitle mb-0">ATC Aviation Pte Ltd · AS9100D · NADCAP AC7114 · NAS410</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button" title="Account menu">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+      <div class="wb-icon"><i class="bi bi-shield-check"></i></div>
+      <div>
+        <h5>Welcome, <span id="welcome-name">—</span></h5>
+        <small>
+          Role: <strong id="welcome-role" style="color:var(--atca-gold);">—</strong>
+          &nbsp;&middot;&nbsp;
+          <span id="welcome-date"></span>
+        </small>
+        <div class="system-status">
+          <i class="bi bi-circle-fill" style="font-size:0.5rem;"></i>
+          System Online · LAN-Only · AS9100D Compliant
+        </div>
+      </div>
+    </div>
+
+    <!-- Cross-Module Alert KPI Grid -->
+    <div class="atca-card mb-4">
+      <div class="atca-card-header">
+        <span class="module-badge">ALERTS</span>
+        <h5>System Status — Live Alerts</h5>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="loadAllAlerts()">
+          <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+      </div>
+      <div class="atca-card-body py-3">
+        <div class="kpi-grid" id="alert-kpi-grid">
+
+          <!-- MOD-04 Personnel -->
+          <div class="kpi-card" id="kpi-expired-certs">
+            <div class="kpi-label">Expired Certs</div>
+            <div class="kpi-value" id="v-expired-certs">—</div>
+            <div class="kpi-sub"><a href="/modules/mod04-personnel/" class="text-muted">Personnel / NAS410</a></div>
+          </div>
+          <div class="kpi-card" id="kpi-expiring-certs">
+            <div class="kpi-label">Certs Expiring &lt;90d</div>
+            <div class="kpi-value" id="v-expiring-certs">—</div>
+            <div class="kpi-sub"><a href="/modules/mod04-personnel/" class="text-muted">Personnel / NAS410</a></div>
+          </div>
+          <div class="kpi-card" id="kpi-expired-eye">
+            <div class="kpi-label">Expired Eye Exams</div>
+            <div class="kpi-value" id="v-expired-eye">—</div>
+            <div class="kpi-sub"><a href="/modules/mod04-personnel/" class="text-muted">NAS410 §9.3</a></div>
+          </div>
+
+          <!-- MOD-05 Equipment -->
+          <div class="kpi-card" id="kpi-cal-overdue">
+            <div class="kpi-label">Cal. Overdue</div>
+            <div class="kpi-value" id="v-cal-overdue">—</div>
+            <div class="kpi-sub"><a href="/modules/mod05-equipment/" class="text-muted">Equipment &amp; Cal.</a></div>
+          </div>
+          <div class="kpi-card" id="kpi-cal-due">
+            <div class="kpi-label">Cal. Due &lt;30d</div>
+            <div class="kpi-value" id="v-cal-due">—</div>
+            <div class="kpi-sub"><a href="/modules/mod05-equipment/" class="text-muted">Equipment &amp; Cal.</a></div>
+          </div>
+
+          <!-- MOD-07 NCR/CAPA -->
+          <div class="kpi-card" id="kpi-open-ncr">
+            <div class="kpi-label">Open NCRs</div>
+            <div class="kpi-value" id="v-open-ncr">—</div>
+            <div class="kpi-sub"><a href="/modules/mod07-ncr-capa/" class="text-muted">NCR &amp; CAPA</a></div>
+          </div>
+          <div class="kpi-card" id="kpi-overdue-capa">
+            <div class="kpi-label">Overdue CAPAs</div>
+            <div class="kpi-value" id="v-overdue-capa">—</div>
+            <div class="kpi-sub"><a href="/modules/mod07-ncr-capa/" class="text-muted">NCR &amp; CAPA</a></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Module Navigation -->
+    <div class="atca-card mb-4">
+      <div class="atca-card-header">
+        <span class="module-badge">MODULES</span>
+        <h5>Module Navigation</h5>
+      </div>
+      <div class="atca-card-body">
+
+        <!-- Quality Management -->
+        <div class="mb-2" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--atca-muted);">
+          Quality Management
+        </div>
+        <div class="module-grid mb-4">
+          <a href="/modules/mod01-qms-core/" class="module-card" style="border-top-color:#1F6BAE;">
+            <span class="mc-badge">MOD-01</span>
+            <i class="bi bi-award mc-icon"></i>
+            <p class="mc-title">QMS Core</p>
+            <span class="mc-sub">Policy · Objectives · Risk · Reviews</span>
+          </a>
+          <a href="/modules/mod02-doc-control/" class="module-card" style="border-top-color:#6C757D;">
+            <span class="mc-badge">MOD-02</span>
+            <i class="bi bi-folder2-open mc-icon"></i>
+            <p class="mc-title">Document Control</p>
+            <span class="mc-sub">Controlled Documents · Retention</span>
+          </a>
+          <a href="/modules/mod07-ncr-capa/" class="module-card" style="border-top-color:#DC3545;">
+            <span class="mc-badge">MOD-07</span>
+            <i class="bi bi-exclamation-triangle mc-icon" style="color:#DC3545;"></i>
+            <p class="mc-title">NCR &amp; CAPA</p>
+            <span class="mc-sub">Non-conformances · Corrective Actions</span>
+          </a>
+          <a href="/modules/mod08-audit/" class="module-card inactive">
+            <span class="mc-badge">MOD-08</span>
+            <i class="bi bi-clipboard-check mc-icon"></i>
+            <p class="mc-title">Audit Management</p>
+            <span class="mc-sub">Internal · NADCAP · AS9100D</span>
+          </a>
+        </div>
+
+        <!-- NDT Process -->
+        <div class="mb-2" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--atca-muted);">
+          NDT Process
+        </div>
+        <div class="module-grid mb-4">
+          <a href="/modules/mod03-fpi/" class="module-card inactive">
+            <span class="mc-badge">MOD-03</span>
+            <i class="bi bi-radioactive mc-icon"></i>
+            <p class="mc-title">FPI Process</p>
+            <span class="mc-sub">Job Traveler · Step Sign-offs</span>
+          </a>
+          <a href="/modules/mod04-personnel/" class="module-card" style="border-top-color:#198754;">
+            <span class="mc-badge">MOD-04</span>
+            <i class="bi bi-person-badge mc-icon" style="color:#198754;"></i>
+            <p class="mc-title">Personnel / NAS410</p>
+            <span class="mc-sub">Certs · Eye Exams · Training</span>
+          </a>
+          <a href="/modules/mod05-equipment/" class="module-card" style="border-top-color:#C8922A;">
+            <span class="mc-badge">MOD-05</span>
+            <i class="bi bi-tools mc-icon" style="color:#C8922A;"></i>
+            <p class="mc-title">Equipment &amp; Calibration</p>
+            <span class="mc-sub">Cal. Register · Due Dates · RAG</span>
+          </a>
+          <a href="/modules/mod06-bath/" class="module-card inactive">
+            <span class="mc-badge">MOD-06</span>
+            <i class="bi bi-droplet mc-icon"></i>
+            <p class="mc-title">Chemical / Bath Control</p>
+            <span class="mc-sub">Bath Register · Sample Results</span>
+          </a>
+          <a href="/modules/mod17-mpt/" class="module-card inactive">
+            <span class="mc-badge">MOD-17</span>
+            <i class="bi bi-magnet mc-icon"></i>
+            <p class="mc-title">MPT Process</p>
+            <span class="mc-sub">Magnetic Particle Testing</span>
+          </a>
+        </div>
+
+        <!-- Operations -->
+        <div class="mb-2" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--atca-muted);">
+          Operations
+        </div>
+        <div class="module-grid mb-4">
+          <a href="/modules/mod13-traveler/" class="module-card inactive">
+            <span class="mc-badge">MOD-13</span>
+            <i class="bi bi-file-earmark-ruled mc-icon"></i>
+            <p class="mc-title">Work Order / Traveler</p>
+            <span class="mc-sub">Job Steps · Sign-offs</span>
+          </a>
+          <a href="/modules/mod12-traceability/" class="module-card inactive">
+            <span class="mc-badge">MOD-12</span>
+            <i class="bi bi-diagram-3 mc-icon"></i>
+            <p class="mc-title">Traceability &amp; Lot</p>
+            <span class="mc-sub">Lot Control · Part History</span>
+          </a>
+          <a href="/modules/mod24-coc/" class="module-card inactive">
+            <span class="mc-badge">MOD-24</span>
+            <i class="bi bi-file-earmark-check mc-icon"></i>
+            <p class="mc-title">Certificate of Conformance</p>
+            <span class="mc-sub">CoC Generation · Approval</span>
+          </a>
+        </div>
+
+        <!-- System -->
+        <div class="mb-2" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--atca-muted);">
+          System
+        </div>
+        <div class="module-grid">
+          <a href="/modules/mod15-dashboard/" class="module-card inactive">
+            <span class="mc-badge">MOD-15</span>
+            <i class="bi bi-speedometer2 mc-icon"></i>
+            <p class="mc-title">KPI Dashboard</p>
+            <span class="mc-sub">Cross-module Metrics</span>
+          </a>
+          <a href="/modules/mod25-users/" class="module-card inactive">
+            <span class="mc-badge">MOD-25</span>
+            <i class="bi bi-people mc-icon"></i>
+            <p class="mc-title">User Management</p>
+            <span class="mc-sub">Accounts · Roles · Reset</span>
+          </a>
+          <a href="/modules/mod26-config/" class="module-card inactive">
+            <span class="mc-badge">MOD-26</span>
+            <i class="bi bi-gear mc-icon"></i>
+            <p class="mc-title">Configuration</p>
+            <span class="mc-sub">System Settings</span>
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div><!-- /#main-content -->
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6>
+      </div>
+      <div class="modal-body text-center py-3">
+        <p class="mb-1">Your session expires in <strong id="timeout-countdown">5:00</strong></p>
+        <p class="text-muted" style="font-size:0.75rem;">Click to stay logged in.</p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+'use strict';
+
+/* ============================================================
+   HOME DASHBOARD — Alert KPI Loader
+   ============================================================ */
+
+/** Apply RAG class to a KPI card element */
+function applyRag(cardId, value, redAt, amberAt) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  card.classList.remove('rag-red', 'rag-amber', 'rag-green');
+  if (value >= redAt)        card.classList.add('rag-red');
+  else if (value >= amberAt) card.classList.add('rag-amber');
+  else                       card.classList.add('rag-green');
+}
+
+async function loadAllAlerts() {
+  // MOD-04: Personnel & Cert Alerts
+  const p04 = await ATCA.api.get('/mod04/alerts/summary');
+  if (p04) {
+    document.getElementById('v-expired-certs').textContent   = p04.expired_certs   ?? '—';
+    document.getElementById('v-expiring-certs').textContent  = p04.certs_expiring_90d ?? '—';
+    document.getElementById('v-expired-eye').textContent     = p04.expired_eye_exams  ?? '—';
+    applyRag('kpi-expired-certs',  p04.expired_certs     || 0, 1, 1);
+    applyRag('kpi-expiring-certs', p04.certs_expiring_90d || 0, 3, 1);
+    applyRag('kpi-expired-eye',    p04.expired_eye_exams  || 0, 1, 1);
+  }
+
+  // MOD-05: Equipment Calibration Alerts
+  const p05 = await ATCA.api.get('/mod05/alerts/summary');
+  if (p05) {
+    document.getElementById('v-cal-overdue').textContent = p05.cal_overdue  ?? '—';
+    document.getElementById('v-cal-due').textContent     = p05.cal_due_30d  ?? '—';
+    applyRag('kpi-cal-overdue', p05.cal_overdue  || 0, 1, 1);
+    applyRag('kpi-cal-due',     p05.cal_due_30d  || 0, 3, 1);
+  }
+
+  // MOD-07: NCR & CAPA Alerts
+  const p07 = await ATCA.api.get('/mod07/alerts/summary');
+  if (p07) {
+    document.getElementById('v-open-ncr').textContent     = p07.open_ncr      ?? '—';
+    document.getElementById('v-overdue-capa').textContent = p07.overdue_capa  ?? '—';
+    applyRag('kpi-open-ncr',     p07.open_ncr     || 0, 5, 1);
+    applyRag('kpi-overdue-capa', p07.overdue_capa || 0, 1, 1);
+  }
+}
+
+/* ============================================================
+   WELCOME BANNER
+   ============================================================ */
+function initWelcomeBanner() {
+  const user = ATCA.currentUser;
+  if (!user) return;
+
+  const nameEl = document.getElementById('welcome-name');
+  const roleEl = document.getElementById('welcome-role');
+  if (nameEl) nameEl.textContent = user.full_name || user.username;
+  if (roleEl) roleEl.textContent = user.role.replace('_', ' ');
+
+  const dateEl = document.getElementById('welcome-date');
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString('en-SG', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+    });
+  }
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', async () => {
+  await ATCA.user.load();
+  initWelcomeBanner();
+  ATCA.clock.start();
+  ATCA.alerts.startPolling();
+  ATCA.session.init();
+  ATCA.sidebar.init();
+  await loadAllAlerts();
+});
+</script>
+
+</body>
+</html>

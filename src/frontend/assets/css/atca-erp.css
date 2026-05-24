@@ -1,0 +1,480 @@
+/* ============================================================
+   ATCA-ERP v1.0 — Main Stylesheet
+   ATC Aviation Pte Ltd | AS9100D | NADCAP AC7114 | NAS410
+   LAN-only: no external CDN; Bootstrap 5 bundled via /assets/js/bootstrap.bundle.min.js
+   ============================================================ */
+
+/* --- Brand Colors (from BRAND_COLORS sheet in Design Registry) --- */
+:root {
+  --atca-navy:      #1B2A4A;  /* Primary brand navy */
+  --atca-blue:      #1F6BAE;  /* Accent blue */
+  --atca-gold:      #C8922A;  /* Gold accent */
+  --atca-light:     #F4F6F9;  /* Page background */
+  --atca-white:     #FFFFFF;
+  --atca-border:    #DEE2E6;
+  --atca-text:      #212529;
+  --atca-muted:     #6C757D;
+
+  /* RAG status */
+  --rag-red:        #DC3545;
+  --rag-amber:      #FFC107;
+  --rag-green:      #198754;
+
+  /* Sidebar */
+  --sidebar-width:  260px;
+  --sidebar-bg:     var(--atca-navy);
+  --sidebar-hover:  rgba(255,255,255,0.08);
+  --sidebar-active: var(--atca-blue);
+}
+
+/* --- Base --- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--atca-light);
+  color: var(--atca-text);
+  font-size: 0.9rem;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* ============================================================
+   SIDEBAR NAVIGATION
+   ============================================================ */
+#sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 1000;
+  overflow-y: auto;
+  transition: transform 0.25s ease;
+}
+
+#sidebar .sidebar-brand {
+  padding: 1.25rem 1rem 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+#sidebar .sidebar-brand img {
+  height: 36px;
+  margin-bottom: 0.4rem;
+}
+
+#sidebar .sidebar-brand h6 {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0;
+  letter-spacing: 0.03em;
+}
+
+#sidebar .sidebar-brand small {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.7rem;
+}
+
+#sidebar .nav-section-label {
+  padding: 0.9rem 1rem 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.35);
+}
+
+#sidebar .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  border-radius: 0;
+  font-size: 0.83rem;
+  transition: background 0.15s, color 0.15s;
+  border-left: 3px solid transparent;
+}
+
+#sidebar .nav-link:hover {
+  background: var(--sidebar-hover);
+  color: #fff;
+}
+
+#sidebar .nav-link.active {
+  background: var(--sidebar-active);
+  color: #fff;
+  border-left-color: var(--atca-gold);
+}
+
+#sidebar .nav-link .nav-icon {
+  width: 18px;
+  text-align: center;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+#sidebar .nav-link .badge {
+  margin-left: auto;
+  font-size: 0.65rem;
+}
+
+#sidebar .sidebar-footer {
+  margin-top: auto;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.35);
+}
+
+/* ============================================================
+   MAIN CONTENT AREA
+   ============================================================ */
+#main-content {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* --- Top Bar --- */
+#topbar {
+  background: var(--atca-white);
+  border-bottom: 1px solid var(--atca-border);
+  padding: 0.6rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 500;
+}
+
+#topbar .topbar-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--atca-navy);
+  margin: 0;
+}
+
+#topbar .topbar-subtitle {
+  font-size: 0.75rem;
+  color: var(--atca-muted);
+  margin: 0;
+}
+
+#topbar .topbar-alerts {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+#topbar .alert-badge {
+  position: relative;
+  cursor: pointer;
+  color: var(--atca-muted);
+  font-size: 1.1rem;
+}
+
+#topbar .alert-badge .badge {
+  position: absolute;
+  top: -4px; right: -6px;
+  font-size: 0.6rem;
+  padding: 2px 4px;
+}
+
+#topbar .user-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--atca-light);
+  border: 1px solid var(--atca-border);
+  border-radius: 20px;
+  padding: 0.2rem 0.6rem 0.2rem 0.2rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+#topbar .user-avatar {
+  width: 26px; height: 26px;
+  background: var(--atca-blue);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* --- Page Content --- */
+.page-content {
+  padding: 1.5rem;
+  flex: 1;
+}
+
+/* ============================================================
+   CARDS & PANELS
+   ============================================================ */
+.atca-card {
+  background: var(--atca-white);
+  border: 1px solid var(--atca-border);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 1.25rem;
+}
+
+.atca-card-header {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--atca-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(27,42,74,0.03);
+}
+
+.atca-card-header h5 {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--atca-navy);
+}
+
+.atca-card-header .module-badge {
+  font-size: 0.65rem;
+  background: var(--atca-navy);
+  color: #fff;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.atca-card-body {
+  padding: 1.25rem;
+}
+
+/* ============================================================
+   KPI / STAT CARDS
+   ============================================================ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.kpi-card {
+  background: var(--atca-white);
+  border: 1px solid var(--atca-border);
+  border-radius: 6px;
+  padding: 1rem;
+  border-left: 4px solid var(--atca-blue);
+}
+
+.kpi-card.rag-red    { border-left-color: var(--rag-red);   }
+.kpi-card.rag-amber  { border-left-color: var(--rag-amber); }
+.kpi-card.rag-green  { border-left-color: var(--rag-green); }
+
+.kpi-card .kpi-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--atca-muted);
+  margin-bottom: 0.3rem;
+}
+
+.kpi-card .kpi-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--atca-navy);
+  line-height: 1;
+  margin-bottom: 0.15rem;
+}
+
+.kpi-card .kpi-sub {
+  font-size: 0.7rem;
+  color: var(--atca-muted);
+}
+
+/* ============================================================
+   TABLES
+   ============================================================ */
+.atca-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.atca-table th {
+  background: var(--atca-navy);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.atca-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--atca-border);
+  vertical-align: middle;
+}
+
+.atca-table tr:hover td {
+  background: rgba(31,107,174,0.04);
+}
+
+/* ============================================================
+   STATUS BADGES
+   ============================================================ */
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-badge.open       { background: #FFF3CD; color: #856404; }
+.status-badge.on-track   { background: #D1E7DD; color: #0A3622; }
+.status-badge.at-risk    { background: #F8D7DA; color: #58151C; }
+.status-badge.achieved   { background: #D1E7DD; color: #0A3622; }
+.status-badge.closed     { background: #E2E3E5; color: #41464B; }
+.status-badge.draft      { background: #E2E3E5; color: #41464B; }
+.status-badge.approved   { background: #D1E7DD; color: #0A3622; }
+.status-badge.superseded { background: #E2E3E5; color: #6C757D; }
+.status-badge.high       { background: #F8D7DA; color: #58151C; }
+.status-badge.medium     { background: #FFF3CD; color: #856404; }
+.status-badge.low        { background: #D1E7DD; color: #0A3622; }
+
+/* ============================================================
+   FORMS
+   ============================================================ */
+.atca-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--atca-navy);
+  margin-bottom: 0.2rem;
+  display: block;
+}
+
+.atca-label .req {
+  color: var(--rag-red);
+  margin-left: 2px;
+}
+
+.atca-label .clause {
+  font-size: 0.65rem;
+  font-weight: 400;
+  color: var(--atca-muted);
+  margin-left: 6px;
+}
+
+.form-control, .form-select {
+  font-size: 0.83rem;
+  border-color: var(--atca-border);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--atca-blue);
+  box-shadow: 0 0 0 0.2rem rgba(31,107,174,0.15);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-atca-primary {
+  background: var(--atca-blue);
+  border-color: var(--atca-blue);
+  color: #fff;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.btn-atca-primary:hover {
+  background: #175d9a;
+  border-color: #175d9a;
+  color: #fff;
+}
+
+.btn-atca-navy {
+  background: var(--atca-navy);
+  border-color: var(--atca-navy);
+  color: #fff;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+/* ============================================================
+   BREADCRUMB
+   ============================================================ */
+.atca-breadcrumb {
+  font-size: 0.75rem;
+  color: var(--atca-muted);
+  margin-bottom: 1rem;
+}
+
+.atca-breadcrumb a {
+  color: var(--atca-blue);
+  text-decoration: none;
+}
+
+.atca-breadcrumb span { color: var(--atca-muted); }
+
+/* ============================================================
+   RISK MATRIX
+   ============================================================ */
+.risk-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 32px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #fff;
+}
+
+.risk-score.high   { background: var(--rag-red);   }
+.risk-score.medium { background: var(--rag-amber); color: #212529; }
+.risk-score.low    { background: var(--rag-green); }
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  #sidebar, #topbar { display: none !important; }
+  #main-content { margin-left: 0; }
+  .page-content { padding: 0; }
+  .atca-card { box-shadow: none; border: 1px solid #ccc; }
+}
+
+/* ============================================================
+   RESPONSIVE (Phase 2 tablet breakpoint)
+   ============================================================ */
+@media (max-width: 768px) {
+  #sidebar {
+    transform: translateX(-100%);
+  }
+  #sidebar.open {
+    transform: translateX(0);
+  }
+  #main-content {
+    margin-left: 0;
+  }
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

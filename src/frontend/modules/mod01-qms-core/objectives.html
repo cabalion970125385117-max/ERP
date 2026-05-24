@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-01: Quality Objectives & KPI Tracking
+  AS9100D §6.2 — Quality Objectives and Planning to Achieve Them
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Quality Objectives — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    .kpi-progress-bar { height: 8px; border-radius: 4px; background: var(--atca-border); overflow: hidden; }
+    .kpi-progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+    .progress-green  { background: var(--rag-green); }
+    .progress-amber  { background: var(--rag-amber); }
+    .progress-red    { background: var(--rag-red); }
+    .obj-card { border: 1px solid var(--atca-border); border-radius: 6px; padding: 1rem; background: #fff; margin-bottom: 0.75rem; }
+    .obj-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .obj-card .obj-ref { font-size: 0.68rem; font-family: monospace; background: var(--atca-navy); color: #fff; padding: 1px 6px; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/" class="nav-link active"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi/" class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-personnel/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/" class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-bullseye me-1"></i>Quality Objectives &amp; KPIs</p>
+      <p class="topbar-subtitle mb-0">AS9100D §6.2 — Objectives, Targets and Performance Measurement</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0"><i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span></div>
+      <div class="user-pill" tabindex="0"><div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span></div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> /
+      <a href="/modules/mod01-qms-core/">QMS Core</a> /
+      <span>Quality Objectives</span>
+    </div>
+
+    <!-- Summary KPIs -->
+    <div class="kpi-grid mb-3" id="obj-kpi-grid">
+      <div class="kpi-card rag-green">
+        <div class="kpi-label">On Track / Achieved</div>
+        <div class="kpi-value" id="kpi-on-track">—</div>
+        <div class="kpi-sub">Objectives</div>
+      </div>
+      <div class="kpi-card rag-amber">
+        <div class="kpi-label">At Risk</div>
+        <div class="kpi-value" id="kpi-at-risk">—</div>
+        <div class="kpi-sub">Objectives</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Active</div>
+        <div class="kpi-value" id="kpi-total">—</div>
+        <div class="kpi-sub">Quality objectives</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Overdue</div>
+        <div class="kpi-value" id="kpi-overdue">—</div>
+        <div class="kpi-sub">Past target date</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="atca-card mb-3">
+      <div class="atca-card-body py-2">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md-4">
+            <input type="text" class="form-control form-control-sm" id="obj-search" placeholder="Search objectives…">
+          </div>
+          <div class="col-6 col-md-2">
+            <select class="form-select form-select-sm" id="filter-status">
+              <option value="">All Statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="ON_TRACK">On Track</option>
+              <option value="AT_RISK">At Risk</option>
+              <option value="ACHIEVED">Achieved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <select class="form-select form-select-sm" id="filter-area">
+              <option value="">All Areas</option>
+              <option value="FPI">FPI</option>
+              <option value="MPT">MPT</option>
+              <option value="QA">QA</option>
+              <option value="HR">HR</option>
+              <option value="PLATING">Plating</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <select class="form-select form-select-sm" id="filter-view">
+              <option value="cards">Card View</option>
+              <option value="table">Table View</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2 text-end">
+            <button class="btn btn-atca-primary btn-sm" id="new-obj-btn"
+              data-bs-toggle="modal" data-bs-target="#objModal" onclick="openObjModal()">
+              <i class="bi bi-plus-lg me-1"></i>Add Objective
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card View -->
+    <div id="obj-cards-view">
+      <div id="obj-cards-container" class="row g-3">
+        <div class="col-12 text-center text-muted py-4">Loading objectives…</div>
+      </div>
+    </div>
+
+    <!-- Table View (hidden by default) -->
+    <div id="obj-table-view" style="display:none;">
+      <div class="atca-card">
+        <div class="atca-card-body p-0" style="overflow-x:auto;">
+          <table class="atca-table">
+            <thead>
+              <tr>
+                <th>Ref</th><th>Title</th><th>Area</th><th>Target</th>
+                <th>Latest Actual</th><th>Status</th><th>Target Date</th><th>Owner</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="obj-table-tbody">
+              <tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD/EDIT OBJECTIVE MODAL -->
+<div class="modal fade" id="objModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--atca-navy);color:#fff;">
+        <h6 class="modal-title"><i class="bi bi-bullseye me-1"></i><span id="obj-modal-title">Add Quality Objective</span></h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="obj-form" novalidate>
+          <input type="hidden" id="obj-id">
+          <div class="row g-3">
+            <div class="col-4">
+              <label class="atca-label">Reference <span class="req">*</span></label>
+              <input type="text" class="form-control form-control-sm" id="obj-ref" name="objective_ref" required placeholder="OBJ-2026-001">
+            </div>
+            <div class="col-4">
+              <label class="atca-label">Process Area</label>
+              <select class="form-select form-select-sm" id="obj-area" name="process_area">
+                <option value="">— Select —</option>
+                <option value="FPI">FPI</option><option value="MPT">MPT</option>
+                <option value="ECT">ECT</option><option value="UT">UT</option>
+                <option value="QA">Quality Assurance</option><option value="HR">HR</option>
+                <option value="PLATING">Plating</option><option value="COATING">Coating</option>
+                <option value="SUPPLY_CHAIN">Supply Chain</option>
+              </select>
+            </div>
+            <div class="col-4">
+              <label class="atca-label">AS9100D Clause</label>
+              <input type="text" class="form-control form-control-sm" name="as9100d_clause" placeholder="e.g. 6.2, 9.1">
+            </div>
+            <div class="col-12">
+              <label class="atca-label">Title <span class="req">*</span></label>
+              <input type="text" class="form-control form-control-sm" id="obj-title" name="title" required>
+            </div>
+            <div class="col-12">
+              <label class="atca-label">Description <span class="clause">SMART objective</span></label>
+              <textarea class="form-control form-control-sm" name="description" rows="2"></textarea>
+            </div>
+            <div class="col-3">
+              <label class="atca-label">Target Value</label>
+              <input type="number" step="0.01" class="form-control form-control-sm" name="target_value" placeholder="e.g. 95">
+            </div>
+            <div class="col-3">
+              <label class="atca-label">Unit</label>
+              <input type="text" class="form-control form-control-sm" name="target_unit" placeholder="e.g. % pass rate">
+            </div>
+            <div class="col-3">
+              <label class="atca-label">Target Date <span class="req">*</span></label>
+              <input type="date" class="form-control form-control-sm" id="obj-tdate" name="target_date" required>
+            </div>
+            <div class="col-3">
+              <label class="atca-label">Measurement Freq.</label>
+              <select class="form-select form-select-sm" name="measurement_freq">
+                <option value="Monthly" selected>Monthly</option>
+                <option value="Quarterly">Quarterly</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Annually">Annually</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="atca-label">Status</label>
+              <select class="form-select form-select-sm" name="status">
+                <option value="OPEN">Open</option>
+                <option value="ON_TRACK">On Track</option>
+                <option value="AT_RISK">At Risk</option>
+                <option value="ACHIEVED">Achieved</option>
+                <option value="CLOSED">Closed</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary btn-sm" onclick="saveObjective()">
+          <i class="bi bi-floppy me-1"></i>Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECORD MEASUREMENT MODAL -->
+<div class="modal fade" id="measureModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--atca-gold);color:#fff;">
+        <h6 class="modal-title"><i class="bi bi-graph-up me-1"></i>Record KPI Measurement</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.78rem;color:var(--atca-muted);" id="measure-obj-title">—</p>
+        <input type="hidden" id="measure-obj-id">
+        <div class="mb-2">
+          <label class="atca-label">Period Label <span class="req">*</span></label>
+          <input type="text" class="form-control form-control-sm" id="measure-label" placeholder="e.g. Jan 2026">
+        </div>
+        <div class="mb-2">
+          <label class="atca-label">Period Date <span class="req">*</span></label>
+          <input type="date" class="form-control form-control-sm" id="measure-date">
+        </div>
+        <div class="mb-2">
+          <label class="atca-label">Actual Value <span class="req">*</span></label>
+          <input type="number" step="0.01" class="form-control form-control-sm" id="measure-actual" placeholder="e.g. 97.5">
+        </div>
+        <div>
+          <label class="atca-label">Notes</label>
+          <textarea class="form-control form-control-sm" id="measure-notes" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary btn-sm" onclick="saveMeasurement()">
+          <i class="bi bi-check-lg me-1"></i>Record
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Timeout -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title">Session Expiring</h6></div>
+      <div class="modal-body text-center py-3"><p>Expires in <strong id="timeout-countdown">5:00</strong></p></div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+'use strict';
+
+let allObjectives = [];
+
+/* -------------------------------------------------------
+   Load Objectives
+------------------------------------------------------- */
+async function loadObjectives() {
+  const status = document.getElementById('filter-status')?.value || '';
+  const area   = document.getElementById('filter-area')?.value   || '';
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  if (area)   params.set('process_area', area);
+
+  const data = await ATCA.api.get('/mod01/objectives?' + params.toString());
+  if (!data) return;
+  allObjectives = data.items;
+  renderObjectives(allObjectives);
+
+  // KPIs
+  const onTrack  = allObjectives.filter(o => ['ON_TRACK','ACHIEVED'].includes(o.status)).length;
+  const atRisk   = allObjectives.filter(o => o.status === 'AT_RISK').length;
+  const overdue  = allObjectives.filter(o => o.status !== 'CLOSED' && ATCA.utils.daysUntil(o.target_date) < 0).length;
+  document.getElementById('kpi-on-track').textContent = onTrack;
+  document.getElementById('kpi-at-risk').textContent  = atRisk;
+  document.getElementById('kpi-total').textContent    = data.total;
+  document.getElementById('kpi-overdue').textContent  = overdue;
+}
+
+function progressColor(pct) {
+  if (pct >= 90) return 'progress-green';
+  if (pct >= 60) return 'progress-amber';
+  return 'progress-red';
+}
+
+function renderObjectives(rows) {
+  const view = document.getElementById('filter-view')?.value || 'cards';
+
+  if (view === 'table') {
+    document.getElementById('obj-cards-view').style.display = 'none';
+    document.getElementById('obj-table-view').style.display = '';
+    ATCA.table.render('obj-table-tbody', rows, row => {
+      const pct = row.target_value && row.latest_actual
+        ? Math.min(100, Math.round((row.latest_actual / row.target_value) * 100)) : null;
+      return `
+        <tr>
+          <td><code>${ATCA.utils.escHtml(row.objective_ref)}</code></td>
+          <td>${ATCA.utils.escHtml(row.title)}</td>
+          <td>${ATCA.utils.escHtml(row.process_area || '—')}</td>
+          <td>${row.target_value != null ? row.target_value + ' ' + ATCA.utils.escHtml(row.target_unit || '') : '—'}</td>
+          <td>${row.latest_actual != null ? row.latest_actual + ' (' + ATCA.utils.escHtml(row.latest_period || '') + ')' : '—'}</td>
+          <td>${ATCA.utils.statusBadge(row.status)}</td>
+          <td>${ATCA.utils.fmtDate(row.target_date)}</td>
+          <td>${ATCA.utils.escHtml(row.owner_name || '—')}</td>
+          <td>
+            <button class="btn btn-outline-secondary btn-sm py-0 px-1 me-1" onclick="openObjModal(${row.objective_id})" title="Edit"><i class="bi bi-pencil" style="font-size:0.7rem;"></i></button>
+            <button class="btn btn-outline-warning btn-sm py-0 px-1" onclick="openMeasureModal(${row.objective_id}, '${ATCA.utils.escHtml(row.title)}')" title="Record KPI"><i class="bi bi-graph-up" style="font-size:0.7rem;"></i></button>
+          </td>
+        </tr>`;
+    });
+    return;
+  }
+
+  // Card view
+  document.getElementById('obj-cards-view').style.display = '';
+  document.getElementById('obj-table-view').style.display = 'none';
+  const container = document.getElementById('obj-cards-container');
+  if (!rows.length) {
+    container.innerHTML = '<div class="col-12 text-center text-muted py-4">No objectives found.</div>';
+    return;
+  }
+  container.innerHTML = rows.map(row => {
+    const pct = row.target_value && row.latest_actual != null
+      ? Math.min(100, Math.round((row.latest_actual / row.target_value) * 100)) : null;
+    const days = ATCA.utils.daysUntil(row.target_date);
+    return `
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="obj-card">
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <span class="obj-ref">${ATCA.utils.escHtml(row.objective_ref)}</span>
+            ${ATCA.utils.statusBadge(row.status)}
+            <span class="ms-auto text-muted" style="font-size:0.7rem;">${ATCA.utils.escHtml(row.process_area || '')}</span>
+          </div>
+          <div class="fw-bold mb-1" style="font-size:0.85rem;">${ATCA.utils.escHtml(row.title)}</div>
+
+          ${pct !== null ? `
+          <div class="d-flex justify-content-between mb-1" style="font-size:0.72rem;color:var(--atca-muted);">
+            <span>Progress to Target</span><span>${pct}%</span>
+          </div>
+          <div class="kpi-progress-bar mb-2">
+            <div class="kpi-progress-fill ${progressColor(pct)}" style="width:${pct}%;"></div>
+          </div>
+          <div style="font-size:0.72rem;color:var(--atca-muted);">
+            Latest: <strong>${row.latest_actual}</strong> ${ATCA.utils.escHtml(row.target_unit || '')}
+            (${ATCA.utils.escHtml(row.latest_period || '—')})
+            &nbsp;|&nbsp; Target: <strong>${row.target_value}</strong> ${ATCA.utils.escHtml(row.target_unit || '')}
+          </div>` : `
+          <div style="font-size:0.72rem;color:var(--atca-muted);">No measurements recorded yet.</div>`}
+
+          <div class="d-flex justify-content-between align-items-center mt-2 pt-2"
+            style="border-top:1px solid var(--atca-border);font-size:0.7rem;color:var(--atca-muted);">
+            <span>Due: ${ATCA.utils.fmtDate(row.target_date)}
+              ${days < 0 ? '<span class="badge bg-danger ms-1">OVERDUE</span>' :
+                days <= 30 ? `<span class="badge bg-warning text-dark ms-1">${days}d</span>` : ''}
+            </span>
+            <div class="d-flex gap-1">
+              <button class="btn btn-outline-secondary btn-sm py-0 px-1" onclick="openObjModal(${row.objective_id})" title="Edit">
+                <i class="bi bi-pencil" style="font-size:0.7rem;"></i>
+              </button>
+              <button class="btn btn-outline-warning btn-sm py-0 px-1" onclick="openMeasureModal(${row.objective_id}, '${ATCA.utils.escHtml(row.title).replace(/'/g,"\\'")}')" title="Record KPI">
+                <i class="bi bi-graph-up" style="font-size:0.7rem;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* -------------------------------------------------------
+   Modal: Add/Edit Objective
+------------------------------------------------------- */
+function openObjModal(objId) {
+  ATCA.form.clearErrors('obj-form');
+  document.getElementById('obj-form').reset();
+  document.getElementById('obj-id').value = objId || '';
+  document.getElementById('obj-modal-title').textContent = objId ? 'Edit Objective' : 'Add Quality Objective';
+
+  if (objId) {
+    const o = allObjectives.find(x => x.objective_id === objId);
+    if (o) {
+      document.getElementById('obj-ref').value   = o.objective_ref;
+      document.getElementById('obj-title').value = o.title;
+      document.getElementById('obj-area').value  = o.process_area || '';
+      document.getElementById('obj-tdate').value = o.target_date?.substring(0,10) || '';
+      // Populate other fields via form names
+      ['description','as9100d_clause','target_value','target_unit','measurement_freq','status']
+        .forEach(k => {
+          const el = document.querySelector(`#obj-form [name="${k}"]`);
+          if (el) el.value = o[k] || '';
+        });
+    }
+  }
+}
+
+async function saveObjective() {
+  const body = ATCA.form.collect('obj-form');
+  const id   = document.getElementById('obj-id').value;
+  delete body.obj_id;
+  if (!body.objective_ref || !body.title || !body.target_date) {
+    ATCA.utils.toast('Reference, title and target date are required.', 'warning'); return;
+  }
+  if (body.target_value) body.target_value = parseFloat(body.target_value);
+
+  const endpoint = id ? `/mod01/objectives/${id}` : '/mod01/objectives';
+  const method   = id ? 'put' : 'post';
+  const result   = await ATCA.api[method](endpoint, body);
+  if (result) {
+    bootstrap.Modal.getInstance(document.getElementById('objModal'))?.hide();
+    ATCA.utils.toast(id ? 'Objective updated.' : 'Objective created.', 'success');
+    await loadObjectives();
+  }
+}
+
+/* -------------------------------------------------------
+   Modal: Record Measurement
+------------------------------------------------------- */
+function openMeasureModal(objId, title) {
+  document.getElementById('measure-obj-id').value   = objId;
+  document.getElementById('measure-obj-title').textContent = title;
+  document.getElementById('measure-label').value    = '';
+  document.getElementById('measure-actual').value   = '';
+  document.getElementById('measure-notes').value    = '';
+  document.getElementById('measure-date').value     = new Date().toISOString().substring(0,10);
+  new bootstrap.Modal(document.getElementById('measureModal')).show();
+}
+
+async function saveMeasurement() {
+  const objId  = document.getElementById('measure-obj-id').value;
+  const label  = document.getElementById('measure-label').value;
+  const date   = document.getElementById('measure-date').value;
+  const actual = document.getElementById('measure-actual').value;
+  const notes  = document.getElementById('measure-notes').value;
+
+  if (!label || !date || actual === '') {
+    ATCA.utils.toast('Period label, date and actual value are required.', 'warning'); return;
+  }
+  const result = await ATCA.api.post(`/mod01/objectives/${objId}/measurements`, {
+    period_label: label, period_date: date, actual_value: parseFloat(actual), notes
+  });
+  if (result) {
+    bootstrap.Modal.getInstance(document.getElementById('measureModal'))?.hide();
+    ATCA.utils.toast('KPI measurement recorded.', 'success');
+    await loadObjectives();
+  }
+}
+
+/* -------------------------------------------------------
+   Filters + Search + View Toggle
+------------------------------------------------------- */
+['filter-status','filter-area','filter-view'].forEach(id =>
+  document.getElementById(id)?.addEventListener('change', () => {
+    if (id === 'filter-view') renderObjectives(allObjectives);
+    else loadObjectives();
+  })
+);
+
+document.getElementById('obj-search')?.addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  const filtered = q ? allObjectives.filter(o =>
+    (o.objective_ref + o.title + (o.process_area || '')).toLowerCase().includes(q)
+  ) : allObjectives;
+  renderObjectives(filtered);
+});
+
+/* -------------------------------------------------------
+   Init
+------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', loadObjectives);
+</script>
+</body>
+</html>

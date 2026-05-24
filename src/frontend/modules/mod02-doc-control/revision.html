@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Revision Workflow — ATCA-ERP MOD-02</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css"/>
+  <link rel="stylesheet" href="/assets/css/atca-erp.css"/>
+</head>
+<body>
+
+<div class="atca-sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <span class="sidebar-logo-title">ATCA-ERP</span>
+    <span class="sidebar-logo-sub">AS9100D · NADCAP AC7114</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Core QMS</div>
+    <a href="/modules/mod01-qms-core/index.html" class="nav-item"><i class="bi bi-shield-check"></i>QMS Core</a>
+    <a href="/modules/mod02-doc-control/index.html" class="nav-item active"><i class="bi bi-file-earmark-text"></i>Document Control</a>
+    <div class="nav-section">NDT</div>
+    <a href="#" class="nav-item"><i class="bi bi-droplet"></i>FPI Process</a>
+    <a href="#" class="nav-item"><i class="bi bi-people"></i>Personnel / NAS410</a>
+    <a href="#" class="nav-item"><i class="bi bi-tools"></i>Equipment & Cal.</a>
+  </nav>
+  <div class="sidebar-footer"><div id="sb-user-pill"></div></div>
+</div>
+
+<div class="atca-main">
+  <div class="atca-topbar">
+    <div class="topbar-left">
+      <a href="/modules/mod02-doc-control/documents.html" class="text-muted me-2"><i class="bi bi-arrow-left"></i></a>
+      <i class="bi bi-arrow-repeat me-2 text-atca-blue"></i>
+      <span class="topbar-module" id="topbar-doc-title">Revision Workflow</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-alert-bell ms-3" id="alert-bell">
+        <i class="bi bi-bell"></i>
+        <span class="alert-badge d-none" id="alert-count">0</span>
+      </div>
+      <div class="topbar-user ms-3" id="topbar-user"></div>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <!-- DOC META HEADER -->
+    <div id="doc-meta-banner" class="atca-doc-banner mb-4 d-none">
+      <div class="doc-banner-main">
+        <div class="doc-number" id="meta-doc-number"></div>
+        <div class="doc-title" id="meta-doc-title"></div>
+      </div>
+      <div class="doc-banner-badges">
+        <span class="badge bg-secondary" id="meta-category"></span>
+        <span class="badge bg-secondary" id="meta-area"></span>
+        <span id="meta-status-badge"></span>
+      </div>
+      <div class="doc-banner-actions" id="doc-banner-actions"></div>
+    </div>
+
+    <!-- WORKFLOW STATE INDICATOR -->
+    <div class="atca-workflow-steps mb-4" id="workflow-steps">
+      <div class="workflow-step" id="wf-draft">
+        <div class="step-icon"><i class="bi bi-pencil"></i></div>
+        <div class="step-label">Draft</div>
+      </div>
+      <div class="workflow-connector"></div>
+      <div class="workflow-step" id="wf-review">
+        <div class="step-icon"><i class="bi bi-eye"></i></div>
+        <div class="step-label">Review</div>
+      </div>
+      <div class="workflow-connector"></div>
+      <div class="workflow-step" id="wf-approved">
+        <div class="step-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="step-label">Approved</div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- CURRENT / ACTIVE REVISION DETAIL -->
+      <div class="col-md-8">
+        <div class="atca-panel mb-3" id="current-rev-panel">
+          <div class="panel-header">
+            <span class="panel-title"><i class="bi bi-file-check me-2"></i>Current Revision</span>
+            <span id="current-rev-badge"></span>
+          </div>
+          <div class="panel-body" id="current-rev-body">
+            <p class="text-muted">No approved revision on file.</p>
+          </div>
+          <div class="panel-footer d-flex gap-2 flex-wrap" id="current-rev-actions"></div>
+        </div>
+
+        <!-- REVISION HISTORY TABLE -->
+        <div class="atca-panel">
+          <div class="panel-header">
+            <span class="panel-title"><i class="bi bi-clock-history me-2"></i>Revision History</span>
+          </div>
+          <div class="panel-body p-0">
+            <table class="atca-table mb-0" id="rev-history-table">
+              <thead>
+                <tr>
+                  <th>Rev</th>
+                  <th>Status</th>
+                  <th>Change Summary</th>
+                  <th>Prepared By</th>
+                  <th>Approved By</th>
+                  <th>Effective</th>
+                </tr>
+              </thead>
+              <tbody id="rev-history-tbody">
+                <tr><td colspan="6" class="text-center text-muted py-3">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPROVAL TRAIL + ACTIONS PANEL -->
+      <div class="col-md-4">
+        <div class="atca-panel mb-3" id="approval-panel">
+          <div class="panel-header">
+            <span class="panel-title"><i class="bi bi-check2-all me-2"></i>Approval Trail</span>
+          </div>
+          <div class="panel-body" id="approval-trail-body">
+            <p class="text-muted small">No approvals recorded yet.</p>
+          </div>
+        </div>
+
+        <!-- WORKFLOW ACTIONS -->
+        <div class="atca-panel" id="action-panel">
+          <div class="panel-header">
+            <span class="panel-title"><i class="bi bi-lightning me-2"></i>Actions</span>
+          </div>
+          <div class="panel-body" id="action-panel-body">
+            <p class="text-muted small">Loading…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW REVISION MODAL -->
+<div class="modal fade" id="modalNewRev" tabindex="-1" aria-labelledby="modalNewRevLabel" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="modalNewRevLabel"><i class="bi bi-pencil me-2"></i>Create New Draft Revision</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="rev-form-error" class="alert alert-danger d-none"></div>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label atca-field-label">Revision No.</label>
+            <input type="text" class="form-control" id="r-rev-no" placeholder="01"/>
+          </div>
+          <div class="col-md-9">
+            <label class="form-label atca-field-label">Change Summary <span class="clause-ref">§7.5.2 (e)</span></label>
+            <textarea class="form-control" id="r-change-summary" rows="2" placeholder="Describe what changed and why…"></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">File Name</label>
+            <input type="text" class="form-control" id="r-file-name" placeholder="ATCA-QMS-001_Rev01.pdf"/>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label atca-field-label">File Path (LAN/NAS)</label>
+            <input type="text" class="form-control" id="r-file-path" placeholder="\\nas\controlled-docs\QMS\"/>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Issue Date</label>
+            <input type="date" class="form-control" id="r-issue-date"/>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Effective Date</label>
+            <input type="date" class="form-control" id="r-eff-date"/>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label atca-field-label">Next Review Date <span class="clause-ref">§7.5.3</span></label>
+            <input type="date" class="form-control" id="r-review-date"/>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary" id="btn-save-rev">Create Draft</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE MODAL -->
+<div class="modal fade" id="modalApprove" tabindex="-1" aria-labelledby="modalApproveLabel" aria-modal="true" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="modalApproveLabel"><i class="bi bi-check-circle me-2"></i>Approve Revision</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-2"></i>
+          Approving will supersede all previous approved revisions and publish this revision as the current controlled copy.
+        </div>
+        <label class="form-label atca-field-label">Approval Comments (optional)</label>
+        <textarea class="form-control" id="approve-comments" rows="3"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="btn-confirm-approve">Approve &amp; Publish</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REJECT MODAL -->
+<div class="modal fade" id="modalReject" tabindex="-1" aria-labelledby="modalRejectLabel" aria-modal="true" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="modalRejectLabel"><i class="bi bi-x-circle me-2"></i>Reject Revision</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label atca-field-label">Rejection Reason <span class="text-danger">*</span></label>
+        <textarea class="form-control" id="reject-comments" rows="3" placeholder="Explain what needs to be corrected…"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="btn-confirm-reject">Reject — Return to Draft</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+(async function() {
+  await ATCA.user.load();
+  ATCA.session.init();
+  ATCA.alerts.startPolling();
+
+  const u = ATCA.user.current;
+  if (u) {
+    document.getElementById('sb-user-pill').innerHTML = `
+      <div class="d-flex align-items-center gap-2">
+        <div class="user-avatar">${ATCA.user.initials()}</div>
+        <div><div class="user-name">${ATCA.utils.escHtml(u.full_name)}</div>
+        <div class="user-role">${u.role}</div></div>
+      </div>`;
+    document.getElementById('topbar-user').innerHTML = `<span class="user-avatar sm">${ATCA.user.initials()}</span>`;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const docId  = parseInt(params.get('id'), 10);
+  if (!docId) { document.body.innerHTML = '<div class="p-5 text-danger">No document ID specified.</div>'; return; }
+
+  let docData    = null;
+  let activeRevId = null;
+
+  const modalNewRev  = new bootstrap.Modal(document.getElementById('modalNewRev'));
+  const modalApprove = new bootstrap.Modal(document.getElementById('modalApprove'));
+  const modalReject  = new bootstrap.Modal(document.getElementById('modalReject'));
+
+  // Workflow step highlight
+  function setWorkflowStep(status) {
+    ['wf-draft','wf-review','wf-approved'].forEach(id => document.getElementById(id).classList.remove('active','completed'));
+    const map = { DRAFT: 'wf-draft', REVIEW: 'wf-review', APPROVED: 'wf-approved' };
+    const activeId = map[status];
+    if (activeId) {
+      document.getElementById(activeId).classList.add('active');
+      // Mark previous steps as completed
+      if (status === 'REVIEW' || status === 'APPROVED') document.getElementById('wf-draft').classList.add('completed');
+      if (status === 'APPROVED') document.getElementById('wf-review').classList.add('completed');
+    }
+  }
+
+  async function loadDocument() {
+    try {
+      docData = await ATCA.api.get(`/mod02/documents/${docId}`);
+      document.getElementById('topbar-doc-title').textContent = docData.doc_number + ' — ' + docData.title;
+      document.title = docData.doc_number + ' — ATCA-ERP';
+
+      const banner = document.getElementById('doc-meta-banner');
+      banner.classList.remove('d-none');
+      document.getElementById('meta-doc-number').textContent = docData.doc_number;
+      document.getElementById('meta-doc-title').textContent  = docData.title;
+      document.getElementById('meta-category').textContent   = docData.category_name || docData.category_code || '';
+      document.getElementById('meta-area').textContent       = docData.process_area || 'General';
+
+      // Find active rev (DRAFT or REVIEW — latest in progress; or latest APPROVED)
+      const revs = docData.revisions || [];
+      const inProgress = revs.find(r => r.status === 'REVIEW');
+      const draft      = revs.find(r => r.status === 'DRAFT');
+      const approved   = revs.find(r => r.status === 'APPROVED' && !r.superseded_at && !r.obsoleted_at);
+      const activeRev  = inProgress || draft || approved;
+
+      activeRevId = activeRev ? activeRev.revision_id : null;
+
+      // Status badge
+      const st = activeRev ? activeRev.status : 'NO REV';
+      document.getElementById('meta-status-badge').innerHTML = ATCA.utils.statusBadge(st);
+      setWorkflowStep(st);
+
+      renderCurrentRev(activeRev || approved);
+      renderRevHistory(revs);
+      renderActions(activeRev);
+      await loadApprovalTrail();
+    } catch(e) {
+      document.getElementById('current-rev-body').innerHTML = `<p class="text-danger">Error: ${e.message}</p>`;
+    }
+  }
+
+  function renderCurrentRev(rev) {
+    const body = document.getElementById('current-rev-body');
+    if (!rev) {
+      body.innerHTML = '<p class="text-muted">No revision on file. Create the first draft below.</p>';
+      return;
+    }
+    body.innerHTML = `
+      <div class="row g-2 mb-3">
+        <div class="col-sm-3"><div class="atca-field-block"><div class="field-label">Revision</div><div class="field-value">${ATCA.utils.escHtml(rev.revision_no)}</div></div></div>
+        <div class="col-sm-3"><div class="atca-field-block"><div class="field-label">Status</div><div class="field-value">${ATCA.utils.statusBadge(rev.status)}</div></div></div>
+        <div class="col-sm-3"><div class="atca-field-block"><div class="field-label">Effective</div><div class="field-value">${rev.effective_date ? ATCA.utils.fmtDate(rev.effective_date) : '—'}</div></div></div>
+        <div class="col-sm-3"><div class="atca-field-block"><div class="field-label">Review Due</div><div class="field-value ${rev.days_until_review < 0 ? 'text-red' : rev.days_until_review <= 30 ? 'text-amber' : ''}">${rev.review_due_date ? ATCA.utils.fmtDate(rev.review_due_date) : '—'}</div></div></div>
+        <div class="col-12"><div class="atca-field-block"><div class="field-label">Change Summary</div><div class="field-value">${ATCA.utils.escHtml(rev.change_summary)}</div></div></div>
+        ${rev.file_name ? `<div class="col-12"><div class="atca-field-block"><div class="field-label">Document File</div>
+          <div class="field-value"><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${ATCA.utils.escHtml(rev.file_name)}
+          ${rev.file_path ? `<br><small class="text-muted font-monospace">${ATCA.utils.escHtml(rev.file_path)}</small>` : ''}
+          </div></div></div>` : ''}
+        <div class="col-sm-4"><div class="atca-field-block"><div class="field-label">Prepared By</div><div class="field-value">${ATCA.utils.escHtml(rev.prepared_by_name || '—')}</div></div></div>
+        <div class="col-sm-4"><div class="atca-field-block"><div class="field-label">Reviewed By</div><div class="field-value">${ATCA.utils.escHtml(rev.reviewed_by_name || '—')}</div></div></div>
+        <div class="col-sm-4"><div class="atca-field-block"><div class="field-label">Approved By</div><div class="field-value">${ATCA.utils.escHtml(rev.approved_by_name || '—')}</div></div></div>
+      </div>`;
+  }
+
+  function renderRevHistory(revs) {
+    const tbody = document.getElementById('rev-history-tbody');
+    if (!revs.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">No revisions yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = revs.map(r => `
+      <tr class="${r.status === 'SUPERSEDED' || r.status === 'OBSOLETE' ? 'text-muted' : ''}">
+        <td>${ATCA.utils.escHtml(r.revision_no)}</td>
+        <td>${ATCA.utils.statusBadge(r.status)}</td>
+        <td class="small">${ATCA.utils.escHtml(r.change_summary)}</td>
+        <td class="small">${ATCA.utils.escHtml(r.prepared_by_name || '—')}</td>
+        <td class="small">${ATCA.utils.escHtml(r.approved_by_name || '—')}</td>
+        <td class="small">${r.effective_date ? ATCA.utils.fmtDate(r.effective_date) : '—'}</td>
+      </tr>`).join('');
+  }
+
+  function renderActions(activeRev) {
+    const body = document.getElementById('action-panel-body');
+    const isQA = ATCA.user.isQA();
+    const canEngineer = ATCA.user.hasRole('ENGINEER') || isQA;
+    let html = '';
+
+    if (!activeRev || activeRev.status === 'APPROVED' || activeRev.status === 'OBSOLETE') {
+      if (canEngineer) {
+        html += `<button class="btn btn-atca-primary btn-sm w-100 mb-2" id="btn-new-rev"><i class="bi bi-pencil me-1"></i>Create New Draft Revision</button>`;
+      }
+    }
+    if (activeRev && activeRev.status === 'DRAFT' && canEngineer) {
+      html += `<button class="btn btn-warning btn-sm w-100 mb-2" id="btn-submit-rev"><i class="bi bi-send me-1"></i>Submit for Review</button>`;
+    }
+    if (activeRev && activeRev.status === 'REVIEW' && isQA) {
+      html += `<button class="btn btn-success btn-sm w-100 mb-2" id="btn-approve-rev"><i class="bi bi-check-circle me-1"></i>Approve &amp; Publish</button>`;
+      html += `<button class="btn btn-outline-danger btn-sm w-100 mb-2" id="btn-reject-rev"><i class="bi bi-x-circle me-1"></i>Reject — Return to Draft</button>`;
+    }
+    if (activeRev && activeRev.status === 'APPROVED' && isQA) {
+      html += `<hr class="my-2"/>
+        <button class="btn btn-outline-secondary btn-sm w-100" id="btn-obsolete-rev"><i class="bi bi-archive me-1"></i>Obsolete This Revision</button>`;
+    }
+    if (!html) html = '<p class="text-muted small mb-0">No actions available for your role.</p>';
+
+    body.innerHTML = html;
+
+    document.getElementById('btn-new-rev')?.addEventListener('click', () => modalNewRev.show());
+    document.getElementById('btn-submit-rev')?.addEventListener('click', submitForReview);
+    document.getElementById('btn-approve-rev')?.addEventListener('click', () => modalApprove.show());
+    document.getElementById('btn-reject-rev')?.addEventListener('click', () => modalReject.show());
+    document.getElementById('btn-obsolete-rev')?.addEventListener('click', obsoleteRev);
+  }
+
+  async function loadApprovalTrail() {
+    try {
+      const rows = await ATCA.api.get(`/mod02/documents/${docId}/approvals`);
+      const body = document.getElementById('approval-trail-body');
+      if (!rows.length) {
+        body.innerHTML = '<p class="text-muted small">No approvals recorded yet.</p>';
+        return;
+      }
+      const icons = { REVIEW: 'bi-eye text-primary', APPROVE: 'bi-check-circle-fill text-success', REJECT: 'bi-x-circle-fill text-danger' };
+      body.innerHTML = rows.map(a => `
+        <div class="approval-entry mb-2 pb-2 border-bottom">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <i class="bi ${icons[a.action] || 'bi-dot'} fs-5"></i>
+            <span class="fw-semibold small">${ATCA.utils.escHtml(a.approver_name)}</span>
+            <span class="badge bg-secondary small">${a.role_at_time}</span>
+          </div>
+          <div class="small text-muted">${ATCA.utils.escHtml(a.action)} · ${ATCA.utils.fmtDateTime(a.actioned_at)}</div>
+          ${a.comments ? `<div class="small fst-italic mt-1">"${ATCA.utils.escHtml(a.comments)}"</div>` : ''}
+        </div>`).join('');
+    } catch(e) {}
+  }
+
+  // Actions
+  async function submitForReview() {
+    if (!activeRevId) return;
+    try {
+      await ATCA.api.put(`/mod02/documents/${docId}/revisions/${activeRevId}/submit`, {});
+      ATCA.utils.toast('Submitted for review.', 'success');
+      await loadDocument();
+    } catch(e) { ATCA.utils.toast(e.message, 'danger'); }
+  }
+
+  document.getElementById('btn-confirm-approve').addEventListener('click', async () => {
+    if (!activeRevId) return;
+    const comments = document.getElementById('approve-comments').value.trim();
+    try {
+      await ATCA.api.put(`/mod02/documents/${docId}/revisions/${activeRevId}/approve`, { comments });
+      modalApprove.hide();
+      ATCA.utils.toast('Revision approved and published.', 'success');
+      await loadDocument();
+    } catch(e) { ATCA.utils.toast(e.message, 'danger'); }
+  });
+
+  document.getElementById('btn-confirm-reject').addEventListener('click', async () => {
+    if (!activeRevId) return;
+    const comments = document.getElementById('reject-comments').value.trim();
+    if (!comments) { ATCA.utils.toast('Rejection reason required.', 'warning'); return; }
+    try {
+      await ATCA.api.put(`/mod02/documents/${docId}/revisions/${activeRevId}/reject`, { comments });
+      modalReject.hide();
+      ATCA.utils.toast('Revision rejected — returned to Draft.', 'warning');
+      await loadDocument();
+    } catch(e) { ATCA.utils.toast(e.message, 'danger'); }
+  });
+
+  async function obsoleteRev() {
+    if (!activeRevId || !confirm('Mark this revision as OBSOLETE? This cannot be undone.')) return;
+    try {
+      await ATCA.api.put(`/mod02/documents/${docId}/revisions/${activeRevId}/obsolete`, {});
+      ATCA.utils.toast('Revision obsoleted.', 'warning');
+      await loadDocument();
+    } catch(e) { ATCA.utils.toast(e.message, 'danger'); }
+  }
+
+  // New revision
+  document.getElementById('btn-save-rev').addEventListener('click', async () => {
+    const errEl = document.getElementById('rev-form-error');
+    errEl.classList.add('d-none');
+    const body = {
+      revision_no:     document.getElementById('r-rev-no').value.trim(),
+      change_summary:  document.getElementById('r-change-summary').value.trim(),
+      file_name:       document.getElementById('r-file-name').value.trim() || null,
+      file_path:       document.getElementById('r-file-path').value.trim() || null,
+      issue_date:      document.getElementById('r-issue-date').value   || null,
+      effective_date:  document.getElementById('r-eff-date').value     || null,
+      review_due_date: document.getElementById('r-review-date').value  || null,
+    };
+    if (!body.revision_no || !body.change_summary) {
+      errEl.textContent = 'Revision number and change summary are required.';
+      errEl.classList.remove('d-none');
+      return;
+    }
+    try {
+      await ATCA.api.post(`/mod02/documents/${docId}/revisions`, body);
+      modalNewRev.hide();
+      ATCA.utils.toast('Draft revision created.', 'success');
+      await loadDocument();
+    } catch(e) {
+      errEl.textContent = e.message || 'Error creating revision.';
+      errEl.classList.remove('d-none');
+    }
+  });
+
+  loadDocument();
+})();
+</script>
+</body>
+</html>

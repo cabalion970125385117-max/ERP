@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-01: Risk Register
+  AS9100D §6.1 — Actions to Address Risks and Opportunities
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Risk Register — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR (same as index.html) -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/" class="nav-link active"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/" class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi/" class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-personnel/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath/" class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod13-traveler/" class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/" class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/" class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-users/" class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-shield-exclamation me-1"></i>Risk Register</p>
+      <p class="topbar-subtitle mb-0">AS9100D §6.1 — Actions to Address Risks and Opportunities</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button"><i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span></div>
+      <div class="user-pill" tabindex="0"><div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span></div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- Breadcrumb -->
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> /
+      <a href="/modules/mod01-qms-core/">QMS Core</a> /
+      <span>Risk Register</span>
+    </div>
+
+    <!-- KPI Row -->
+    <div class="kpi-grid">
+      <div class="kpi-card" id="kpi-total-card">
+        <div class="kpi-label">Total Active Risks</div>
+        <div class="kpi-value" id="kpi-total">—</div>
+        <div class="kpi-sub">Risk &amp; Opportunities</div>
+      </div>
+      <div class="kpi-card rag-red">
+        <div class="kpi-label">High Risk (≥15)</div>
+        <div class="kpi-value" id="kpi-high">—</div>
+        <div class="kpi-sub">Requires immediate action</div>
+      </div>
+      <div class="kpi-card rag-amber">
+        <div class="kpi-label">Medium Risk (8–14)</div>
+        <div class="kpi-value" id="kpi-medium">—</div>
+        <div class="kpi-sub">Monitoring required</div>
+      </div>
+      <div class="kpi-card rag-green">
+        <div class="kpi-label">Open Opportunities</div>
+        <div class="kpi-value" id="kpi-opps">—</div>
+        <div class="kpi-sub">To pursue</div>
+      </div>
+    </div>
+
+    <!-- Risk Matrix Reference -->
+    <div class="atca-card mb-3">
+      <div class="atca-card-header">
+        <span class="module-badge">§6.1</span>
+        <h5>Risk Scoring Matrix</h5>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#matrix-collapse">
+          <i class="bi bi-grid-3x3"></i> Toggle Matrix
+        </button>
+      </div>
+      <div class="collapse" id="matrix-collapse">
+        <div class="atca-card-body">
+          <p style="font-size:0.78rem;color:var(--atca-muted);">Likelihood × Severity = Risk Score. HIGH ≥15 (RED) | MEDIUM 8–14 (AMBER) | LOW &lt;8 (GREEN)</p>
+          <div style="overflow-x:auto;">
+            <table style="border-collapse:collapse;font-size:0.72rem;text-align:center;min-width:300px;">
+              <thead>
+                <tr>
+                  <th style="background:var(--atca-navy);color:#fff;padding:6px 10px;" rowspan="2">Likelihood →</th>
+                  <th style="background:var(--atca-navy);color:#fff;padding:6px 10px;" colspan="5">Severity →</th>
+                </tr>
+                <tr>
+                  <th style="background:#495057;color:#fff;padding:4px 8px;">1 Negligible</th>
+                  <th style="background:#495057;color:#fff;padding:4px 8px;">2 Minor</th>
+                  <th style="background:#495057;color:#fff;padding:4px 8px;">3 Moderate</th>
+                  <th style="background:#495057;color:#fff;padding:4px 8px;">4 Major</th>
+                  <th style="background:#495057;color:#fff;padding:4px 8px;">5 Critical</th>
+                </tr>
+              </thead>
+              <tbody id="risk-matrix-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="atca-card mb-3">
+      <div class="atca-card-body py-2">
+        <div class="row g-2 align-items-center">
+          <div class="col-12 col-md-4">
+            <input type="text" class="form-control form-control-sm" id="risk-search" placeholder="Search risks…">
+          </div>
+          <div class="col-6 col-md-2">
+            <select class="form-select form-select-sm" id="filter-type">
+              <option value="">All Types</option>
+              <option value="RISK">Risks</option>
+              <option value="OPPORTUNITY">Opportunities</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <select class="form-select form-select-sm" id="filter-status">
+              <option value="">All Statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="TREATED">Treated</option>
+              <option value="ACCEPTED">Accepted</option>
+              <option value="MONITORING">Monitoring</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <select class="form-select form-select-sm" id="filter-level">
+              <option value="">All Levels</option>
+              <option value="HIGH">High (≥15)</option>
+              <option value="MEDIUM">Medium (8–14)</option>
+              <option value="LOW">Low (&lt;8)</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2 text-end">
+            <button class="btn btn-atca-primary btn-sm" id="new-risk-btn"
+              data-bs-toggle="modal" data-bs-target="#riskModal"
+              onclick="openRiskModal()">
+              <i class="bi bi-plus-lg me-1"></i>Add Risk
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Table -->
+    <div class="atca-card">
+      <div class="atca-card-header">
+        <span class="module-badge">§6.1</span>
+        <h5>Risk &amp; Opportunity Register</h5>
+        <span class="ms-auto text-muted" style="font-size:0.75rem;" id="risk-count-label"></span>
+      </div>
+      <div class="atca-card-body p-0" style="overflow-x:auto;">
+        <table class="atca-table">
+          <thead>
+            <tr>
+              <th>Ref</th>
+              <th>Type</th>
+              <th>Process Area</th>
+              <th>Description</th>
+              <th>Score (Pre)</th>
+              <th>Level</th>
+              <th>Score (Post)</th>
+              <th>Status</th>
+              <th>Owner</th>
+              <th>Review Date</th>
+              <th style="width:80px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="risk-tbody">
+            <tr><td colspan="11" class="text-center text-muted py-4">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ============================================================
+     ADD / EDIT RISK MODAL
+============================================================ -->
+<div class="modal fade" id="riskModal" tabindex="-1" aria-labelledby="riskModalLabel" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--atca-navy);color:#fff;">
+        <h6 class="modal-title" id="riskModalLabel">
+          <i class="bi bi-shield-exclamation me-1"></i>
+          <span id="risk-modal-title">Add Risk / Opportunity</span>
+        </h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="risk-form" novalidate>
+          <input type="hidden" id="risk-id" name="risk_id">
+
+          <div class="row g-3">
+
+            <!-- Risk Type -->
+            <div class="col-6">
+              <label class="atca-label" for="risk-type">
+                Type <span class="req">*</span>
+                <span class="clause">AS9100D §6.1</span>
+              </label>
+              <select class="form-select form-select-sm" id="risk-type" name="risk_type" required>
+                <option value="RISK">Risk</option>
+                <option value="OPPORTUNITY">Opportunity</option>
+              </select>
+            </div>
+
+            <!-- Process Area -->
+            <div class="col-6">
+              <label class="atca-label" for="risk-process">Process Area</label>
+              <select class="form-select form-select-sm" id="risk-process" name="process_area">
+                <option value="">— Select —</option>
+                <option value="FPI">FPI (Fluorescent Penetrant Inspection)</option>
+                <option value="MPT">MPT (Magnetic Particle Testing)</option>
+                <option value="ECT">ECT (Eddy Current Testing)</option>
+                <option value="UT">UT (Ultrasonic Testing)</option>
+                <option value="QA">Quality Assurance</option>
+                <option value="HR">Human Resources / Personnel</option>
+                <option value="PLATING">Electroplating</option>
+                <option value="COATING">Coating</option>
+                <option value="CLEANING">Precision Cleaning</option>
+                <option value="SUPPLY_CHAIN">Supply Chain</option>
+                <option value="IT">Information Technology</option>
+                <option value="REGULATORY">Regulatory / Compliance</option>
+                <option value="CUSTOMER">Customer</option>
+              </select>
+            </div>
+
+            <!-- Description -->
+            <div class="col-12">
+              <label class="atca-label" for="risk-desc">
+                Description <span class="req">*</span>
+              </label>
+              <textarea class="form-control form-control-sm" id="risk-desc" name="description"
+                rows="2" required placeholder="Describe the risk or opportunity…"></textarea>
+            </div>
+
+            <!-- Cause -->
+            <div class="col-6">
+              <label class="atca-label" for="risk-cause">Cause / Source</label>
+              <textarea class="form-control form-control-sm" id="risk-cause" name="cause" rows="2"></textarea>
+            </div>
+
+            <!-- Consequence -->
+            <div class="col-6">
+              <label class="atca-label" for="risk-consequence">Consequence / Impact</label>
+              <textarea class="form-control form-control-sm" id="risk-consequence" name="consequence" rows="2"></textarea>
+            </div>
+
+            <!-- Pre-Treatment Rating -->
+            <div class="col-12">
+              <div style="background:var(--atca-light);border:1px solid var(--atca-border);border-radius:4px;padding:0.75rem;">
+                <div class="fw-bold mb-2" style="font-size:0.78rem;color:var(--atca-navy);">
+                  <i class="bi bi-bar-chart me-1"></i>Risk Rating — PRE-Treatment
+                </div>
+                <div class="row g-3 align-items-center">
+                  <div class="col-5">
+                    <label class="atca-label" for="like-pre">Likelihood (1–5) <span class="req">*</span></label>
+                    <input type="number" class="form-control form-control-sm" id="like-pre" name="likelihood_pre"
+                      min="1" max="5" required placeholder="1–5">
+                  </div>
+                  <div class="col-5">
+                    <label class="atca-label" for="sev-pre">Severity (1–5) <span class="req">*</span></label>
+                    <input type="number" class="form-control form-control-sm" id="sev-pre" name="severity_pre"
+                      min="1" max="5" required placeholder="1–5">
+                  </div>
+                  <div class="col-2 text-center">
+                    <div class="atca-label">Score</div>
+                    <div id="score-pre-display" class="risk-score low" style="margin:0 auto;">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Treatment -->
+            <div class="col-12">
+              <label class="atca-label" for="risk-treatment">Treatment / Mitigation Plan</label>
+              <textarea class="form-control form-control-sm" id="risk-treatment" name="treatment"
+                rows="2" placeholder="Describe control measures, actions, or opportunity pursuit plan…"></textarea>
+            </div>
+
+            <!-- Post-Treatment Rating -->
+            <div class="col-12">
+              <div style="background:#F0FFF4;border:1px solid #C3E6CB;border-radius:4px;padding:0.75rem;">
+                <div class="fw-bold mb-2" style="font-size:0.78rem;color:#0A3622;">
+                  <i class="bi bi-shield-check me-1"></i>Risk Rating — POST-Treatment (optional)
+                </div>
+                <div class="row g-3 align-items-center">
+                  <div class="col-5">
+                    <label class="atca-label" for="like-post">Likelihood (1–5)</label>
+                    <input type="number" class="form-control form-control-sm" id="like-post" name="likelihood_post"
+                      min="1" max="5" placeholder="1–5">
+                  </div>
+                  <div class="col-5">
+                    <label class="atca-label" for="sev-post">Severity (1–5)</label>
+                    <input type="number" class="form-control form-control-sm" id="sev-post" name="severity_post"
+                      min="1" max="5" placeholder="1–5">
+                  </div>
+                  <div class="col-2 text-center">
+                    <div class="atca-label">Score</div>
+                    <div id="score-post-display" class="risk-score low" style="margin:0 auto;">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status + Review Date -->
+            <div class="col-6">
+              <label class="atca-label" for="risk-status">Status <span class="req">*</span></label>
+              <select class="form-select form-select-sm" id="risk-status" name="status" required>
+                <option value="OPEN">Open</option>
+                <option value="TREATED">Treated</option>
+                <option value="ACCEPTED">Accepted</option>
+                <option value="MONITORING">Monitoring</option>
+                <option value="CLOSED">Closed</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="atca-label" for="risk-review-date">Next Review Date</label>
+              <input type="date" class="form-control form-control-sm" id="risk-review-date" name="review_date">
+            </div>
+
+            <!-- FMEA Reference -->
+            <div class="col-6">
+              <label class="atca-label" for="risk-fmea">FMEA Reference</label>
+              <input type="text" class="form-control form-control-sm" id="risk-fmea" name="fmea_ref"
+                placeholder="e.g. FMEA-FPI-2026-001">
+            </div>
+            <div class="col-6">
+              <label class="atca-label" for="risk-clause">AS9100D Clause</label>
+              <input type="text" class="form-control form-control-sm" id="risk-clause" name="as9100d_clause"
+                placeholder="e.g. 6.1, 8.5.1">
+            </div>
+
+          </div><!-- /row -->
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary btn-sm" id="risk-save-btn" onclick="saveRisk()">
+          <i class="bi bi-floppy me-1"></i>Save Risk
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6></div>
+      <div class="modal-body text-center py-3">
+        <p class="mb-1">Your session expires in <strong id="timeout-countdown">5:00</strong></p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+'use strict';
+
+/* ============================================================
+   RISK SCORE CALCULATOR
+   ============================================================ */
+function calcScore(like, sev) {
+  const l = parseInt(like, 10);
+  const s = parseInt(sev, 10);
+  if (!l || !s || l < 1 || l > 5 || s < 1 || s > 5) return null;
+  return l * s;
+}
+
+function updateScoreDisplay(scoreEl, like, sev) {
+  const score = calcScore(like, sev);
+  if (!scoreEl) return;
+  if (score === null) { scoreEl.textContent = '—'; scoreEl.className = 'risk-score low'; return; }
+  scoreEl.textContent = score;
+  scoreEl.className = 'risk-score ' + (score >= 15 ? 'high' : score >= 8 ? 'medium' : 'low');
+}
+
+['like-pre','sev-pre'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', () =>
+    updateScoreDisplay(
+      document.getElementById('score-pre-display'),
+      document.getElementById('like-pre')?.value,
+      document.getElementById('sev-pre')?.value
+    )
+  );
+});
+
+['like-post','sev-post'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', () =>
+    updateScoreDisplay(
+      document.getElementById('score-post-display'),
+      document.getElementById('like-post')?.value,
+      document.getElementById('sev-post')?.value
+    )
+  );
+});
+
+/* ============================================================
+   RISK MATRIX RENDERER
+   ============================================================ */
+function renderMatrix() {
+  const tbody = document.getElementById('risk-matrix-tbody');
+  if (!tbody) return;
+  let html = '';
+  for (let l = 5; l >= 1; l--) {
+    html += `<tr><td style="background:#495057;color:#fff;padding:4px 8px;font-weight:600;">L${l}</td>`;
+    for (let s = 1; s <= 5; s++) {
+      const score = l * s;
+      const bg = score >= 15 ? '#DC3545' : score >= 8 ? '#FFC107' : '#198754';
+      const fg = score >= 8 && score < 15 ? '#212529' : '#fff';
+      html += `<td style="background:${bg};color:${fg};padding:6px 10px;font-weight:700;">${score}</td>`;
+    }
+    html += '</tr>';
+  }
+  tbody.innerHTML = html;
+}
+
+/* ============================================================
+   LOAD RISKS
+   ============================================================ */
+let allRisks = [];
+
+async function loadRisks() {
+  const type   = document.getElementById('filter-type')?.value   || '';
+  const status = document.getElementById('filter-status')?.value || '';
+  const level  = document.getElementById('filter-level')?.value  || '';
+
+  const params = new URLSearchParams();
+  if (type)   params.set('type', type);
+  if (status) params.set('status', status);
+  if (level)  params.set('level', level);
+
+  const data = await ATCA.api.get('/mod01/risks?' + params.toString());
+  if (!data) return;
+
+  allRisks = data.items || [];
+  renderRisks(allRisks);
+
+  // KPIs
+  document.getElementById('kpi-total').textContent = data.total;
+  document.getElementById('kpi-high').textContent   = allRisks.filter(r => r.risk_score_pre >= 15 && r.risk_type === 'RISK').length;
+  document.getElementById('kpi-medium').textContent = allRisks.filter(r => r.risk_score_pre >= 8 && r.risk_score_pre < 15 && r.risk_type === 'RISK').length;
+  document.getElementById('kpi-opps').textContent   = allRisks.filter(r => r.risk_type === 'OPPORTUNITY' && r.status !== 'CLOSED').length;
+  document.getElementById('risk-count-label').textContent = `${allRisks.length} record(s)`;
+}
+
+function renderRisks(rows) {
+  ATCA.table.render('risk-tbody', rows, row => `
+    <tr>
+      <td><code style="font-size:0.72rem;">${ATCA.utils.escHtml(row.risk_ref)}</code></td>
+      <td><span class="badge ${row.risk_type === 'RISK' ? 'bg-secondary' : 'bg-info text-dark'}" style="font-size:0.65rem;">
+        ${ATCA.utils.escHtml(row.risk_type)}</span></td>
+      <td>${ATCA.utils.escHtml(row.process_area || '—')}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+          title="${ATCA.utils.escHtml(row.description)}">
+        ${ATCA.utils.escHtml(row.description?.substring(0,60))}…</td>
+      <td class="text-center">${ATCA.utils.riskBadge(row.risk_score_pre)}</td>
+      <td>${ATCA.utils.statusBadge(row.risk_level_pre)}</td>
+      <td class="text-center">${row.risk_score_post ? ATCA.utils.riskBadge(row.risk_score_post) : '<span class="text-muted">—</span>'}</td>
+      <td>${ATCA.utils.statusBadge(row.status)}</td>
+      <td>${ATCA.utils.escHtml(row.owner_name || '—')}</td>
+      <td>${ATCA.utils.fmtDate(row.review_date)}</td>
+      <td>
+        <button class="btn btn-outline-secondary btn-sm py-0 px-1" onclick="editRisk(${row.risk_id})" title="Edit">
+          <i class="bi bi-pencil" style="font-size:0.7rem;"></i>
+        </button>
+      </td>
+    </tr>`);
+}
+
+/* ============================================================
+   MODAL: ADD
+   ============================================================ */
+function openRiskModal(riskId) {
+  ATCA.form.clearErrors('risk-form');
+  document.getElementById('risk-form')?.reset();
+  document.getElementById('risk-id').value = riskId || '';
+  document.getElementById('risk-modal-title').textContent = riskId ? 'Edit Risk' : 'Add Risk / Opportunity';
+  document.getElementById('score-pre-display').textContent = '—';
+  document.getElementById('score-post-display').textContent = '—';
+
+  if (riskId) {
+    // Populate fields from allRisks
+    const r = allRisks.find(x => x.risk_id === riskId);
+    if (r) {
+      document.getElementById('risk-type').value        = r.risk_type || 'RISK';
+      document.getElementById('risk-process').value     = r.process_area || '';
+      document.getElementById('risk-desc').value        = r.description || '';
+      document.getElementById('risk-cause').value       = r.cause || '';
+      document.getElementById('risk-consequence').value = r.consequence || '';
+      document.getElementById('like-pre').value         = r.likelihood_pre || '';
+      document.getElementById('sev-pre').value          = r.severity_pre || '';
+      document.getElementById('like-post').value        = r.likelihood_post || '';
+      document.getElementById('sev-post').value         = r.severity_post || '';
+      document.getElementById('risk-treatment').value   = r.treatment || '';
+      document.getElementById('risk-status').value      = r.status || 'OPEN';
+      document.getElementById('risk-review-date').value = r.review_date?.substring(0,10) || '';
+      document.getElementById('risk-fmea').value        = r.fmea_ref || '';
+      document.getElementById('risk-clause').value      = r.as9100d_clause || '';
+      updateScoreDisplay(document.getElementById('score-pre-display'),  r.likelihood_pre,  r.severity_pre);
+      updateScoreDisplay(document.getElementById('score-post-display'), r.likelihood_post, r.severity_post);
+    }
+  }
+}
+
+function editRisk(riskId) {
+  openRiskModal(riskId);
+  new bootstrap.Modal(document.getElementById('riskModal')).show();
+}
+
+async function saveRisk() {
+  const body = ATCA.form.collect('risk-form');
+  const riskId = body.risk_id;
+  delete body.risk_id;
+
+  // Basic validation
+  if (!body.description) { ATCA.form.setError('risk-desc', 'Description is required.'); return; }
+  if (!body.likelihood_pre || !body.severity_pre) {
+    ATCA.utils.toast('Likelihood and Severity (pre-treatment) are required.', 'warning'); return;
+  }
+
+  // Convert numerics
+  ['likelihood_pre','severity_pre','likelihood_post','severity_post']
+    .forEach(k => { if (body[k]) body[k] = parseInt(body[k], 10); else delete body[k]; });
+
+  const endpoint = riskId ? `/mod01/risks/${riskId}` : '/mod01/risks';
+  const method   = riskId ? 'put' : 'post';
+  const result   = await ATCA.api[method](endpoint, body);
+
+  if (result) {
+    bootstrap.Modal.getInstance(document.getElementById('riskModal'))?.hide();
+    ATCA.utils.toast(riskId ? 'Risk updated.' : 'Risk added.', 'success');
+    await loadRisks();
+  }
+}
+
+/* ============================================================
+   FILTERS + SEARCH
+   ============================================================ */
+['filter-type','filter-status','filter-level'].forEach(id =>
+  document.getElementById(id)?.addEventListener('change', loadRisks)
+);
+
+document.getElementById('risk-search')?.addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  const filtered = q ? allRisks.filter(r =>
+    (r.risk_ref + r.description + (r.process_area || '')).toLowerCase().includes(q)
+  ) : allRisks;
+  renderRisks(filtered);
+  document.getElementById('risk-count-label').textContent = `${filtered.length} record(s)`;
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderMatrix();
+  loadRisks();
+});
+</script>
+</body>
+</html>

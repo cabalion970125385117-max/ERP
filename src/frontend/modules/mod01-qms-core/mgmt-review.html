@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-01: Management Review
+  AS9100D §9.3 — Management Review (Inputs §9.3.2 / Outputs §9.3.3)
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Management Review — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/" class="nav-link active"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/" class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-users/" class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-people me-1"></i>Management Review</p>
+      <p class="topbar-subtitle mb-0">AS9100D §9.3 — Inputs §9.3.2 · Outputs §9.3.3</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0"><i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span></div>
+      <div class="user-pill" tabindex="0"><div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span></div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> /
+      <a href="/modules/mod01-qms-core/">QMS Core</a> /
+      <span>Management Review</span>
+    </div>
+
+    <!-- Split layout: list on left, detail on right -->
+    <div class="row g-3">
+
+      <!-- Left: Review List -->
+      <div class="col-12 col-lg-4">
+        <div class="atca-card h-100">
+          <div class="atca-card-header">
+            <span class="module-badge">§9.3</span>
+            <h5>Reviews</h5>
+            <button class="btn btn-atca-primary btn-sm ms-auto"
+              data-bs-toggle="modal" data-bs-target="#newReviewModal"
+              onclick="openNewReviewModal()">
+              <i class="bi bi-plus-lg"></i>
+            </button>
+          </div>
+          <div class="atca-card-body p-0">
+            <div id="review-list" style="max-height:70vh;overflow-y:auto;">
+              <div class="text-center text-muted py-4">Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Review Detail -->
+      <div class="col-12 col-lg-8">
+        <div id="review-detail-panel">
+          <div class="atca-card">
+            <div class="atca-card-body text-center py-5 text-muted">
+              <i class="bi bi-arrow-left-circle" style="font-size:2.5rem;"></i>
+              <p class="mt-2">Select a review from the list to view or edit.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- NEW REVIEW MODAL -->
+<div class="modal fade" id="newReviewModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--atca-navy);color:#fff;">
+        <h6 class="modal-title"><i class="bi bi-calendar-plus me-1"></i>Schedule Management Review</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="new-review-form" novalidate>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="atca-label">Reference <span class="req">*</span></label>
+              <input type="text" class="form-control form-control-sm" name="review_ref" required placeholder="MR-2026-001">
+            </div>
+            <div class="col-6">
+              <label class="atca-label">Type</label>
+              <select class="form-select form-select-sm" name="review_type">
+                <option value="Annual" selected>Annual</option>
+                <option value="Semi-Annual">Semi-Annual</option>
+                <option value="Quarterly">Quarterly</option>
+                <option value="Special">Special</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="atca-label">Review Date <span class="req">*</span></label>
+              <input type="date" class="form-control form-control-sm" name="review_date" required>
+            </div>
+            <div class="col-6">
+              <label class="atca-label">Location</label>
+              <input type="text" class="form-control form-control-sm" name="location" value="ATCA Board Room">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary btn-sm" onclick="createReview()">
+          <i class="bi bi-calendar-check me-1"></i>Schedule Review
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Timeout -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title">Session Expiring</h6></div>
+      <div class="modal-body text-center py-3"><p>Expires in <strong id="timeout-countdown">5:00</strong></p></div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+'use strict';
+
+let activeReviewId = null;
+let reviewsCache   = [];
+
+/* -------------------------------------------------------
+   Review List
+------------------------------------------------------- */
+async function loadReviewList() {
+  const data = await ATCA.api.get('/mod01/reviews?limit=50');
+  if (!data) return;
+  reviewsCache = data.items;
+
+  const container = document.getElementById('review-list');
+  if (!reviewsCache.length) {
+    container.innerHTML = '<div class="text-center text-muted py-4">No reviews yet.</div>';
+    return;
+  }
+
+  container.innerHTML = reviewsCache.map(r => `
+    <div class="review-list-item p-3 border-bottom ${r.review_id === activeReviewId ? 'bg-primary bg-opacity-10' : ''}"
+      style="cursor:pointer;" onclick="loadReviewDetail(${r.review_id})">
+      <div class="d-flex justify-content-between align-items-center">
+        <code style="font-size:0.72rem;">${ATCA.utils.escHtml(r.review_ref)}</code>
+        ${ATCA.utils.statusBadge(r.status)}
+      </div>
+      <div style="font-size:0.8rem;font-weight:600;margin-top:2px;">${ATCA.utils.escHtml(r.review_type)}</div>
+      <div style="font-size:0.72rem;color:var(--atca-muted);">
+        ${ATCA.utils.fmtDate(r.review_date)} · Chair: ${ATCA.utils.escHtml(r.chaired_by_name || '—')}
+      </div>
+      ${r.open_actions > 0 ? `<span class="badge bg-warning text-dark mt-1" style="font-size:0.65rem;">${r.open_actions} open action(s)</span>` : ''}
+    </div>`).join('');
+}
+
+/* -------------------------------------------------------
+   Review Detail
+------------------------------------------------------- */
+async function loadReviewDetail(reviewId) {
+  activeReviewId = reviewId;
+  const data = await ATCA.api.get(`/mod01/reviews/${reviewId}`);
+  if (!data) return;
+
+  // Refresh list to highlight active
+  await loadReviewList();
+
+  const isCompleted = data.status === 'COMPLETED';
+  const readonly    = isCompleted ? 'readonly' : '';
+  const rdisabled   = isCompleted ? 'disabled' : '';
+
+  document.getElementById('review-detail-panel').innerHTML = `
+    <div class="atca-card mb-3">
+      <div class="atca-card-header">
+        <span class="module-badge">§9.3</span>
+        <h5>${ATCA.utils.escHtml(data.review_ref)} — ${ATCA.utils.escHtml(data.review_type)}</h5>
+        ${ATCA.utils.statusBadge(data.status)}
+        <div class="ms-auto d-flex gap-2">
+          ${!isCompleted ? `
+            <button class="btn btn-sm btn-success" onclick="completeReview(${reviewId})">
+              <i class="bi bi-lock me-1"></i>Approve &amp; Lock
+            </button>
+            <button class="btn btn-sm btn-atca-primary" onclick="saveReviewInputs(${reviewId})">
+              <i class="bi bi-floppy me-1"></i>Save
+            </button>` : `
+            <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+              <i class="bi bi-printer"></i> Print
+            </button>`}
+        </div>
+      </div>
+      <div class="atca-card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-4">
+            <label class="atca-label">Review Date</label>
+            <input type="date" class="form-control form-control-sm" id="rv-date" value="${data.review_date?.substring(0,10)||''}" ${readonly}>
+          </div>
+          <div class="col-4">
+            <label class="atca-label">Type</label>
+            <select class="form-select form-select-sm" id="rv-type" ${rdisabled}>
+              ${['Annual','Semi-Annual','Quarterly','Special'].map(t =>
+                `<option value="${t}" ${data.review_type===t?'selected':''}>${t}</option>`).join('')}
+            </select>
+          </div>
+          <div class="col-4">
+            <label class="atca-label">Location</label>
+            <input type="text" class="form-control form-control-sm" id="rv-location" value="${ATCA.utils.escHtml(data.location||'')}" ${readonly}>
+          </div>
+        </div>
+
+        <!-- AS9100D §9.3.2 INPUTS -->
+        <h6 class="mb-2" style="font-size:0.78rem;font-weight:700;color:var(--atca-navy);border-bottom:1px solid var(--atca-border);padding-bottom:4px;">
+          <i class="bi bi-arrow-right-circle me-1"></i>AS9100D §9.3.2 — Review Inputs
+        </h6>
+        <div class="row g-2 mb-3">
+          ${[
+            ['i_audit', 'a) Audit Results (internal / external / NADCAP)',        data.input_audit_results],
+            ['i_cust',  'b) Customer Feedback, Complaints & Satisfaction',         data.input_customer_feedback],
+            ['i_proc',  'c) Process Performance & Product Conformity',             data.input_process_performance],
+            ['i_ncr',   'd) NCR, CAPA Status & Effectiveness',                    data.input_ncr_capa_status],
+            ['i_prev',  'e) Follow-up from Previous Management Review Actions',    data.input_prev_actions],
+            ['i_risk',  'f) Changes Affecting QMS — Risks & Opportunities (§6.1)', data.input_risks_opportunities],
+            ['i_res',   'g) Resource Adequacy (personnel, equipment, facilities)', data.input_resource_adequacy],
+          ].map(([id, label, value]) => `
+            <div class="col-12">
+              <label class="atca-label">${ATCA.utils.escHtml(label)}</label>
+              <textarea class="form-control form-control-sm" id="${id}" rows="2" ${readonly}>${ATCA.utils.escHtml(value||'')}</textarea>
+            </div>`).join('')}
+        </div>
+
+        <!-- AS9100D §9.3.3 OUTPUTS -->
+        <h6 class="mb-2" style="font-size:0.78rem;font-weight:700;color:var(--atca-navy);border-bottom:1px solid var(--atca-border);padding-bottom:4px;">
+          <i class="bi bi-arrow-left-circle me-1"></i>AS9100D §9.3.3 — Review Outputs
+        </h6>
+        <div class="row g-2 mb-3">
+          ${[
+            ['o_impr', 'a) Opportunities for Improvement',                  data.output_improvement_opps],
+            ['o_qms',  'b) Changes to QMS including Resource Needs',        data.output_qms_changes],
+            ['o_res',  'c) Resource Requirements',                          data.output_resource_needs],
+          ].map(([id, label, value]) => `
+            <div class="col-12">
+              <label class="atca-label">${ATCA.utils.escHtml(label)}</label>
+              <textarea class="form-control form-control-sm" id="${id}" rows="2" ${readonly}>${ATCA.utils.escHtml(value||'')}</textarea>
+            </div>`).join('')}
+        </div>
+
+        <!-- Minutes -->
+        <label class="atca-label">Meeting Minutes / Summary</label>
+        <textarea class="form-control form-control-sm" id="rv-minutes" rows="4" ${readonly}>${ATCA.utils.escHtml(data.minutes_text||'')}</textarea>
+      </div>
+    </div>
+
+    <!-- Attendees -->
+    <div class="atca-card mb-3">
+      <div class="atca-card-header">
+        <h5>Attendees <small class="text-muted fw-normal">(${data.attendee_count || data.attendees?.length || 0})</small></h5>
+      </div>
+      <div class="atca-card-body p-0">
+        <table class="atca-table">
+          <thead><tr><th>Name</th><th>Role</th><th>Role at Review</th><th>Attended</th></tr></thead>
+          <tbody>
+            ${(data.attendees||[]).map(a => `
+              <tr>
+                <td>${ATCA.utils.escHtml(a.full_name||'—')}</td>
+                <td><span class="badge bg-secondary" style="font-size:0.65rem;">${ATCA.utils.escHtml(a.user_role||'')}</span></td>
+                <td>${ATCA.utils.escHtml(a.role_at_review||'—')}</td>
+                <td>${a.attended ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle text-muted"></i>'}</td>
+              </tr>`).join('') || '<tr><td colspan="4" class="text-center text-muted py-2">No attendees recorded.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Action Items -->
+    <div class="atca-card">
+      <div class="atca-card-header">
+        <h5>Action Items</h5>
+        ${!isCompleted ? `
+          <button class="btn btn-sm btn-atca-primary ms-auto"
+            onclick="openAddActionModal(${reviewId})">
+            <i class="bi bi-plus-lg me-1"></i>Add Action
+          </button>` : ''}
+      </div>
+      <div class="atca-card-body p-0">
+        <table class="atca-table">
+          <thead><tr><th>Ref</th><th>Description</th><th>Owner</th><th>Due</th><th>Status</th><th></th></tr></thead>
+          <tbody id="actions-tbody-${reviewId}">
+            ${(data.actions||[]).map(a => `
+              <tr>
+                <td><code style="font-size:0.7rem;">${ATCA.utils.escHtml(a.action_ref)}</code></td>
+                <td>${ATCA.utils.escHtml(a.description)}</td>
+                <td>${ATCA.utils.escHtml(a.owner_name||'—')}</td>
+                <td>${ATCA.utils.fmtDate(a.due_date)}</td>
+                <td>${ATCA.utils.statusBadge(a.status)}</td>
+                <td>
+                  ${!isCompleted ? `
+                    <select class="form-select form-select-sm py-0" style="font-size:0.7rem;width:auto;"
+                      onchange="updateAction(${a.action_id}, this.value)">
+                      ${['OPEN','IN_PROGRESS','COMPLETED','CANCELLED'].map(s =>
+                        `<option value="${s}" ${a.status===s?'selected':''}>${s}</option>`).join('')}
+                    </select>` : '—'}
+                </td>
+              </tr>`).join('') || '<tr><td colspan="6" class="text-center text-muted py-2">No action items.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+/* -------------------------------------------------------
+   Save Review Inputs/Outputs
+------------------------------------------------------- */
+async function saveReviewInputs(reviewId) {
+  const body = {
+    review_date:               document.getElementById('rv-date')?.value,
+    review_type:               document.getElementById('rv-type')?.value,
+    location:                  document.getElementById('rv-location')?.value,
+    input_audit_results:       document.getElementById('i_audit')?.value,
+    input_customer_feedback:   document.getElementById('i_cust')?.value,
+    input_process_performance: document.getElementById('i_proc')?.value,
+    input_ncr_capa_status:     document.getElementById('i_ncr')?.value,
+    input_prev_actions:        document.getElementById('i_prev')?.value,
+    input_risks_opportunities: document.getElementById('i_risk')?.value,
+    input_resource_adequacy:   document.getElementById('i_res')?.value,
+    output_improvement_opps:   document.getElementById('o_impr')?.value,
+    output_qms_changes:        document.getElementById('o_qms')?.value,
+    output_resource_needs:     document.getElementById('o_res')?.value,
+    minutes_text:              document.getElementById('rv-minutes')?.value,
+    status:                    'IN_PROGRESS',
+  };
+
+  const result = await ATCA.api.put(`/mod01/reviews/${reviewId}`, body);
+  if (result) ATCA.utils.toast('Review saved.', 'success');
+}
+
+/* -------------------------------------------------------
+   Lock Review
+------------------------------------------------------- */
+async function completeReview(reviewId) {
+  if (!confirm('Approve and lock this review? This cannot be undone.')) return;
+  // Save first
+  await saveReviewInputs(reviewId);
+  const result = await ATCA.api.put(`/mod01/reviews/${reviewId}/complete`, {});
+  if (result) {
+    ATCA.utils.toast('Review approved and locked.', 'success');
+    await loadReviewList();
+    await loadReviewDetail(reviewId);
+  }
+}
+
+/* -------------------------------------------------------
+   Update Action Status
+------------------------------------------------------- */
+async function updateAction(actionId, status) {
+  await ATCA.api.put(`/mod01/reviews/actions/${actionId}`, { status });
+  ATCA.utils.toast('Action updated.', 'success');
+}
+
+/* -------------------------------------------------------
+   New Review Modal
+------------------------------------------------------- */
+function openNewReviewModal() {
+  document.getElementById('new-review-form').reset();
+  const today = new Date().toISOString().substring(0,10);
+  document.querySelector('#new-review-form [name="review_date"]').value = today;
+}
+
+async function createReview() {
+  const form = document.getElementById('new-review-form');
+  const body = ATCA.form.collect('new-review-form');
+  if (!body.review_ref || !body.review_date) {
+    ATCA.utils.toast('Reference and date required.', 'warning'); return;
+  }
+  const result = await ATCA.api.post('/mod01/reviews', body);
+  if (result) {
+    bootstrap.Modal.getInstance(document.getElementById('newReviewModal'))?.hide();
+    ATCA.utils.toast('Review scheduled.', 'success');
+    await loadReviewList();
+    await loadReviewDetail(result.review_id);
+  }
+}
+
+/* -------------------------------------------------------
+   Add Action Modal (inline prompt for simplicity)
+------------------------------------------------------- */
+async function openAddActionModal(reviewId) {
+  const ref  = prompt('Action Reference (e.g. MR-2026-001-A01):');
+  if (!ref) return;
+  const desc = prompt('Description:');
+  if (!desc) return;
+  const due  = prompt('Due Date (YYYY-MM-DD):');
+  if (!due) return;
+  const result = await ATCA.api.post(`/mod01/reviews/${reviewId}/actions`, {
+    action_ref: ref, description: desc, due_date: due,
+    owner_user_id: ATCA.currentUser?.userId,
+  });
+  if (result) {
+    ATCA.utils.toast('Action item added.', 'success');
+    await loadReviewDetail(reviewId);
+  }
+}
+
+/* -------------------------------------------------------
+   Init
+------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  loadReviewList();
+
+  // Auto-open review from URL param
+  const params = new URLSearchParams(window.location.search);
+  const id = parseInt(params.get('id'), 10);
+  if (id) loadReviewDetail(id);
+});
+</script>
+</body>
+</html>
