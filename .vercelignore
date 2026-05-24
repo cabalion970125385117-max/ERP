@@ -10,3 +10,8 @@ node_modules/
 .env
 .claude/
 MEMORY.md
+
+# Backend package.json has SQL Server deps that don't exist on npm (connect-mssql-v2).
+# The stub API has zero requires — exclude it so Vercel doesn't try to install anything.
+package.json
+package-lock.json
