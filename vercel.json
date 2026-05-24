@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "",
-  "installCommand": "",
+  "buildCommand": "echo 'No build step required'",
+  "installCommand": "echo 'No install required — stub API has zero external deps'",
   "outputDirectory": "src/frontend",
   "rewrites": [
     { "source": "/login",  "destination": "/login.html"  },
