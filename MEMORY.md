@@ -1,6 +1,6 @@
 # ATCA-ERP Build Memory
 ATC Aviation Pte Ltd | AS9100D | NADCAP AC7114 | NAS410
-**Last updated:** 2026-05-25
+**Last updated:** 2026-05-26
 
 ---
 
@@ -73,6 +73,7 @@ ATC Aviation Pte Ltd | AS9100D | NADCAP AC7114 | NAS410
 | `modules/mod04-personnel/index.html` | MOD-04 | Done |
 | `modules/mod05-equipment/index.html` | MOD-05 | Done |
 | `modules/mod07-ncr-capa/index.html` | MOD-07 | Done |
+| `modules/mod25-users/index.html` | MOD-25 | Done |
 
 ---
 
@@ -105,10 +106,9 @@ ATC Aviation Pte Ltd | AS9100D | NADCAP AC7114 | NAS410
 - **API:** Generate CoC from WO, approve, PDF-style print view
 - **Frontend:** CoC list, generate modal, print-friendly CoC template
 
-#### 6. MOD-25: User Management
-- **DB tables:** Uses existing `dbo.Users`
-- **API:** GET /users, POST (create), PUT (update role/active), POST /:id/reset-password
-- **Frontend:** User list with role badges, create user modal, edit role modal; ADMIN only
+#### ~~6. MOD-25: User Management~~ ✅ DONE
+- Frontend: `modules/mod25-users/index.html`
+- Stubs: `api/v1/[...path].js` + `preview_server.py`
 
 #### 7. MOD-15: KPI Dashboard
 - **DB:** Aggregates from multiple modules

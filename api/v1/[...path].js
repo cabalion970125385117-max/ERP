@@ -107,6 +107,19 @@ const STUBS = {
     { log_id:3, bath_id:1, bath_code:'FPI-PT-001', bath_name:'Penetrant Tank #1',   test_date:'2025-05-20', tested_by_name:'James Tan Wei Liang',  temp_c:22, concentration_pct:null, fluorescent_brightness:'ACCEPTABLE', contamination_check:'PASS', result:'PASS', notes:'Daily check — all OK',                                           ncr_raised:false, ncr_ref:null },
   ], total: 3 },
 
+  // ── MOD-25 ────────────────────────────────────────────────────
+  'GET /api/v1/mod25/alerts/summary': {
+    total_users: 6, active_users: 5, inactive_users: 1, elevated_roles: 2,
+  },
+  'GET /api/v1/mod25/users': { items: [
+    { user_id:1, username:'james.tan',       full_name:'James Tan Wei Liang',  role:'QA_MANAGER',    employee_id:'ATCA-001', personnel_id:1, active:true,  created_date:'2025-01-01', last_login:'2025-05-26T08:30:00' },
+    { user_id:2, username:'gary.tan',        full_name:'Gary Tan Beng Huat',   role:'ADMIN',         employee_id:'ATCA-004', personnel_id:4, active:true,  created_date:'2025-01-01', last_login:'2025-05-25T14:15:00' },
+    { user_id:3, username:'hendrich.lim',    full_name:'Hendrich Lim Jun Wei', role:'NDT_INSPECTOR', employee_id:'ATCA-002', personnel_id:2, active:true,  created_date:'2025-01-15', last_login:'2025-05-25T07:45:00' },
+    { user_id:4, username:'cabal.lo',        full_name:'Cabal Lo Wen Xin',     role:'NDT_INSPECTOR', employee_id:'ATCA-003', personnel_id:3, active:true,  created_date:'2025-02-01', last_login:'2025-05-24T09:00:00' },
+    { user_id:5, username:'azman.ayub',      full_name:'Azman Bin Ayub',       role:'SUPERVISOR',    employee_id:'ATCA-005', personnel_id:5, active:false, created_date:'2025-02-10', last_login:'2025-04-10T16:00:00' },
+    { user_id:6, username:'hariharan.raju',  full_name:'Hariharan s/o Raju',   role:'NDT_INSPECTOR', employee_id:'ATCA-006', personnel_id:6, active:true,  created_date:'2025-03-01', last_login:'2025-05-23T08:00:00' },
+  ], total: 6 },
+
   // ── MOD-07 ────────────────────────────────────────────────────
   'GET /api/v1/mod07/ncr': { items: [
     { ncr_id:1, ncr_ref:'NCR-2025-001', ncr_type:'PROCESS', process_area:'FPI', description:'Bath concentration found out of spec during periodic check', detected_date:'2025-05-10', severity:'MJ', source:'INTERNAL_AUDIT', status:'OPEN', raised_by_name:'James Tan Wei Liang', raised_date:'2025-05-10', target_close_date:'2025-06-10', days_open:15, disposition:null, open_capa_count:0, capa_required:true },

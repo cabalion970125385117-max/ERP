@@ -85,6 +85,17 @@ STUBS = {
     "GET /api/v1/mod07/capa": {"items": [
         {"capa_id":1,"capa_ref":"CAPA-2025-001","capa_type":"CORRECTIVE","ncr_id":2,"ncr_ref":"NCR-2025-002","root_cause_method":"5WHY","root_cause_description":"UV lamp bulb past service interval; no PM schedule in place","corrective_action":"Replace bulb; add PM schedule","preventive_action":"Add UV lamp to monthly PM checklist","status":"IN_PROGRESS","owner_name":"Hendrich Lim Jun Wei","assigned_to_name":"Hendrich Lim Jun Wei","target_completion_date":"2025-05-20","target_date":"2025-05-20","effectiveness_result":None,"verified_by_name":None,"closed_date":None,"days_overdue":5},
     ], "total": 1},
+    "GET /api/v1/mod25/alerts/summary": {
+        "total_users": 6, "active_users": 5, "inactive_users": 1, "elevated_roles": 2
+    },
+    "GET /api/v1/mod25/users": {"items": [
+        {"user_id":1,"username":"james.tan","full_name":"James Tan Wei Liang","role":"QA_MANAGER","employee_id":"ATCA-001","personnel_id":1,"active":True,"created_date":"2025-01-01","last_login":"2025-05-26T08:30:00"},
+        {"user_id":2,"username":"gary.tan","full_name":"Gary Tan Beng Huat","role":"ADMIN","employee_id":"ATCA-004","personnel_id":4,"active":True,"created_date":"2025-01-01","last_login":"2025-05-25T14:15:00"},
+        {"user_id":3,"username":"hendrich.lim","full_name":"Hendrich Lim Jun Wei","role":"NDT_INSPECTOR","employee_id":"ATCA-002","personnel_id":2,"active":True,"created_date":"2025-01-15","last_login":"2025-05-25T07:45:00"},
+        {"user_id":4,"username":"cabal.lo","full_name":"Cabal Lo Wen Xin","role":"NDT_INSPECTOR","employee_id":"ATCA-003","personnel_id":3,"active":True,"created_date":"2025-02-01","last_login":"2025-05-24T09:00:00"},
+        {"user_id":5,"username":"azman.ayub","full_name":"Azman Bin Ayub","role":"SUPERVISOR","employee_id":"ATCA-005","personnel_id":5,"active":False,"created_date":"2025-02-10","last_login":"2025-04-10T16:00:00"},
+        {"user_id":6,"username":"hariharan.raju","full_name":"Hariharan s/o Raju","role":"NDT_INSPECTOR","employee_id":"ATCA-006","personnel_id":6,"active":True,"created_date":"2025-03-01","last_login":"2025-05-23T08:00:00"},
+    ], "total": 6},
     "GET /api/v1/mod06/alerts/summary": {
         "baths_out_of_spec": 1, "tests_overdue": 2, "tests_due_today": 3, "never_tested": 0, "total": 3
     },

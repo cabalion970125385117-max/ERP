@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-25: User Management
+  AS9100D §6.2 — Personnel Competence & Access Control
+  ATC Aviation Pte Ltd | LAN-Only
+  Mutations restricted to ADMIN role; view allowed for QA_MANAGER+
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>User Management — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     SIDEBAR
+     ══════════════════════════════════════════════════════════ -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <h6>ATCA-ERP</h6>
+    <small>ATC Aviation Pte Ltd</small>
+  </div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"    class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-doc-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"    class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"       class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi/"         class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-personnel/"   class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment/"   class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath/"        class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod13-traveler/"    class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"         class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"   class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-users/"       class="nav-link active"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <div class="sidebar-footer">
+    ATCA-ERP v1.0 · AS9100D · NADCAP<br>
+    LAN-Only · <span id="sidebar-datetime"></span>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     MAIN CONTENT
+     ══════════════════════════════════════════════════════════ -->
+<div id="main-content">
+
+  <!-- TOP BAR -->
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle">
+      <i class="bi bi-list"></i>
+    </button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-people me-1"></i>MOD-25 — User Management</p>
+      <p class="topbar-subtitle mb-0">AS9100D §6.2 · System Access Control · RBAC Administration</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAGE -->
+  <main class="page-content">
+
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a>
+      <span>/ MOD-25 User Management</span>
+    </div>
+
+    <!-- ACCESS DENIED -->
+    <div id="access-denied-banner" class="alert alert-danger d-none" role="alert">
+      <i class="bi bi-shield-lock me-2"></i>
+      <strong>Access Restricted.</strong> User Management requires QA Manager or Administrator role.
+      Contact your system administrator.
+    </div>
+
+    <!-- MODULE CONTENT (hidden until access check passes) -->
+    <div id="module-content" style="display:none;">
+
+      <!-- ADMIN-ONLY NOTICE -->
+      <div id="readonly-notice" class="alert alert-warning d-none py-2 mb-3" role="alert" style="font-size:0.82rem;">
+        <i class="bi bi-eye me-1"></i>
+        <strong>View Only.</strong> You can view users but cannot create, edit, or reset passwords.
+        Contact an Administrator for changes.
+      </div>
+
+      <!-- KPI ROW -->
+      <div class="kpi-grid mb-4">
+        <div class="kpi-card" id="kpi-total">
+          <div class="kpi-label">Total Users</div>
+          <div class="kpi-value" id="val-total">—</div>
+          <div class="kpi-sub">System accounts</div>
+        </div>
+        <div class="kpi-card rag-green" id="kpi-active">
+          <div class="kpi-label">Active</div>
+          <div class="kpi-value" id="val-active">—</div>
+          <div class="kpi-sub">Can log in</div>
+        </div>
+        <div class="kpi-card" id="kpi-inactive">
+          <div class="kpi-label">Inactive</div>
+          <div class="kpi-value" id="val-inactive">—</div>
+          <div class="kpi-sub">Deactivated accounts</div>
+        </div>
+        <div class="kpi-card" id="kpi-elevated">
+          <div class="kpi-label">Admin / QA Mgr</div>
+          <div class="kpi-value" id="val-elevated">—</div>
+          <div class="kpi-sub">Elevated roles</div>
+        </div>
+      </div>
+
+      <!-- USER LIST CARD -->
+      <div class="atca-card">
+        <div class="atca-card-header flex-wrap gap-2">
+          <i class="bi bi-people text-primary me-1"></i>
+          <h5>System Users</h5>
+          <span class="module-badge">MOD-25</span>
+          <div class="ms-auto d-flex gap-2 align-items-center flex-wrap">
+            <input type="text" id="search-users" class="form-control form-control-sm"
+                   placeholder="Search name / username…" style="width:200px;">
+            <select id="filter-role" class="form-select form-select-sm" style="width:155px;">
+              <option value="">All Roles</option>
+              <option value="ADMIN">Administrator</option>
+              <option value="QA_MANAGER">QA Manager</option>
+              <option value="ENGINEER">Engineer</option>
+              <option value="SUPERVISOR">Supervisor</option>
+              <option value="NDT_INSPECTOR">NDT Inspector</option>
+              <option value="READONLY">Read Only</option>
+            </select>
+            <select id="filter-status" class="form-select form-select-sm" style="width:120px;">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <button class="btn btn-atca-primary btn-sm" id="btn-create-user" style="white-space:nowrap; display:none;">
+              <i class="bi bi-person-plus me-1"></i>Create User
+            </button>
+          </div>
+        </div>
+        <div class="atca-card-body p-0">
+          <div class="table-responsive">
+            <table class="atca-table">
+              <thead>
+                <tr>
+                  <th style="width:42px;"></th>
+                  <th>Full Name</th>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Employee ID</th>
+                  <th>Status</th>
+                  <th>Last Login</th>
+                  <th>Created</th>
+                  <th style="width:130px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-users">
+                <tr><td colspan="9" class="text-center text-muted py-4">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROLE REFERENCE CARD -->
+      <div class="atca-card">
+        <div class="atca-card-header">
+          <i class="bi bi-shield-check text-primary me-1"></i>
+          <h5>Role Reference</h5>
+          <span class="module-badge">RBAC</span>
+        </div>
+        <div class="atca-card-body p-0">
+          <table class="atca-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Description</th>
+                <th>Typical Users</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge bg-dark" style="font-size:0.68rem;">Administrator</span></td>
+                <td style="font-size:0.8rem;">Full system access. Manage users, system config, override any record.</td>
+                <td style="font-size:0.8rem; color:var(--atca-muted);">IT / System Admin</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-primary" style="font-size:0.68rem;">QA Manager</span></td>
+                <td style="font-size:0.8rem;">Approve documents, close NCRs/CAPAs, manage audits, view all modules.</td>
+                <td style="font-size:0.8rem; color:var(--atca-muted);">QA Manager, Deputy QA</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-info text-dark" style="font-size:0.68rem;">Engineer</span></td>
+                <td style="font-size:0.8rem;">Create/edit process records, work orders, bath logs. Cannot manage users.</td>
+                <td style="font-size:0.8rem; color:var(--atca-muted);">Process Engineer</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-warning text-dark" style="font-size:0.68rem;">Supervisor</span></td>
+                <td style="font-size:0.8rem;">Sign-off on job steps and inspections. View-only for QMS modules.</td>
+                <td style="font-size:0.8rem; color:var(--atca-muted);">Shift Supervisor</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-success" style="font-size:0.68rem;">NDT Inspector</span></td>
+                <td style="font-size:0.8rem;">Log inspections, record bath tests, view equipment. Standard operational role.</td>
+                <td style="font-size:0.8rem; color:var(--atca-muted);">Level I / II Inspectors</td>
+              </tr>
+              <tr>
+                <td><span class="badge bg-secondary" style="font-size:0.68rem;">Read Only</span></td>
+                <td style="font-size:0.8rem;">View-only access to all modules. Cannot create or edit any records.</td>
+                <td style="font-size:0.8rem; color:var(--atca-muted);">Auditors, Customers</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /module-content -->
+  </main>
+</div><!-- /main-content -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL: Create User
+     ══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalCreateUser" tabindex="-1" aria-labelledby="lblCreateUser" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="lblCreateUser">
+          <i class="bi bi-person-plus me-2"></i>Create System User
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info py-2 mb-3" style="font-size:0.8rem;">
+          <i class="bi bi-info-circle me-1"></i>
+          The user should change this temporary password on first login.
+          Minimum <strong>12 characters</strong> required.
+        </div>
+        <form id="form-create-user" novalidate autocomplete="off">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="atca-label">Full Name <span class="req">*</span></label>
+              <input type="text" id="cu-full-name" name="full_name" class="form-control"
+                     placeholder="e.g. James Tan Wei Liang" required>
+            </div>
+            <div class="col-md-6">
+              <label class="atca-label">Username <span class="req">*</span></label>
+              <input type="text" id="cu-username" name="username" class="form-control"
+                     placeholder="e.g. james.tan" required autocomplete="off">
+              <div class="form-text">Lowercase, no spaces. Used for login.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="atca-label">Temporary Password <span class="req">*</span></label>
+              <div class="input-group">
+                <input type="password" id="cu-password" name="password" class="form-control"
+                       placeholder="Min. 12 characters" required autocomplete="new-password">
+                <button class="btn btn-outline-secondary" type="button" id="btn-toggle-pw">
+                  <i class="bi bi-eye" id="pw-eye-icon"></i>
+                </button>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="atca-label">Confirm Password <span class="req">*</span></label>
+              <input type="password" id="cu-password-confirm" class="form-control"
+                     placeholder="Re-enter password" required autocomplete="new-password">
+            </div>
+            <div class="col-md-6">
+              <label class="atca-label">System Role <span class="req">*</span></label>
+              <select id="cu-role" name="role" class="form-select" required>
+                <option value="">Select role…</option>
+                <option value="READONLY">Read Only</option>
+                <option value="NDT_INSPECTOR">NDT Inspector</option>
+                <option value="SUPERVISOR">Supervisor</option>
+                <option value="ENGINEER">Engineer</option>
+                <option value="QA_MANAGER">QA Manager</option>
+                <option value="ADMIN">Administrator</option>
+              </select>
+              <div class="form-text" id="cu-role-desc" style="color:var(--atca-navy);"></div>
+            </div>
+            <div class="col-md-6">
+              <label class="atca-label">
+                Linked Personnel Record
+                <span class="clause">(optional)</span>
+              </label>
+              <select id="cu-personnel" name="personnel_id" class="form-select">
+                <option value="">None (system account only)</option>
+              </select>
+              <div class="form-text">Links this login to a MOD-04 personnel record.</div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary btn-sm" id="btn-save-create-user">
+          <i class="bi bi-person-check me-1"></i>Create User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL: Edit User
+     ══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalEditUser" tabindex="-1" aria-labelledby="lblEditUser" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="lblEditUser">
+          <i class="bi bi-pencil-square me-2"></i>Edit User
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- User identity display -->
+        <div class="d-flex align-items-center gap-3 p-2 rounded mb-3"
+             style="background:var(--atca-light); border:1px solid var(--atca-border);">
+          <div class="user-avatar" id="edit-user-avatar"
+               style="width:36px;height:36px;font-size:0.82rem;flex-shrink:0;"></div>
+          <div>
+            <strong id="edit-user-fullname" style="font-size:0.88rem;"></strong><br>
+            <span class="text-muted" id="edit-user-username" style="font-size:0.75rem;"></span>
+          </div>
+        </div>
+        <form id="form-edit-user" novalidate>
+          <input type="hidden" id="eu-user-id">
+          <div class="mb-3">
+            <label class="atca-label">System Role <span class="req">*</span></label>
+            <select id="eu-role" name="role" class="form-select" required>
+              <option value="READONLY">Read Only</option>
+              <option value="NDT_INSPECTOR">NDT Inspector</option>
+              <option value="SUPERVISOR">Supervisor</option>
+              <option value="ENGINEER">Engineer</option>
+              <option value="QA_MANAGER">QA Manager</option>
+              <option value="ADMIN">Administrator</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="atca-label">Account Status</label>
+            <div class="form-check form-switch mt-1">
+              <input class="form-check-input" type="checkbox" id="eu-active" role="switch">
+              <label class="form-check-label" for="eu-active" id="eu-active-label">Active</label>
+            </div>
+            <div class="form-text">Inactive users cannot log in but their audit history is retained.</div>
+          </div>
+          <div class="mb-1">
+            <label class="atca-label">
+              Linked Personnel Record
+              <span class="clause">(optional)</span>
+            </label>
+            <select id="eu-personnel" name="personnel_id" class="form-select">
+              <option value="">None (system account only)</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary btn-sm" id="btn-save-edit-user">
+          <i class="bi bi-check-lg me-1"></i>Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL: Reset Password
+     ══════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalResetPw" tabindex="-1" aria-labelledby="lblResetPw" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="lblResetPw">
+          <i class="bi bi-key me-2"></i>Reset Password
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning py-2 mb-3" style="font-size:0.8rem;">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          Resetting the password for <strong id="reset-user-name"></strong>.
+          The user will be required to change it on next login.
+        </div>
+        <form id="form-reset-pw" novalidate>
+          <input type="hidden" id="rp-user-id">
+          <div class="mb-3">
+            <label class="atca-label">New Temporary Password <span class="req">*</span></label>
+            <div class="input-group">
+              <input type="password" id="rp-password" class="form-control"
+                     placeholder="Min. 12 characters" required autocomplete="new-password">
+              <button class="btn btn-outline-secondary" type="button" id="btn-toggle-rp">
+                <i class="bi bi-eye" id="rp-eye-icon"></i>
+              </button>
+            </div>
+          </div>
+          <div class="mb-1">
+            <label class="atca-label">Confirm Password <span class="req">*</span></label>
+            <input type="password" id="rp-password-confirm" class="form-control"
+                   placeholder="Re-enter password" required autocomplete="new-password">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-warning btn-sm text-dark fw-bold" id="btn-save-reset-pw">
+          <i class="bi bi-key me-1"></i>Reset Password
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SESSION TIMEOUT MODAL (required by atca-core.js) -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1"
+     data-bs-backdrop="static" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h6 class="modal-title"><i class="bi bi-clock-history me-1"></i>Session Expiring</h6>
+      </div>
+      <div class="modal-body text-center" style="font-size:0.85rem;">
+        <p>Your session expires in <strong id="timeout-countdown">5:00</strong>.</p>
+        <button class="btn btn-atca-primary btn-sm w-100" id="keep-session-btn">
+          Stay Logged In
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+'use strict';
+
+/* ============================================================
+   MOD-25: USER MANAGEMENT
+   AS9100D §6.2 — Personnel Competence & System Access Control
+   RBAC: View = QA_MANAGER+; Mutations = ADMIN only
+   ============================================================ */
+
+// ── State ──────────────────────────────────────────────────
+let allUsers     = [];
+let isAdmin      = false;
+let personnelList= [];
+
+// ── Role metadata ──────────────────────────────────────────
+const ROLE_LABELS = {
+  ADMIN:         'Administrator',
+  QA_MANAGER:    'QA Manager',
+  ENGINEER:      'Engineer',
+  SUPERVISOR:    'Supervisor',
+  NDT_INSPECTOR: 'NDT Inspector',
+  READONLY:      'Read Only',
+};
+
+const ROLE_DESC = {
+  ADMIN:         'Full system access. Manage users, system config, and override any record.',
+  QA_MANAGER:    'Approve documents, close NCRs/CAPAs, manage audits, view all modules.',
+  ENGINEER:      'Create/edit process records, work orders, bath logs. Cannot manage users.',
+  SUPERVISOR:    'Sign-off on job steps and inspections. View-only for QMS modules.',
+  NDT_INSPECTOR: 'Log inspections, record bath tests, view equipment. Standard operational role.',
+  READONLY:      'View-only across all modules. Cannot create or edit any records.',
+};
+
+function roleBadge(role) {
+  const cls = {
+    ADMIN:         'bg-dark',
+    QA_MANAGER:    'bg-primary',
+    ENGINEER:      'bg-info text-dark',
+    SUPERVISOR:    'bg-warning text-dark',
+    NDT_INSPECTOR: 'bg-success',
+    READONLY:      'bg-secondary',
+  }[role] || 'bg-secondary';
+  const label = ROLE_LABELS[role] || role;
+  return `<span class="badge ${cls}" style="font-size:0.68rem;">${ATCA.utils.escHtml(label)}</span>`;
+}
+
+function activeStatusBadge(active) {
+  return active
+    ? '<span class="status-badge on-track">Active</span>'
+    : '<span class="status-badge closed">Inactive</span>';
+}
+
+// ── Wait for atca-core.js to populate ATCA.currentUser ─────
+function waitForUser(maxMs = 4000) {
+  return new Promise(resolve => {
+    const start = Date.now();
+    const check = () => {
+      if (ATCA.currentUser) return resolve(ATCA.currentUser);
+      if (Date.now() - start > maxMs) return resolve(null);
+      setTimeout(check, 60);
+    };
+    setTimeout(check, 150);
+  });
+}
+
+// ── Personnel dropdowns ─────────────────────────────────────
+async function loadPersonnelOptions() {
+  const data = await ATCA.api.get('/mod04/personnel');
+  if (!data) return;
+  personnelList = data.items || [];
+  const opts = personnelList.map(p =>
+    `<option value="${p.personnel_id}">${ATCA.utils.escHtml(p.employee_id + ' — ' + p.full_name)}</option>`
+  ).join('');
+  ['cu-personnel', 'eu-personnel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.insertAdjacentHTML('beforeend', opts);
+  });
+}
+
+// ── KPI ─────────────────────────────────────────────────────
+async function loadKpis() {
+  const data = await ATCA.api.get('/mod25/alerts/summary');
+  if (!data) return;
+
+  document.getElementById('val-total').textContent    = data.total_users    ?? '—';
+  document.getElementById('val-active').textContent   = data.active_users   ?? '—';
+  document.getElementById('val-inactive').textContent = data.inactive_users ?? '—';
+  document.getElementById('val-elevated').textContent = data.elevated_roles ?? '—';
+
+  // RAG colouring
+  if ((data.inactive_users || 0) > 0) {
+    document.getElementById('kpi-inactive').classList.add('rag-amber');
+  }
+  if ((data.elevated_roles || 0) >= 3) {
+    document.getElementById('kpi-elevated').classList.add('rag-amber');
+  }
+}
+
+// ── User table render ───────────────────────────────────────
+function renderUserRow(u) {
+  const initials = ATCA.user.initials(u.full_name || u.username);
+  const isSelf   = ATCA.currentUser && u.user_id === ATCA.currentUser.user_id;
+  const selfBadge= isSelf ? ' <span class="badge bg-secondary" style="font-size:0.58rem;">You</span>' : '';
+
+  let actionCell;
+  if (isAdmin) {
+    actionCell = `
+      <button class="btn btn-outline-secondary btn-sm py-0 px-1 me-1"
+              title="Edit user role &amp; status"
+              onclick="openEditModal(${u.user_id})">
+        <i class="bi bi-pencil"></i>
+      </button>
+      <button class="btn btn-outline-warning btn-sm py-0 px-1"
+              title="Reset password"
+              onclick="openResetPwModal(${u.user_id})">
+        <i class="bi bi-key"></i>
+      </button>`;
+  } else {
+    actionCell = '<span class="text-muted" style="font-size:0.72rem;">—</span>';
+  }
+
+  return `
+    <tr data-role="${ATCA.utils.escHtml(u.role)}"
+        data-active="${u.active ? 'active' : 'inactive'}"
+        ${!u.active ? 'style="opacity:0.65;"' : ''}>
+      <td class="text-center">
+        <div class="user-avatar mx-auto"
+             style="width:30px;height:30px;font-size:0.65rem;
+                    ${!u.active ? 'background:var(--atca-muted);' : ''}">
+          ${ATCA.utils.escHtml(initials)}
+        </div>
+      </td>
+      <td>
+        <span style="font-size:0.83rem; font-weight:600;">
+          ${ATCA.utils.escHtml(u.full_name)}
+        </span>${selfBadge}
+      </td>
+      <td><code style="font-size:0.78rem;">${ATCA.utils.escHtml(u.username)}</code></td>
+      <td>${roleBadge(u.role)}</td>
+      <td style="font-size:0.78rem;">
+        ${u.employee_id
+          ? ATCA.utils.escHtml(u.employee_id)
+          : '<span class="text-muted">—</span>'}
+      </td>
+      <td>${activeStatusBadge(u.active)}</td>
+      <td style="font-size:0.78rem;">${ATCA.utils.fmtDateTime(u.last_login)}</td>
+      <td style="font-size:0.78rem;">${ATCA.utils.fmtDate(u.created_date)}</td>
+      <td>${actionCell}</td>
+    </tr>`;
+}
+
+// ── Load + render users ─────────────────────────────────────
+async function loadUsers() {
+  const data = await ATCA.api.get('/mod25/users');
+  if (!data) return;
+  allUsers = data.items || [];
+  ATCA.table.render('tbody-users', allUsers, renderUserRow);
+}
+
+// ── Filter/search ───────────────────────────────────────────
+function applyFilters() {
+  const q    = document.getElementById('search-users').value.toLowerCase();
+  const role = document.getElementById('filter-role').value;
+  const stat = document.getElementById('filter-status').value;
+  document.querySelectorAll('#tbody-users tr').forEach(tr => {
+    const matchQ    = !q    || tr.textContent.toLowerCase().includes(q);
+    const matchRole = !role || tr.dataset.role === role;
+    const matchStat = !stat || tr.dataset.active === stat;
+    tr.style.display = (matchQ && matchRole && matchStat) ? '' : 'none';
+  });
+}
+
+// ── CREATE USER MODAL ───────────────────────────────────────
+function openCreateModal() {
+  document.getElementById('form-create-user').reset();
+  ATCA.form.clearErrors('form-create-user');
+  document.getElementById('cu-role-desc').textContent = '';
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('modalCreateUser')
+  ).show();
+}
+
+document.getElementById('cu-role').addEventListener('change', function () {
+  document.getElementById('cu-role-desc').textContent = ROLE_DESC[this.value] || '';
+});
+
+document.getElementById('btn-toggle-pw').addEventListener('click', function () {
+  const inp  = document.getElementById('cu-password');
+  const icon = document.getElementById('pw-eye-icon');
+  const show = inp.type === 'password';
+  inp.type       = show ? 'text' : 'password';
+  icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+});
+
+document.getElementById('btn-save-create-user').addEventListener('click', async () => {
+  ATCA.form.clearErrors('form-create-user');
+  const fullName = document.getElementById('cu-full-name').value.trim();
+  const username = document.getElementById('cu-username').value.trim().toLowerCase();
+  const password = document.getElementById('cu-password').value;
+  const confirm  = document.getElementById('cu-password-confirm').value;
+  const role     = document.getElementById('cu-role').value;
+  const persId   = document.getElementById('cu-personnel').value;
+
+  let valid = true;
+  if (!fullName) {
+    ATCA.form.setError('cu-full-name', 'Full name is required.'); valid = false;
+  }
+  if (!username) {
+    ATCA.form.setError('cu-username', 'Username is required.'); valid = false;
+  } else if (/\s/.test(username)) {
+    ATCA.form.setError('cu-username', 'No spaces allowed in username.'); valid = false;
+  }
+  if (!password || password.length < 12) {
+    ATCA.form.setError('cu-password', 'Password must be at least 12 characters.'); valid = false;
+  }
+  if (password !== confirm) {
+    ATCA.form.setError('cu-password-confirm', 'Passwords do not match.'); valid = false;
+  }
+  if (!role) {
+    ATCA.form.setError('cu-role', 'Role is required.'); valid = false;
+  }
+  if (!valid) return;
+
+  const payload = { full_name: fullName, username, password, role };
+  if (persId) payload.personnel_id = parseInt(persId, 10);
+
+  const res = await ATCA.api.post('/mod25/users', payload);
+  if (!res) return;
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('modalCreateUser')
+  ).hide();
+  ATCA.utils.toast(`User "${username}" created successfully.`, 'success');
+  await loadUsers();
+  await loadKpis();
+});
+
+// ── EDIT USER MODAL ─────────────────────────────────────────
+function openEditModal(userId) {
+  const u = allUsers.find(x => x.user_id === userId);
+  if (!u) return;
+
+  document.getElementById('eu-user-id').value             = u.user_id;
+  document.getElementById('eu-role').value                = u.role;
+  document.getElementById('eu-active').checked            = u.active;
+  document.getElementById('eu-active-label').textContent  = u.active ? 'Active' : 'Inactive';
+  document.getElementById('edit-user-fullname').textContent = u.full_name;
+  document.getElementById('edit-user-username').textContent = '@' + u.username;
+  document.getElementById('edit-user-avatar').textContent  =
+    ATCA.user.initials(u.full_name || u.username);
+  document.getElementById('eu-personnel').value           = u.personnel_id || '';
+
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('modalEditUser')
+  ).show();
+}
+
+document.getElementById('eu-active').addEventListener('change', function () {
+  document.getElementById('eu-active-label').textContent = this.checked ? 'Active' : 'Inactive';
+});
+
+document.getElementById('btn-save-edit-user').addEventListener('click', async () => {
+  const userId = parseInt(document.getElementById('eu-user-id').value, 10);
+  const role   = document.getElementById('eu-role').value;
+  const active = document.getElementById('eu-active').checked;
+  const persId = document.getElementById('eu-personnel').value;
+
+  // Self-deactivation guard
+  if (ATCA.currentUser && userId === ATCA.currentUser.user_id && !active) {
+    ATCA.utils.toast('You cannot deactivate your own account.', 'warning');
+    return;
+  }
+
+  const payload = { role, active };
+  payload.personnel_id = persId ? parseInt(persId, 10) : null;
+
+  const res = await ATCA.api.put(`/mod25/users/${userId}`, payload);
+  if (!res) return;
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('modalEditUser')
+  ).hide();
+  ATCA.utils.toast('User updated successfully.', 'success');
+  await loadUsers();
+  await loadKpis();
+});
+
+// ── RESET PASSWORD MODAL ────────────────────────────────────
+function openResetPwModal(userId) {
+  const u = allUsers.find(x => x.user_id === userId);
+  if (!u) return;
+
+  document.getElementById('rp-user-id').value = u.user_id;
+  document.getElementById('reset-user-name').textContent =
+    u.full_name + ' (@' + u.username + ')';
+  document.getElementById('form-reset-pw').reset();
+  ATCA.form.clearErrors('form-reset-pw');
+
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('modalResetPw')
+  ).show();
+}
+
+document.getElementById('btn-toggle-rp').addEventListener('click', function () {
+  const inp  = document.getElementById('rp-password');
+  const icon = document.getElementById('rp-eye-icon');
+  const show = inp.type === 'password';
+  inp.type       = show ? 'text' : 'password';
+  icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+});
+
+document.getElementById('btn-save-reset-pw').addEventListener('click', async () => {
+  ATCA.form.clearErrors('form-reset-pw');
+  const userId   = parseInt(document.getElementById('rp-user-id').value, 10);
+  const password = document.getElementById('rp-password').value;
+  const confirm  = document.getElementById('rp-password-confirm').value;
+
+  let valid = true;
+  if (!password || password.length < 12) {
+    ATCA.form.setError('rp-password', 'Password must be at least 12 characters.'); valid = false;
+  }
+  if (password !== confirm) {
+    ATCA.form.setError('rp-password-confirm', 'Passwords do not match.'); valid = false;
+  }
+  if (!valid) return;
+
+  const res = await ATCA.api.post(`/mod25/users/${userId}/reset-password`, { password });
+  if (!res) return;
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('modalResetPw')
+  ).hide();
+  ATCA.utils.toast('Password reset successfully.', 'success');
+});
+
+// ── Wire up filters + create button ────────────────────────
+document.getElementById('search-users').addEventListener('input', applyFilters);
+document.getElementById('filter-role').addEventListener('change', applyFilters);
+document.getElementById('filter-status').addEventListener('change', applyFilters);
+document.getElementById('btn-create-user').addEventListener('click', openCreateModal);
+
+// ── INIT ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  // atca-core.js runs its own DOMContentLoaded that loads the user.
+  // We wait for ATCA.currentUser to be populated before access-checking.
+  const user = await waitForUser();
+
+  if (!user || !ATCA.user.hasRole('ADMIN', 'QA_MANAGER')) {
+    document.getElementById('access-denied-banner').classList.remove('d-none');
+    return;
+  }
+
+  isAdmin = ATCA.user.hasRole('ADMIN');
+
+  // Show ADMIN-only controls
+  if (isAdmin) {
+    document.getElementById('btn-create-user').style.display = '';
+  } else {
+    document.getElementById('readonly-notice').classList.remove('d-none');
+  }
+
+  document.getElementById('module-content').style.display = '';
+
+  // Load data in parallel
+  await Promise.all([loadKpis(), loadUsers(), loadPersonnelOptions()]);
+});
+</script>
+</body>
+</html>
