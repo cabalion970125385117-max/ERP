@@ -452,6 +452,22 @@ body {
 .risk-score.low    { background: var(--rag-green); }
 
 /* ============================================================
+   MODALS
+   ============================================================ */
+.atca-modal-header {
+  background: var(--atca-navy);
+  color: #fff;
+}
+
+.atca-field-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--atca-navy);
+  margin-bottom: 0.2rem;
+  display: block;
+}
+
+/* ============================================================
    PRINT STYLES
    ============================================================ */
 @media print {

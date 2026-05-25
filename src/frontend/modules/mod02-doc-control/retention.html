@@ -196,7 +196,7 @@
 
   const u = ATCA.currentUser;
   if (u) {
-    document.getElementById('user-avatar-initials').textContent = ATCA.utils.initials(u.full_name);
+    document.getElementById('user-avatar-initials').textContent = ATCA.user.initials(u.full_name);
     document.getElementById('user-display-name').textContent = u.full_name;
   }
 

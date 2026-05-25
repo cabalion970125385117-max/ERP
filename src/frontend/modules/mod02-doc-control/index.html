@@ -219,7 +219,7 @@
   // User pill
   const u = ATCA.currentUser;
   if (u) {
-    const ini = ATCA.utils.initials(u.full_name);
+    const ini = ATCA.user.initials(u.full_name);
     document.getElementById('user-avatar-initials').textContent = ini;
     document.getElementById('user-display-name').textContent = u.full_name;
   }

@@ -29,6 +29,11 @@ const STUBS = {
     cal_overdue: 1, cal_due_30d: 3, never_calibrated: 0, total: 4,
   },
 
+  // ── MOD-06 alerts ─────────────────────────────────────────────
+  'GET /api/v1/mod06/alerts/summary': {
+    baths_out_of_spec: 1, tests_overdue: 2, tests_due_today: 3, never_tested: 0, total: 3,
+  },
+
   // ── MOD-07 alerts ─────────────────────────────────────────────
   'GET /api/v1/mod07/alerts/summary': {
     open_ncr: 2, overdue_capa: 1, pending_verify: 1, ncr_open_only: 2, total: 4,
@@ -89,13 +94,26 @@ const STUBS = {
     { cal_id:1, cal_ref:'CAL-2025-001', equipment_id:1, equip_code:'UV-001', description:'UV-A Lamp — Magnaflux ZB-100F', cal_date:'2025-02-14', cal_due_date:'2026-02-14', vendor:'SATS Engineering', cert_number:'SATS-CAL-2025-0042', measured_value:'≥1000 µW/cm² @ 38cm', out_of_tolerance:false, result:'PASS', recorded_by_name:'James Tan Wei Liang' },
   ], total: 1 },
 
+  // ── MOD-06 ────────────────────────────────────────────────────
+  'GET /api/v1/mod06/baths': { items: [
+    { bath_id:1, bath_code:'FPI-PT-001', bath_name:'Penetrant Tank #1',      bath_type:'PT_PENETRANT',       process_area:'FPI', chemical_product:'Magnaflux ZL-60D',  spec_ref:'ASTM E1417',            concentration_min:null, concentration_max:null, temp_min_c:16, temp_max_c:52, current_temp_c:22, last_test_date:'2025-05-20', next_test_due:'2025-05-27', status:'IN_SPEC',     active:true },
+    { bath_id:2, bath_code:'FPI-EM-001', bath_name:'Emulsifier Tank #1',     bath_type:'PT_EMULSIFIER',      process_area:'FPI', chemical_product:'Magnaflux ZR-10B',  spec_ref:'ASTM E1417',            concentration_min:5,    concentration_max:35,   temp_min_c:16, temp_max_c:52, current_temp_c:21, last_test_date:'2025-05-18', next_test_due:'2025-05-25', status:'OUT_OF_SPEC', active:true },
+    { bath_id:3, bath_code:'FPI-DV-001', bath_name:'Developer Tank #1',      bath_type:'PT_DEVELOPER',       process_area:'FPI', chemical_product:'Magnaflux ZP-4B',   spec_ref:'ASTM E1417',            concentration_min:10,   concentration_max:30,   temp_min_c:16, temp_max_c:52, current_temp_c:20, last_test_date:'2025-05-15', next_test_due:'2025-05-22', status:'IN_SPEC',     active:true },
+    { bath_id:4, bath_code:'MPT-WF-001', bath_name:'Wet Fluorescent Bath',   bath_type:'MT_WET_FLUORESCENT', process_area:'MPT', chemical_product:'Magnaflux 14HF',    spec_ref:'ASTM E1444 / AMS 2641', concentration_min:0.1,  concentration_max:0.4,  temp_min_c:10, temp_max_c:40, current_temp_c:19, last_test_date:'2025-05-19', next_test_due:'2025-05-26', status:'IN_SPEC',     active:true },
+  ], total: 4 },
+  'GET /api/v1/mod06/logs': { items: [
+    { log_id:1, bath_id:2, bath_code:'FPI-EM-001', bath_name:'Emulsifier Tank #1',  test_date:'2025-05-18', tested_by_name:'James Tan Wei Liang',  temp_c:21, concentration_pct:38,   fluorescent_brightness:null,        contamination_check:'PASS', result:'FAIL', notes:'Concentration 38% exceeds max 35% — bath flagged OUT_OF_SPEC', ncr_raised:true,  ncr_ref:'NCR-2025-001' },
+    { log_id:2, bath_id:4, bath_code:'MPT-WF-001', bath_name:'Wet Fluorescent Bath', test_date:'2025-05-19', tested_by_name:'Hendrich Lim Jun Wei', temp_c:19, concentration_pct:0.22, fluorescent_brightness:'ACCEPTABLE', contamination_check:'PASS', result:'PASS', notes:'All readings within spec',                                       ncr_raised:false, ncr_ref:null },
+    { log_id:3, bath_id:1, bath_code:'FPI-PT-001', bath_name:'Penetrant Tank #1',   test_date:'2025-05-20', tested_by_name:'James Tan Wei Liang',  temp_c:22, concentration_pct:null, fluorescent_brightness:'ACCEPTABLE', contamination_check:'PASS', result:'PASS', notes:'Daily check — all OK',                                           ncr_raised:false, ncr_ref:null },
+  ], total: 3 },
+
   // ── MOD-07 ────────────────────────────────────────────────────
   'GET /api/v1/mod07/ncr': { items: [
-    { ncr_id:1, ncr_ref:'NCR-2025-001', title:'Bath concentration out of spec',  severity:'MJ', source:'INTERNAL_AUDIT', status:'OPEN',             raised_by_name:'James Tan Wei Liang',  raised_date:'2025-05-10', target_close_date:'2025-06-10', days_open:15 },
-    { ncr_id:2, ncr_ref:'NCR-2025-002', title:'UV lamp intensity below minimum', severity:'MN', source:'PROCESS_CHECK',  status:'CAPA_IN_PROGRESS', raised_by_name:'Hendrich Lim Jun Wei', raised_date:'2025-04-20', target_close_date:'2025-05-20', days_open:35 },
+    { ncr_id:1, ncr_ref:'NCR-2025-001', ncr_type:'PROCESS', process_area:'FPI', description:'Bath concentration found out of spec during periodic check', detected_date:'2025-05-10', severity:'MJ', source:'INTERNAL_AUDIT', status:'OPEN', raised_by_name:'James Tan Wei Liang', raised_date:'2025-05-10', target_close_date:'2025-06-10', days_open:15, disposition:null, open_capa_count:0, capa_required:true },
+    { ncr_id:2, ncr_ref:'NCR-2025-002', ncr_type:'PROCESS', process_area:'FPI', description:'UV lamp intensity reading below 1000 µW/cm² minimum requirement', detected_date:'2025-04-20', severity:'MN', source:'PROCESS_CHECK', status:'CAPA_IN_PROGRESS', raised_by_name:'Hendrich Lim Jun Wei', raised_date:'2025-04-20', target_close_date:'2025-05-20', days_open:35, disposition:'REWORK', open_capa_count:1, capa_required:true },
   ], total: 2 },
   'GET /api/v1/mod07/capa': { items: [
-    { capa_id:1, capa_ref:'CAPA-2025-001', ncr_id:2, ncr_ref:'NCR-2025-002', root_cause:'UV lamp bulb past service interval', corrective_action:'Replace bulb; add PM schedule', status:'IN_PROGRESS', assigned_to_name:'Hendrich Lim Jun Wei', target_date:'2025-05-20', verified_by_name:null, closed_date:null, days_overdue:5 },
+    { capa_id:1, capa_ref:'CAPA-2025-001', capa_type:'CORRECTIVE', ncr_id:2, ncr_ref:'NCR-2025-002', root_cause_method:'5WHY', root_cause_description:'UV lamp bulb past service interval; no PM schedule in place', corrective_action:'Replace bulb; add PM schedule', preventive_action:'Add UV lamp to monthly PM checklist', status:'IN_PROGRESS', owner_name:'Hendrich Lim Jun Wei', assigned_to_name:'Hendrich Lim Jun Wei', target_completion_date:'2025-05-20', target_date:'2025-05-20', effectiveness_result:null, verified_by_name:null, closed_date:null, days_overdue:5 },
   ], total: 1 },
 };
 
