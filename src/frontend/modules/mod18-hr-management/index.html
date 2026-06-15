@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOD-18 HR Management — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-18 · HR & Organisation Management · AS9100D §7.2</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Total Active Staff</div><div id="kpi-total" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">New This Month</div><div id="kpi-new" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Pending Onboarding</div><div id="kpi-onboarding" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">COI Declarations Due</div><div id="kpi-coi" class="kpi-value">—</div></div></div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" href="#tab-staff" data-bs-toggle="tab">Staff Register</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-org" data-bs-toggle="tab">Org Structure</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-staff">
+      <div class="d-flex justify-content-between mb-3">
+        <div class="d-flex gap-2">
+          <select id="filter-status" class="form-select form-select-sm" style="width:150px">
+            <option value="">All Statuses</option><option>ACTIVE</option><option>RESIGNED</option><option>TERMINATED</option>
+          </select>
+          <select id="filter-dept" class="form-select form-select-sm" style="width:180px">
+            <option value="">All Departments</option>
+            <option>Quality Assurance</option><option>NDT Operations</option><option>Production</option><option>Administration</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openStaffModal()"
+          data-compliance="AS9100D §7.2" data-linked="MOD-18,MOD-04" data-action-desc="Create new staff record — links to NDT qualifications in MOD-04">
+          <i class="bi bi-person-plus me-1"></i>New Staff Record
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr><th>Emp ID</th><th>Name</th><th>Job Title</th><th>Dept</th><th>Type</th><th>Since</th><th>Onboarding</th><th>COI</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="staff-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-org">
+      <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-primary btn-sm" onclick="openOrgModal()"
+          data-compliance="AS9100D §7.2" data-linked="MOD-18" data-action-desc="Add new organisational entity or department">
+          <i class="bi bi-diagram-3 me-1"></i>Add Entity
+        </button>
+      </div>
+      <div id="org-chart" class="row g-2"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Staff Modal -->
+<div class="modal fade" id="staffModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">New Staff Record</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body row g-2">
+      <div class="col-md-8 mb-2"><label class="form-label">Full Name *</label><input id="sf-name" class="form-control form-control-sm" /></div>
+      <div class="col-md-4 mb-2"><label class="form-label">Employment Type</label>
+        <select id="sf-type" class="form-select form-select-sm"><option>PERMANENT</option><option>CONTRACT</option><option>PART_TIME</option><option>INTERN</option></select>
+      </div>
+      <div class="col-md-6 mb-2"><label class="form-label">Job Title *</label><input id="sf-title" class="form-control form-control-sm" /></div>
+      <div class="col-md-6 mb-2"><label class="form-label">Department</label><input id="sf-dept" class="form-control form-control-sm" /></div>
+      <div class="col-md-4 mb-2"><label class="form-label">Employment Date *</label><input id="sf-date" type="date" class="form-control form-control-sm" /></div>
+      <div class="col-md-4 mb-2"><label class="form-label">Emergency Contact</label><input id="sf-ec-name" class="form-control form-control-sm" placeholder="Name" /></div>
+      <div class="col-md-4 mb-2"><label class="form-label">Emergency Phone</label><input id="sf-ec-phone" class="form-control form-control-sm" /></div>
+      <div class="col-12 mb-2"><label class="form-label">Notes</label><textarea id="sf-notes" class="form-control form-control-sm" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveStaff()"
+        data-compliance="AS9100D §7.2" data-linked="MOD-18" data-action-desc="Save new staff record">Save</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Org Entity Modal -->
+<div class="modal fade" id="orgModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Add Org Entity</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Entity Name *</label><input id="org-name" class="form-control form-control-sm" /></div>
+      <div class="mb-2"><label class="form-label">Division</label><input id="org-div" class="form-control form-control-sm" /></div>
+      <div class="mb-2"><label class="form-label">Department</label><input id="org-dept" class="form-control form-control-sm" /></div>
+      <div class="mb-2"><label class="form-label">Team</label><input id="org-team" class="form-control form-control-sm" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveOrg()"
+        data-compliance="AS9100D §7.2" data-linked="MOD-18" data-action-desc="Add organisational entity">Save</button>
+    </div>
+  </div></div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+const staffModal = new bootstrap.Modal(document.getElementById('staffModal'));
+const orgModal   = new bootstrap.Modal(document.getElementById('orgModal'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadStaff();
+  ATCA.tooltips.init();
+  document.querySelector('[href="#tab-org"]').addEventListener('shown.bs.tab', loadOrg);
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod18/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-total').textContent = d.total_staff ?? '—';
+  document.getElementById('kpi-new').textContent = d.new_this_month ?? '—';
+  document.getElementById('kpi-onboarding').textContent = d.pending_onboarding ?? '—';
+  document.getElementById('kpi-coi').textContent = d.conflict_declarations_due ?? '—';
+  if ((d.conflict_declarations_due || 0) > 0)
+    document.getElementById('nav-alerts').innerHTML = `<span class="badge bg-warning text-dark">${d.conflict_declarations_due} COI Due</span>`;
+}
+
+async function loadStaff() {
+  const stat = document.getElementById('filter-status').value;
+  const dept = document.getElementById('filter-dept').value;
+  const params = new URLSearchParams();
+  if (stat) params.set('status', stat);
+  if (dept) params.set('department', dept);
+  const data = await ATCA.api.get('/mod18/staff?' + params);
+  ATCA.table.render('staff-tbody', data || [], s => {
+    const sc = s.status === 'ACTIVE' ? 'success' : s.status === 'RESIGNED' ? 'warning' : 'danger';
+    return `<tr>
+      <td><strong>${s.employee_id}</strong></td>
+      <td>${s.full_name}</td>
+      <td>${s.job_title}</td>
+      <td>${s.department || s.org_department || '—'}</td>
+      <td><span class="badge bg-secondary">${s.employment_type}</span></td>
+      <td>${s.employment_date}</td>
+      <td>${s.onboarding_complete ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>'}</td>
+      <td>${s.conflict_of_interest_declared ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-exclamation-circle text-warning"></i>'}</td>
+      <td><span class="badge bg-${sc}">${s.status}</span></td>
+      <td>
+        <button class="btn btn-outline-secondary btn-sm" onclick="markOnboarding(${s.staff_id})"
+          data-compliance="AS9100D §7.2" data-linked="MOD-18" data-action-desc="Mark onboarding complete for staff member">
+          <i class="bi bi-person-check"></i>
+        </button>
+      </td>
+    </tr>`;
+  });
+}
+
+async function loadOrg() {
+  const data = await ATCA.api.get('/mod18/org-entities');
+  const container = document.getElementById('org-chart');
+  container.innerHTML = (data || []).map(e => `
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm p-3">
+        <div class="fw-bold">${e.entity_name}</div>
+        ${e.division ? `<small class="text-muted">Division: ${e.division}</small><br>` : ''}
+        ${e.department ? `<small class="text-muted">Dept: ${e.department}</small><br>` : ''}
+        ${e.team ? `<small class="text-muted">Team: ${e.team}</small>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function openStaffModal() { staffModal.show(); }
+function openOrgModal() { orgModal.show(); }
+
+async function saveStaff() {
+  const r = await ATCA.api.post('/mod18/staff', {
+    full_name: document.getElementById('sf-name').value.trim(),
+    job_title: document.getElementById('sf-title').value.trim(),
+    department: document.getElementById('sf-dept').value.trim() || null,
+    employment_type: document.getElementById('sf-type').value,
+    employment_date: document.getElementById('sf-date').value,
+    emergency_contact_name: document.getElementById('sf-ec-name').value.trim() || null,
+    emergency_contact_phone: document.getElementById('sf-ec-phone').value.trim() || null,
+    notes: document.getElementById('sf-notes').value.trim() || null,
+  });
+  if (r) { staffModal.hide(); ATCA.toast(`Staff ${r.employee_id} created`, 'success'); loadStaff(); loadKpis(); }
+}
+
+async function saveOrg() {
+  const r = await ATCA.api.post('/mod18/org-entities', {
+    entity_name: document.getElementById('org-name').value.trim(),
+    division: document.getElementById('org-div').value.trim() || null,
+    department: document.getElementById('org-dept').value.trim() || null,
+    team: document.getElementById('org-team').value.trim() || null,
+  });
+  if (r) { orgModal.hide(); ATCA.toast('Entity added', 'success'); loadOrg(); }
+}
+
+async function markOnboarding(id) {
+  const r = await ATCA.api.patch(`/mod18/staff/${id}`, { onboarding_complete: true });
+  if (r) { ATCA.toast('Onboarding marked complete', 'success'); loadStaff(); loadKpis(); }
+}
+
+document.getElementById('filter-status').addEventListener('change', loadStaff);
+document.getElementById('filter-dept').addEventListener('change', loadStaff);
+init();
+</script>
+</body>
+</html>

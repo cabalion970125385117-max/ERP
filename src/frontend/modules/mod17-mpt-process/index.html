@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOD-17 MPT Process Control — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-core.css">
+</head>
+<body class="atca-body">
+
+<nav class="navbar navbar-dark atca-navbar px-3">
+  <a class="navbar-brand fw-bold" href="/"><i class="bi bi-magnet me-2"></i>ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-17 · MPT Process Control · NADCAP AC7114 | NAS410</span>
+  <div class="ms-auto d-flex align-items-center gap-3">
+    <span class="badge bg-warning text-dark" id="badge-active">—</span>
+    <a href="/" class="btn btn-outline-light btn-sm"><i class="bi bi-grid me-1"></i>Dashboard</a>
+  </div>
+</nav>
+
+<div class="container-fluid py-3">
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-active">
+        <div class="kpi-label">Active MPT Jobs</div>
+        <div class="kpi-value" id="kv-active">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-review">
+        <div class="kpi-label">Pending Review</div>
+        <div class="kpi-value" id="kv-review">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-red" id="kpi-overdue">
+        <div class="kpi-label">Overdue</div>
+        <div class="kpi-value" id="kv-overdue">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-red" id="kpi-rejected">
+        <div class="kpi-label">Rejected</div>
+        <div class="kpi-value" id="kv-rejected">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="mainTabs">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-jobs">MPT Job Register</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-about">AC7114 Process Steps</a></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ── Jobs ── -->
+    <div class="tab-pane fade show active" id="tab-jobs">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <select class="form-select form-select-sm w-auto" id="filter-status" onchange="loadJobs()">
+          <option value="">All Statuses</option>
+          <option value="RECEIVED">Received</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="PENDING_REVIEW">Pending Review</option>
+          <option value="ACCEPTED">Accepted</option>
+          <option value="REJECTED">Rejected</option>
+          <option value="ON_HOLD">On Hold</option>
+        </select>
+        <button class="btn btn-primary btn-sm"
+          data-compliance="NADCAP AC7114 — MPT operations must be performed by NAS410 certified personnel"
+          data-linked="MOD-04 Personnel, MOD-05 Equipment, MOD-13 Work Order, MOD-24 CoC"
+          data-action-desc="Create new MPT job with 6-step AC7114 process traveler"
+          onclick="showNewJobModal()">
+          <i class="bi bi-plus-circle me-1"></i>New MPT Job
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm atca-table">
+          <thead>
+            <tr>
+              <th>Job No.</th><th>Customer</th><th>Part No.</th><th>Technique</th>
+              <th>Inspector</th><th>Planned Date</th><th>Steps Done</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-jobs"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Process Reference ── -->
+    <div class="tab-pane fade" id="tab-about">
+      <div class="card mt-2">
+        <div class="card-header bg-dark text-white"><i class="bi bi-info-circle me-1"></i>NADCAP AC7114 — MPT 6-Step Process</div>
+        <div class="card-body">
+          <div class="row row-cols-1 row-cols-md-2 g-3">
+            <div class="col"><div class="card border-primary h-100"><div class="card-body"><h6 class="text-primary">Step 1 — Pre-Cleaning</h6><small>Remove all contaminants, grease, scale and coatings that may mask indications. Solvent or alkaline cleaning methods. Verify cleanliness before proceeding.</small></div></div></div>
+            <div class="col"><div class="card border-warning h-100"><div class="card-body"><h6 class="text-warning">Step 2 — Equipment Setup & Verification</h6><small>Verify UV lamp intensity ≥1000 fc at 15 inches. Ambient light ≤2 fc. Equipment calibration within tolerance. Record all values.</small></div></div></div>
+            <div class="col"><div class="card border-info h-100"><div class="card-body"><h6 class="text-info">Step 3 — Magnetisation</h6><small>Apply required current (AC/HWDC/FWDC) per procedure. Verify field strength with pie gauge or Hall effect gauss meter. Record amperage and field strength.</small></div></div></div>
+            <div class="col"><div class="card border-success h-100"><div class="card-body"><h6 class="text-success">Step 4 — Particle Application</h6><small>Apply fluorescent wet particle bath. Verify bath concentration 0.1–0.4 mL/100 mL per ASTM centrifuge tube. Record concentration and particle brand.</small></div></div></div>
+            <div class="col"><div class="card border-danger h-100"><div class="card-body"><h6 class="text-danger">Step 5 — Examination & Interpretation</h6><small>Examine all surfaces under UV light. Apply 10× overlap technique. Record any indications, locations and sizes. Apply acceptance/rejection criteria per customer spec.</small></div></div></div>
+            <div class="col"><div class="card border-secondary h-100"><div class="card-body"><h6 class="text-secondary">Step 6 — Demagnetisation & Post-Cleaning</h6><small>Demagnetise to ≤3 gauss residual field. Verify with gauss meter. Perform post-cleaning as required by customer specification.</small></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- New MPT Job Modal -->
+<div class="modal fade" id="modalNewJob" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New MPT Job</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="nj-customer">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Customer PO</label>
+            <input type="text" class="form-control" id="nj-cpo">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Part Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="nj-pnum">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Serial No.</label>
+            <input type="text" class="form-control" id="nj-serial">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Qty</label>
+            <input type="number" class="form-control" id="nj-qty" value="1" min="1">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Priority</label>
+            <select class="form-select" id="nj-priority">
+              <option value="NORMAL">Normal</option>
+              <option value="HIGH">High</option>
+              <option value="URGENT">Urgent</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Technique</label>
+            <select class="form-select" id="nj-technique">
+              <option value="WET_FLUORESCENT">Wet Fluorescent</option>
+              <option value="WET_VISIBLE">Wet Visible</option>
+              <option value="DRY">Dry</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Magnetisation Method</label>
+            <select class="form-select" id="nj-mag">
+              <option value="">Select...</option>
+              <option value="CIRCULAR">Circular</option>
+              <option value="LONGITUDINAL">Longitudinal</option>
+              <option value="MULTIDIRECTIONAL">Multidirectional</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Material Spec</label>
+            <input type="text" class="form-control" id="nj-mspec" placeholder="e.g. AMS2641">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Planned Date</label>
+            <input type="date" class="form-control" id="nj-date">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Special Instructions</label>
+            <textarea class="form-control" id="nj-si" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary"
+          data-compliance="AC7114 — MPT job must reference applicable procedure and acceptance criteria"
+          data-linked="MOD-04 Personnel Certs, MOD-05 Equipment Cal, MOD-13 Work Order"
+          data-action-desc="Create MPT job with 6-step inspection traveler automatically generated"
+          onclick="saveJob()">
+          <i class="bi bi-save me-1"></i>Create MPT Job
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step Detail Modal -->
+<div class="modal fade" id="modalStep" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="step-modal-title">Update Step</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="step-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success"
+          data-compliance="AC7114 — Each MPT step requires qualified inspector sign-off with measurements"
+          data-linked="MOD-04 NAS410 Certs, MOD-05 Equipment Calibration"
+          data-action-desc="Save step measurements and mark step as complete"
+          onclick="saveStep()">
+          <i class="bi bi-check-circle me-1"></i>Save & Complete Step
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+let currentJobId = null, currentStepNum = null;
+const newJobModal = new bootstrap.Modal(document.getElementById('modalNewJob'));
+const stepModal   = new bootstrap.Modal(document.getElementById('modalStep'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadJobs();
+  ATCA.tooltips.init();
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod17/alerts/summary');
+  document.getElementById('kv-active').textContent   = d.active_jobs ?? '—';
+  document.getElementById('kv-review').textContent   = d.pending_review ?? '—';
+  document.getElementById('kv-overdue').textContent  = d.overdue ?? '—';
+  document.getElementById('kv-rejected').textContent = d.rejected_this_month ?? '—';
+  document.getElementById('badge-active').textContent = `${d.active_jobs ?? 0} Active`;
+  document.getElementById('kpi-overdue').className  = `kpi-card ${d.overdue > 0 ? 'kpi-red' : 'kpi-green'}`;
+  document.getElementById('kpi-rejected').className = `kpi-card ${d.rejected_this_month > 0 ? 'kpi-red' : 'kpi-green'}`;
+}
+
+async function loadJobs() {
+  const status = document.getElementById('filter-status').value;
+  let url = '/mod17/jobs?limit=30';
+  if (status) url += `&status=${status}`;
+  const rows = await ATCA.api.get(url);
+  ATCA.table.render('tbody-jobs', rows, jobRow);
+}
+
+function jobRow(j) {
+  const stColors = { RECEIVED:'info', IN_PROGRESS:'primary', PENDING_REVIEW:'warning',
+                     ACCEPTED:'success', REJECTED:'danger', ON_HOLD:'secondary' };
+  return `<tr>
+    <td><strong>${j.job_number}</strong></td>
+    <td>${j.customer_name}</td>
+    <td>${j.part_number}</td>
+    <td><span class="badge bg-info text-dark">${j.technique}</span></td>
+    <td>${j.inspector_name || '—'}</td>
+    <td>${j.planned_date ? j.planned_date.substring(0,10) : '—'}</td>
+    <td>
+      <div class="progress" style="height:14px">
+        <div class="progress-bar ${j.steps_done===6?'bg-success':''}" style="width:${Math.round((j.steps_done/6)*100)}%">${j.steps_done}/6</div>
+      </div>
+    </td>
+    <td><span class="badge bg-${stColors[j.status] || 'secondary'}">${j.status}</span></td>
+    <td>
+      <button class="btn btn-outline-primary btn-xs"
+        data-compliance="AC7114 — MPT inspection record must be maintained for each part"
+        data-linked="MOD-04 Personnel, MOD-05 Equipment, MOD-13 Work Order"
+        data-action-desc="Open MPT job detail and update inspection step measurements"
+        onclick="viewJob(${j.mpt_job_id})">
+        <i class="bi bi-list-check"></i> Steps
+      </button>
+    </td>
+  </tr>`;
+}
+
+function showNewJobModal() { newJobModal.show(); }
+
+async function saveJob() {
+  const customer = document.getElementById('nj-customer').value.trim();
+  const pnum     = document.getElementById('nj-pnum').value.trim();
+  if (!customer || !pnum) { ATCA.toast('Customer and part number required.', 'warning'); return; }
+  try {
+    const res = await ATCA.api.post('/mod17/jobs', {
+      customer_name: customer,
+      customer_po:   document.getElementById('nj-cpo').value.trim(),
+      part_number:   pnum,
+      part_serial_no: document.getElementById('nj-serial').value.trim(),
+      quantity:      parseInt(document.getElementById('nj-qty').value) || 1,
+      priority:      document.getElementById('nj-priority').value,
+      technique:     document.getElementById('nj-technique').value,
+      magnetisation_method: document.getElementById('nj-mag').value || null,
+      material_spec: document.getElementById('nj-mspec').value.trim(),
+      planned_date:  document.getElementById('nj-date').value || null,
+      special_instructions: document.getElementById('nj-si').value.trim(),
+    });
+    ATCA.toast(`MPT job ${res.job_number} created with 6 steps.`, 'success');
+    newJobModal.hide();
+    loadJobs(); loadKpis();
+  } catch { ATCA.toast('Error creating MPT job.', 'danger'); }
+}
+
+async function viewJob(id) {
+  const job = await ATCA.api.get(`/mod17/jobs/${id}`);
+  currentJobId = id;
+  const stepNames = ['','Pre-Cleaning','Equipment Setup & Verification','Magnetisation','Particle Application','Examination & Interpretation','Demagnetisation & Post-Cleaning'];
+  const stColors = { PENDING:'secondary', IN_PROGRESS:'primary', COMPLETE:'success', SKIPPED:'warning' };
+  const stepsHtml = job.steps.map(s => `
+    <tr>
+      <td>${s.step_number}</td>
+      <td>${stepNames[s.step_number] || s.step_name}</td>
+      <td><span class="badge bg-${stColors[s.status]||'secondary'}">${s.status}</span></td>
+      <td>${s.performed_name || '—'}</td>
+      <td>
+        ${s.status !== 'COMPLETE' ? `<button class="btn btn-outline-primary btn-xs"
+          data-compliance="AC7114 — Step data must be recorded at time of inspection"
+          data-linked="MOD-05 Equipment Calibration, MOD-04 NAS410"
+          data-action-desc="Record measurements for this MPT inspection step"
+          onclick="openStep(${id}, ${s.step_number})"><i class="bi bi-pencil"></i> Update</button>` : '✓'}
+      </td>
+    </tr>`).join('');
+
+  const resultHtml = job.result ? `
+    <div class="alert alert-${job.result.overall_result==='ACCEPT'?'success':'danger'} mt-3">
+      <strong>Final Result: ${job.result.overall_result}</strong><br>
+      ${job.result.findings_summary || ''}
+    </div>` : `
+    ${job.steps.every(s=>s.status==='COMPLETE') ? `
+    <div class="mt-3">
+      <button class="btn btn-warning btn-sm"
+        data-compliance="AC7114 — Final acceptance/rejection must be recorded by Level II or III"
+        data-linked="MOD-24 Certificate of Conformance"
+        data-action-desc="Record final result and disposition for this MPT job"
+        onclick="recordResult(${id})"><i class="bi bi-clipboard-check me-1"></i>Record Final Result</button>
+    </div>` : ''}`;
+
+  const body = `
+    <div class="row g-2 mb-3 small">
+      <div class="col-md-4"><strong>Customer:</strong> ${job.customer_name}</div>
+      <div class="col-md-4"><strong>Part:</strong> ${job.part_number}</div>
+      <div class="col-md-4"><strong>Technique:</strong> ${job.technique}</div>
+    </div>
+    <table class="table table-sm table-bordered">
+      <thead class="table-dark"><tr><th>#</th><th>Step</th><th>Status</th><th>Inspector</th><th></th></tr></thead>
+      <tbody>${stepsHtml}</tbody>
+    </table>
+    ${resultHtml}
+  `;
+  // Show in a simple modal
+  const el = document.createElement('div');
+  el.className = 'modal fade'; el.id = 'modalJobDetail'; el.tabIndex = -1;
+  el.innerHTML = `<div class="modal-dialog modal-xl"><div class="modal-content">
+    <div class="modal-header atca-modal-header"><h5 class="modal-title">${job.job_number} — ${job.customer_name} / ${job.part_number}</h5>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">${body}</div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>
+  </div></div>`;
+  document.body.appendChild(el);
+  ATCA.tooltips.init();
+  const m = new bootstrap.Modal(el);
+  el.addEventListener('hidden.bs.modal', () => { m.dispose(); el.remove(); });
+  m.show();
+}
+
+function openStep(jobId, stepNum) {
+  currentJobId  = jobId;
+  currentStepNum = stepNum;
+  const stepNames = ['','Pre-Cleaning','Equipment Setup & Verification','Magnetisation','Particle Application','Examination & Interpretation','Demagnetisation & Post-Cleaning'];
+  document.getElementById('step-modal-title').textContent = `Step ${stepNum}: ${stepNames[stepNum]}`;
+
+  const fieldsMap = {
+    1: `<div class="row g-2">
+      <div class="col-md-6"><label class="form-label small">Cleaning Method</label><input class="form-control form-control-sm" id="sf-cleaning_method"></div>
+      <div class="col-md-6"><label class="form-label small">Solvent Used</label><input class="form-control form-control-sm" id="sf-solvent_used"></div>
+    </div>`,
+    2: `<div class="row g-2">
+      <div class="col-md-4"><label class="form-label small">UV Lamp (fc)</label><input type="number" class="form-control form-control-sm" id="sf-uv_lamp_intensity_fc"></div>
+      <div class="col-md-2"><label class="form-label small">UV OK?</label><select class="form-select form-select-sm" id="sf-uv_lamp_ok"><option value="">—</option><option value="1">Yes</option><option value="0">No</option></select></div>
+      <div class="col-md-4"><label class="form-label small">Ambient Light (fc)</label><input type="number" class="form-control form-control-sm" id="sf-ambient_light_fc"></div>
+      <div class="col-md-2"><label class="form-label small">OK?</label><select class="form-select form-select-sm" id="sf-ambient_light_ok"><option value="">—</option><option value="1">Yes</option><option value="0">No</option></select></div>
+    </div>`,
+    3: `<div class="row g-2">
+      <div class="col-md-3"><label class="form-label small">Current Type</label><select class="form-select form-select-sm" id="sf-current_type"><option>AC</option><option>HWDC</option><option>FWDC</option></select></div>
+      <div class="col-md-3"><label class="form-label small">Current (A)</label><input type="number" class="form-control form-control-sm" id="sf-current_amps"></div>
+      <div class="col-md-4"><label class="form-label small">Field Strength (gauss)</label><input type="number" class="form-control form-control-sm" id="sf-field_strength_gauss"></div>
+      <div class="col-md-2"><label class="form-label small">OK?</label><select class="form-select form-select-sm" id="sf-field_strength_ok"><option value="">—</option><option value="1">Yes</option><option value="0">No</option></select></div>
+    </div>`,
+    4: `<div class="row g-2">
+      <div class="col-md-6"><label class="form-label small">Particle Type/Brand</label><input class="form-control form-control-sm" id="sf-particle_type"></div>
+      <div class="col-md-4"><label class="form-label small">Concentration (mL/100mL)</label><input type="number" step="0.01" class="form-control form-control-sm" id="sf-particle_conc"></div>
+      <div class="col-md-2"><label class="form-label small">OK?</label><select class="form-select form-select-sm" id="sf-particle_conc_ok"><option value="">—</option><option value="1">Yes</option><option value="0">No</option></select></div>
+    </div>`,
+    5: `<div class="row g-2">
+      <div class="col-md-4"><label class="form-label small">Indications Found?</label><select class="form-select form-select-sm" id="sf-indications_found"><option value="">—</option><option value="1">Yes</option><option value="0">No</option></select></div>
+      <div class="col-md-4"><label class="form-label small">Indication Count</label><input type="number" class="form-control form-control-sm" id="sf-indication_count"></div>
+      <div class="col-12"><label class="form-label small">Indication Notes</label><textarea class="form-control form-control-sm" id="sf-indication_notes" rows="2"></textarea></div>
+    </div>`,
+    6: `<div class="row g-2">
+      <div class="col-md-4"><label class="form-label small">Residual Field (gauss)</label><input type="number" step="0.1" class="form-control form-control-sm" id="sf-residual_field_gauss"></div>
+      <div class="col-md-4"><label class="form-label small">Demagnetised OK? (≤3G)</label><select class="form-select form-select-sm" id="sf-demagnetised_ok"><option value="">—</option><option value="1">Yes</option><option value="0">No</option></select></div>
+      <div class="col-md-4"><label class="form-label small">Post-Clean Done?</label><select class="form-select form-select-sm" id="sf-post_clean_done"><option value="">—</option><option value="1">Yes</option><option value="0">No</option></select></div>
+    </div>`,
+  };
+  document.getElementById('step-modal-body').innerHTML = `
+    ${fieldsMap[stepNum] || ''}
+    <div class="mt-3"><label class="form-label small">Notes</label>
+      <textarea class="form-control form-control-sm" id="sf-notes" rows="2"></textarea></div>
+  `;
+  ATCA.tooltips.init();
+  stepModal.show();
+}
+
+async function saveStep() {
+  const payload = { status: 'COMPLETE' };
+  document.querySelectorAll('[id^="sf-"]').forEach(el => {
+    const key = el.id.replace('sf-','');
+    const val = el.value;
+    if (val !== '' && val !== null) {
+      if (el.tagName === 'SELECT' && (val === '1' || val === '0')) payload[key] = parseInt(val);
+      else if (el.type === 'number') payload[key] = parseFloat(val);
+      else payload[key] = val;
+    }
+  });
+  try {
+    await ATCA.api.patch(`/mod17/jobs/${currentJobId}/steps/${currentStepNum}`, payload);
+    ATCA.toast(`Step ${currentStepNum} completed.`, 'success');
+    stepModal.hide();
+    loadJobs(); loadKpis();
+    // Re-open job detail
+    setTimeout(() => viewJob(currentJobId), 300);
+  } catch { ATCA.toast('Error saving step.', 'danger'); }
+}
+
+async function recordResult(jobId) {
+  const result = prompt('Final result? (ACCEPT / REJECT / CONDITIONAL)', 'ACCEPT');
+  if (!result) return;
+  const summary = prompt('Findings summary (optional):') || '';
+  try {
+    await ATCA.api.post('/mod17/results', { mpt_job_id: jobId, overall_result: result, findings_summary: summary });
+    ATCA.toast(`Result recorded: ${result}`, 'success');
+    loadJobs(); loadKpis();
+  } catch { ATCA.toast('Error recording result.', 'danger'); }
+}
+
+init();
+</script>
+</body>
+</html>

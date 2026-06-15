@@ -24,14 +24,14 @@
   </div>
   <div class="nav-section-label">Quality Management</div>
   <a href="/modules/mod01-qms-core/"          class="nav-link active"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
-  <a href="/modules/mod02-doc-control/"        class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod02-document-control/"        class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
   <a href="/modules/mod07-ncr-capa/"           class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
   <a href="/modules/mod08-audit/"              class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
   <div class="nav-section-label">NDT Process</div>
-  <a href="/modules/mod03-fpi/"                class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
-  <a href="/modules/mod04-personnel/"          class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
-  <a href="/modules/mod05-equipment/"          class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
-  <a href="/modules/mod06-bath/"               class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <a href="/modules/mod03-fpi-process/"                class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-ndt-personnel/"          class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment-calibration/"          class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath-control/"               class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
   <a href="/modules/mod17-mpt/"                class="nav-link"><span class="nav-icon"><i class="bi bi-magnet"></i></span>MPT Process</a>
   <div class="nav-section-label">Operations</div>
   <a href="/modules/mod13-traveler/"           class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
@@ -41,8 +41,9 @@
   <a href="/modules/mod10-vendor/"             class="nav-link"><span class="nav-icon"><i class="bi bi-truck"></i></span>Approved Vendor List</a>
   <div class="nav-section-label">System</div>
   <a href="/modules/mod15-dashboard/"          class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
-  <a href="/modules/mod25-users/"              class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <a href="/modules/mod25-user-management/"              class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
   <a href="/modules/mod26-config/"             class="nav-link"><span class="nav-icon"><i class="bi bi-gear"></i></span>Configuration</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
   <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
 </nav>
 
@@ -84,7 +85,7 @@
       <div class="atca-card-body">
         <div class="row g-3">
           <div class="col-6 col-md-3">
-            <a href="/modules/mod01-qms-core/policy.html" class="text-decoration-none">
+            <a href="/modules/mod01-qms-core/quality-policy.html" class="text-decoration-none">
               <div class="atca-card text-center py-3 h-100" style="border-top:3px solid var(--atca-blue);">
                 <i class="bi bi-file-earmark-text" style="font-size:2rem;color:var(--atca-blue);"></i>
                 <div class="fw-bold mt-2" style="font-size:0.85rem;">Quality Policy</div>
@@ -102,7 +103,7 @@
             </a>
           </div>
           <div class="col-6 col-md-3">
-            <a href="/modules/mod01-qms-core/mgmt-review.html" class="text-decoration-none">
+            <a href="/modules/mod01-qms-core/management-review.html" class="text-decoration-none">
               <div class="atca-card text-center py-3 h-100" style="border-top:3px solid #198754;">
                 <i class="bi bi-people" style="font-size:2rem;color:#198754;"></i>
                 <div class="fw-bold mt-2" style="font-size:0.85rem;">Management Review</div>
@@ -208,7 +209,7 @@
           <div class="atca-card-header">
             <span class="module-badge">§9.3</span>
             <h5>Management Review — Recent</h5>
-            <a href="/modules/mod01-qms-core/mgmt-review.html" class="btn btn-sm btn-atca-primary ms-auto">
+            <a href="/modules/mod01-qms-core/management-review.html" class="btn btn-sm btn-atca-primary ms-auto">
               <i class="bi bi-plus-lg me-1"></i>New Review
             </a>
           </div>
@@ -255,12 +256,13 @@
 </div>
 
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
-<script src="/assets/js/atca-core.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
 <script>
 /* ============================================================
    MOD-01 Dashboard — Data Loader
    ============================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
+  await ATCA.initPage();
 
   // Load QMS Policy
   (async () => {
@@ -329,7 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     ATCA.table.render('reviews-tbody', data.items, row => `
       <tr>
-        <td><a href="/modules/mod01-qms-core/mgmt-review.html?id=${row.review_id}">
+        <td><a href="/modules/mod01-qms-core/management-review.html?id=${row.review_id}">
           <code>${ATCA.utils.escHtml(row.review_ref)}</code></a></td>
         <td>${ATCA.utils.escHtml(row.review_type)}</td>
         <td>${ATCA.utils.fmtDate(row.review_date)}</td>

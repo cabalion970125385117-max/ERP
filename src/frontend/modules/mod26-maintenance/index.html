@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-26: System Maintenance Console (SUPERUSER)
+  Restricted to ADMIN role. Storage · Activity Logs · Users · Password Control · Backup.
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>MOD-26 Maintenance Console — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+  <style>
+    .su-banner { background:#7a1414; color:#fff; font-size:.82rem; }
+    .cap-track { height:10px; border-radius:6px; background:#e9ecef; overflow:hidden; }
+    .cap-fill  { height:100%; border-radius:6px; }
+    .store-pill { border:1px solid var(--atca-border,#dee2e6); border-radius:8px; padding:.7rem .9rem; background:#fff; }
+    .store-pill .v { font-size:1.15rem; font-weight:700; color:var(--atca-navy,#1A2520); }
+    .store-pill .l { font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:var(--atca-muted,#6c757d); }
+    .act-action { font-weight:700; font-size:.72rem; padding:.1rem .4rem; border-radius:4px; }
+    code.mono { font-size:.78rem; }
+    .mode-card { border:2px solid #dee2e6; border-radius:10px; padding:1rem 1.2rem; }
+    .mode-card.on { border-color:#dc3545; background:#fff5f5; }
+    table.tbl-sm td, table.tbl-sm th { font-size:.8rem; vertical-align:middle; }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-26 · Maintenance Console <span class="badge bg-danger ms-1">SUPERUSER</span></span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<!-- Maintenance-mode banner (app-wide intent) -->
+<div id="su-banner" class="su-banner text-center py-1 px-3 d-none">
+  <i class="bi bi-cone-striped"></i> <strong>MAINTENANCE MODE ACTIVE</strong> —
+  non-admin users are locked out. <span id="su-banner-detail"></span>
+</div>
+
+<!-- Access denied (non-admin) -->
+<div id="access-denied" class="container py-5 text-center d-none">
+  <i class="bi bi-shield-lock" style="font-size:3rem;color:#dc3545"></i>
+  <h4 class="mt-3">Superuser Access Required</h4>
+  <p class="text-muted">The Maintenance Console is restricted to <strong>Administrator (superuser)</strong> accounts.
+    Your role does not have access.</p>
+  <a href="/index.html" class="btn btn-outline-secondary"><i class="bi bi-house"></i> Back to Home</a>
+</div>
+
+<div id="console" class="container-fluid px-4 py-3 d-none">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h5 class="mb-0"><i class="bi bi-tools me-1"></i>System Maintenance Console</h5>
+      <small class="text-muted">AS9100D §7.1 / §7.5.3 — Infrastructure, records control &amp; data backup · ADMIN only</small>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary" id="btn-refresh"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+  </div>
+
+  <!-- Headline tiles -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3"><div class="kpi-card" id="hl-db"><div class="kpi-label">Database Used</div><div class="kpi-value" id="kpi-db">—</div><div class="kpi-sub" id="kpi-db-sub">of allocated</div></div></div>
+    <div class="col-6 col-lg-3"><div class="kpi-card rag-green"><div class="kpi-label">Active Sessions</div><div class="kpi-value" id="kpi-sessions">—</div><div class="kpi-sub">live users</div></div></div>
+    <div class="col-6 col-lg-3"><div class="kpi-card" id="hl-fail"><div class="kpi-label">Failed Logins 24h</div><div class="kpi-value" id="kpi-fail">—</div><div class="kpi-sub">security watch</div></div></div>
+    <div class="col-6 col-lg-3"><div class="kpi-card rag-green"><div class="kpi-label">Last Backup</div><div class="kpi-value" id="kpi-backup">—</div><div class="kpi-sub" id="kpi-backup-sub">days ago</div></div></div>
+  </div>
+
+  <!-- Maintenance mode toggle -->
+  <div class="mode-card mb-3" id="mode-card">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <div class="fw-bold"><i class="bi bi-cone-striped me-1"></i>Maintenance Mode</div>
+        <small class="text-muted" id="mode-desc">When ON, all non-ADMIN sessions are blocked and shown a maintenance notice.</small>
+      </div>
+      <div class="form-check form-switch fs-5">
+        <input class="form-check-input" type="checkbox" id="mode-switch" style="cursor:pointer" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" href="#tab-storage" data-bs-toggle="tab"><i class="bi bi-hdd-stack me-1"></i>Storage</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-activity" data-bs-toggle="tab"><i class="bi bi-journal-text me-1"></i>Activity Logs</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-users" data-bs-toggle="tab"><i class="bi bi-people me-1"></i>Users</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-password" data-bs-toggle="tab"><i class="bi bi-key me-1"></i>Password Control</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-backup" data-bs-toggle="tab"><i class="bi bi-download me-1"></i>Backup</a></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- STORAGE -->
+    <div class="tab-pane fade show active" id="tab-storage">
+      <div class="row g-3">
+        <div class="col-12 col-lg-5">
+          <div class="atca-card h-100"><div class="atca-card-header"><span class="module-badge">DB</span><h5>Database Capacity</h5></div>
+            <div class="atca-card-body" id="cap-body"><div class="text-muted small">Loading…</div></div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-7">
+          <div class="atca-card h-100"><div class="atca-card-header"><span class="module-badge">TABLES</span><h5>Largest Tables</h5></div>
+            <div class="atca-card-body">
+              <table class="table table-sm tbl-sm mb-0"><thead><tr><th>Table</th><th class="text-end">Rows</th><th class="text-end">Size (MB)</th><th style="width:38%">Share</th></tr></thead>
+                <tbody id="tbl-storage"></tbody></table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="tab-pane fade" id="tab-activity">
+      <div class="atca-card"><div class="atca-card-header"><span class="module-badge">AUDIT</span><h5>User Activity Log</h5>
+        <input id="act-filter" class="form-control form-control-sm ms-auto" style="max-width:220px" placeholder="Filter user / action / module…" />
+      </div>
+        <div class="atca-card-body">
+          <table class="table table-sm tbl-sm mb-0"><thead><tr><th>Time</th><th>User</th><th>Action</th><th>Module</th><th>Detail</th><th>LAN IP</th></tr></thead>
+            <tbody id="tbl-activity"></tbody></table>
+          <small class="text-muted" id="act-count"></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="tab-pane fade" id="tab-users">
+      <div class="atca-card"><div class="atca-card-header"><span class="module-badge">USERS</span><h5>User Accounts</h5>
+        <button class="btn btn-sm btn-success ms-auto" id="btn-add-user"
+          data-action-desc="Create a new user account with a role" data-compliance="AS9100D §6.2" data-linked="MOD-04 Personnel">
+          <i class="bi bi-person-plus"></i> Add User</button>
+      </div>
+        <div class="atca-card-body">
+          <table class="table table-sm tbl-sm mb-0"><thead><tr><th>Username</th><th>Full Name</th><th>Role</th><th>Status</th><th>Last Login</th><th class="text-end">Actions</th></tr></thead>
+            <tbody id="tbl-users"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASSWORD CONTROL -->
+    <div class="tab-pane fade" id="tab-password">
+      <div class="row g-3">
+        <div class="col-12 col-lg-6">
+          <div class="atca-card h-100"><div class="atca-card-header"><span class="module-badge">RESET</span><h5>Reset User Password</h5></div>
+            <div class="atca-card-body">
+              <div class="mb-2"><label class="form-label">User</label>
+                <select id="pw-user" class="form-select form-select-sm"></select></div>
+              <div class="mb-2"><label class="form-label">New Temporary Password</label>
+                <input id="pw-new" class="form-control form-control-sm" placeholder="auto-generate or type" />
+                <button class="btn btn-link btn-sm p-0 mt-1" id="pw-gen">Generate strong password</button></div>
+              <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="pw-force" checked>
+                <label class="form-check-label" for="pw-force">Force password change on next login</label></div>
+              <button class="btn btn-warning btn-sm" id="btn-reset-pw"
+                data-action-desc="Set a temporary password and flag the account for reset" data-compliance="AS9100D §6.2">
+                <i class="bi bi-key"></i> Reset Password</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="atca-card h-100"><div class="atca-card-header"><span class="module-badge">POLICY</span><h5>Password Policy</h5></div>
+            <div class="atca-card-body">
+              <div class="row g-2">
+                <div class="col-6"><label class="form-label">Min length</label><input id="pol-len" type="number" class="form-control form-control-sm" value="12" /></div>
+                <div class="col-6"><label class="form-label">Expiry (days)</label><input id="pol-exp" type="number" class="form-control form-control-sm" value="90" /></div>
+                <div class="col-6"><label class="form-label">Lockout after</label><input id="pol-lock" type="number" class="form-control form-control-sm" value="5" /></div>
+                <div class="col-6"><label class="form-label">History reuse block</label><input id="pol-hist" type="number" class="form-control form-control-sm" value="5" /></div>
+              </div>
+              <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="pol-complex" checked><label class="form-check-label" for="pol-complex">Require upper + lower + digit + symbol</label></div>
+              <button class="btn btn-primary btn-sm mt-3" id="btn-save-policy" data-action-desc="Apply password policy" data-compliance="AS9100D §6.2"><i class="bi bi-save"></i> Save Policy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BACKUP -->
+    <div class="tab-pane fade" id="tab-backup">
+      <div class="atca-card"><div class="atca-card-header"><span class="module-badge">BACKUP</span><h5>Database Backups</h5>
+        <button class="btn btn-sm btn-success ms-auto" id="btn-create-backup"
+          data-action-desc="Trigger an on-demand full database backup" data-compliance="AS9100D §7.5.3 records control">
+          <i class="bi bi-database-add"></i> Create Backup Now</button>
+      </div>
+        <div class="atca-card-body">
+          <table class="table table-sm tbl-sm mb-0"><thead><tr><th>File</th><th>Created</th><th>Type</th><th class="text-end">Size</th><th>Retention</th><th class="text-end">Actions</th></tr></thead>
+            <tbody id="tbl-backups"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="userModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Add User</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="mb-2"><label class="form-label">Full Name *</label><input id="u-name" class="form-control form-control-sm" /></div>
+    <div class="mb-2"><label class="form-label">Username *</label><input id="u-username" class="form-control form-control-sm" /></div>
+    <div class="row g-2 mb-2">
+      <div class="col-6"><label class="form-label">Role *</label><select id="u-role" class="form-select form-select-sm">
+        <option value="">Select…</option><option>READONLY</option><option>NDT_INSPECTOR</option><option>SUPERVISOR</option><option>ENGINEER</option><option>QA_MANAGER</option><option>ADMIN</option></select></div>
+      <div class="col-6"><label class="form-label">Employee ID</label><input id="u-emp" class="form-control form-control-sm" placeholder="ATCA-00X" /></div>
+    </div>
+    <div class="mb-2"><label class="form-label">Temporary Password *</label><input id="u-pass" class="form-control form-control-sm" /></div>
+  </div>
+  <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+    <button class="btn btn-success btn-sm" id="btn-save-user"><i class="bi bi-check-lg"></i> Create User</button></div>
+</div></div></div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+let USERS = [];
+let userModal;
+
+async function init(){
+  await ATCA.initPage();
+  // Superuser gate
+  if (!ATCA.user.hasRole('ADMIN')) {
+    document.getElementById('access-denied').classList.remove('d-none');
+    return;
+  }
+  document.getElementById('console').classList.remove('d-none');
+  userModal = new bootstrap.Modal(document.getElementById('userModal'));
+  wire();
+  await Promise.all([loadSummary(), loadMaintenance(), loadStorage(), loadUsers(), loadBackups()]);
+  loadActivity();
+  ATCA.tooltips.init();
+}
+
+function wire(){
+  document.getElementById('btn-refresh').addEventListener('click', () => { loadSummary(); loadStorage(); loadActivity(); loadUsers(); loadBackups(); });
+  document.querySelector('[href="#tab-activity"]').addEventListener('shown.bs.tab', loadActivity);
+  document.getElementById('mode-switch').addEventListener('change', toggleMaintenance);
+  document.getElementById('act-filter').addEventListener('input', filterActivity);
+  document.getElementById('btn-add-user').addEventListener('click', () => { ['u-name','u-username','u-emp','u-pass'].forEach(i=>document.getElementById(i).value=''); document.getElementById('u-role').value=''; userModal.show(); });
+  document.getElementById('btn-save-user').addEventListener('click', createUser);
+  document.getElementById('pw-gen').addEventListener('click', e => { e.preventDefault(); document.getElementById('pw-new').value = genPassword(); });
+  document.getElementById('btn-reset-pw').addEventListener('click', resetPassword);
+  document.getElementById('btn-save-policy').addEventListener('click', () => ATCA.toast('Password policy saved.', 'success'));
+  document.getElementById('btn-create-backup').addEventListener('click', createBackup);
+}
+
+/* ── Summary tiles ── */
+async function loadSummary(){
+  const d = await ATCA.api.get('/mod26/alerts/summary'); if (!d) return;
+  setTile('kpi-db', d.db_used_pct + '%', 'hl-db', d.db_used_pct, 80, 90);
+  document.getElementById('kpi-sessions').textContent = d.active_sessions ?? '—';
+  setTile('kpi-fail', d.failed_logins_24h, 'hl-fail', d.failed_logins_24h, 5, 1);
+  document.getElementById('kpi-backup').textContent = d.days_since_backup ?? '—';
+  document.getElementById('kpi-backup-sub').textContent = (d.days_since_backup === 0 ? 'today' : 'days ago');
+  document.getElementById('nav-alerts').innerHTML =
+    d.failed_logins_24h > 0 ? `<span class="badge bg-warning text-dark">${d.failed_logins_24h} failed logins</span>` : '';
+}
+function setTile(valId, val, cardId, v, redAt, amberAt){
+  document.getElementById(valId).textContent = val;
+  const c = document.getElementById(cardId);
+  c.className = 'kpi-card ' + (v >= redAt ? 'rag-red' : v >= amberAt ? 'rag-amber' : 'rag-green');
+}
+
+/* ── Maintenance mode ── */
+async function loadMaintenance(){
+  const d = await ATCA.api.get('/admin/maintenance-status'); if (!d) return;
+  applyMode(d.enabled, d);
+  document.getElementById('mode-switch').checked = !!d.enabled;
+}
+function applyMode(on, d){
+  document.getElementById('mode-card').classList.toggle('on', on);
+  const banner = document.getElementById('su-banner');
+  banner.classList.toggle('d-none', !on);
+  if (on && d) document.getElementById('su-banner-detail').textContent = d.message || '';
+  document.getElementById('mode-desc').textContent = on
+    ? 'ON — non-ADMIN sessions are blocked. Toggle off to resume normal operation.'
+    : 'When ON, all non-ADMIN sessions are blocked and shown a maintenance notice.';
+}
+async function toggleMaintenance(e){
+  const on = e.target.checked;
+  if (on && !confirm('Enable maintenance mode? All non-admin users will be locked out.')) { e.target.checked = false; return; }
+  const res = await ATCA.api.patch('/admin/maintenance', { enabled: on });
+  if (!res) { e.target.checked = !on; return; }
+  applyMode(on, { message: 'System is undergoing scheduled maintenance. Please try again shortly.' });
+  ATCA.toast(on ? 'Maintenance mode ENABLED — non-admins locked out.' : 'Maintenance mode disabled — system live.', on ? 'warning' : 'success');
+}
+
+/* ── Storage ── */
+async function loadStorage(){
+  const d = await ATCA.api.get('/admin/storage'); if (!d) return;
+  const usedPct = Math.round(d.db_used_mb / d.db_max_mb * 100);
+  document.getElementById('kpi-db-sub').textContent = fmtMb(d.db_used_mb) + ' / ' + fmtMb(d.db_max_mb);
+  const f = d.files;
+  document.getElementById('cap-body').innerHTML = `
+    ${capBar('Database (' + d.db_name + ')', d.db_used_mb, d.db_max_mb)}
+    ${capBar('Transaction Log', d.log_used_mb, d.db_max_mb)}
+    ${capBar('Disk Volume', d.disk_total_gb - d.disk_free_gb, d.disk_total_gb, 'GB')}
+    <div class="row g-2 mt-2">
+      <div class="col-6"><div class="store-pill"><div class="l">Signatures</div><div class="v">${f.signatures_mb} MB</div></div></div>
+      <div class="col-6"><div class="store-pill"><div class="l">Documents</div><div class="v">${f.documents_mb} MB</div></div></div>
+      <div class="col-6"><div class="store-pill"><div class="l">Backups</div><div class="v">${fmtMb(f.backups_mb)}</div></div></div>
+      <div class="col-6"><div class="store-pill"><div class="l">Attachments</div><div class="v">${f.attachments_mb} MB</div></div></div>
+    </div>`;
+  const maxT = Math.max(...d.tables.map(t => t.size_mb));
+  document.getElementById('tbl-storage').innerHTML = d.tables.map(t => {
+    const pct = Math.round(t.size_mb / maxT * 100);
+    return `<tr><td><code class="mono">${t.name}</code></td><td class="text-end">${t.rows.toLocaleString()}</td>
+      <td class="text-end">${t.size_mb.toFixed(1)}</td>
+      <td><div class="cap-track"><div class="cap-fill" style="width:${pct}%;background:#1F6BAE"></div></div></td></tr>`;
+  }).join('');
+}
+function capBar(label, used, total, unit){
+  unit = unit || 'MB';
+  const pct = Math.min(100, Math.round(used / total * 100));
+  const color = pct >= 90 ? '#dc3545' : pct >= 75 ? '#ffc107' : '#198754';
+  const fmt = unit === 'GB' ? (v => v.toFixed(0) + ' GB') : fmtMb;
+  return `<div class="mb-2"><div class="d-flex justify-content-between small"><span>${label}</span>
+    <span class="text-muted">${fmt(used)} / ${fmt(total)} · ${pct}%</span></div>
+    <div class="cap-track mt-1"><div class="cap-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
+}
+function fmtMb(mb){ return mb >= 1024 ? (mb/1024).toFixed(2) + ' GB' : mb.toFixed(0) + ' MB'; }
+
+/* ── Activity log ── */
+let ACTIVITY = [];
+async function loadActivity(){
+  const d = await ATCA.api.get('/admin/activity?limit=50'); if (!d) return;
+  ACTIVITY = d.items || [];
+  renderActivity(ACTIVITY);
+  document.getElementById('act-count').textContent = `Showing ${ACTIVITY.length} of ${(d.total||0).toLocaleString()} log entries`;
+}
+function renderActivity(rows){
+  const col = { LOGIN:'bg-success', LOGOUT:'bg-secondary', LOGIN_FAIL:'bg-danger', CREATE:'bg-primary',
+    SIGNOFF:'bg-info text-dark', ISSUE:'bg-info text-dark', VERIFY:'bg-success', ROLE_CHANGE:'bg-warning text-dark',
+    BACKUP:'bg-dark', CONFIG:'bg-warning text-dark', DELETE:'bg-danger' };
+  ATCA.table.render('tbl-activity', rows, r => `<tr>
+    <td class="text-muted"><small>${new Date(r.ts).toLocaleString('en-SG',{hour12:false})}</small></td>
+    <td>${r.username}<br><small class="text-muted">${r.role}</small></td>
+    <td><span class="act-action ${col[r.action]||'bg-secondary'}">${r.action}</span></td>
+    <td><small>${r.module}</small></td>
+    <td><small>${r.detail||''}</small></td>
+    <td><code class="mono">${r.lan_ip||'—'}</code></td></tr>`);
+}
+function filterActivity(){
+  const q = document.getElementById('act-filter').value.toLowerCase();
+  renderActivity(ACTIVITY.filter(r => (r.username+' '+r.action+' '+r.module+' '+(r.detail||'')).toLowerCase().includes(q)));
+}
+
+/* ── Users ── */
+async function loadUsers(){
+  const d = await ATCA.api.get('/admin/users'); if (!d) return;
+  USERS = d.items || [];
+  const rc = { ADMIN:'danger', QA_MANAGER:'primary', ENGINEER:'info', SUPERVISOR:'secondary', NDT_INSPECTOR:'success', READONLY:'light' };
+  ATCA.table.render('tbl-users', USERS, u => `<tr>
+    <td><strong>${u.username}</strong>${u.must_reset?' <span class="badge bg-warning text-dark">reset pending</span>':''}</td>
+    <td>${u.full_name}</td>
+    <td><span class="badge bg-${rc[u.role]||'secondary'}">${u.role}</span></td>
+    <td>${u.active?'<span class="text-success">● Active</span>':'<span class="text-muted">○ Inactive</span>'}
+        ${u.failed_attempts>=3?` <span class="badge bg-danger" title="failed attempts">${u.failed_attempts}✗</span>`:''}</td>
+    <td><small>${u.last_login?new Date(u.last_login).toLocaleString('en-SG',{hour12:false}):'never'}</small></td>
+    <td class="text-end">
+      <button class="btn btn-outline-${u.active?'secondary':'success'} btn-sm" onclick="toggleUser(${u.user_id},${u.active})" title="${u.active?'Deactivate':'Activate'}"><i class="bi bi-${u.active?'pause':'play'}"></i></button>
+      <button class="btn btn-outline-danger btn-sm" onclick="deleteUser(${u.user_id},'${u.username}')" title="Delete"${u.user_id===1?' disabled':''}><i class="bi bi-trash"></i></button>
+    </td></tr>`);
+  // populate pw-user select
+  const sel = document.getElementById('pw-user');
+  sel.innerHTML = USERS.map(u => `<option value="${u.user_id}">${u.username} — ${u.full_name}</option>`).join('');
+}
+async function createUser(){
+  const body = { full_name:val('u-name'), username:val('u-username'), role:val('u-role'), employee_id:val('u-emp'), password:val('u-pass') };
+  if (!body.full_name || !body.username || !body.role || !body.password) return ATCA.toast('Name, username, role and password are required.', 'error');
+  const res = await ATCA.api.post('/admin/users', body); if (!res) return;
+  userModal.hide(); ATCA.toast(`User "${body.username}" created (${body.role}).`, 'success'); loadUsers();
+}
+async function toggleUser(id, active){
+  const res = await ATCA.api.patch(`/admin/users/${id}`, { active: !active }); if (!res) return;
+  ATCA.toast(active?'User deactivated.':'User activated.', 'success'); loadUsers();
+}
+async function deleteUser(id, username){
+  if (!confirm(`Delete user "${username}"? This cannot be undone (soft-delete in production).`)) return;
+  const res = await ATCA.api.delete(`/admin/users/${id}`); if (!res) return;
+  ATCA.toast(`User "${username}" deleted.`, 'success'); loadUsers();
+}
+
+/* ── Password control ── */
+function genPassword(){
+  const sets=['ABCDEFGHJKLMNPQRSTUVWXYZ','abcdefghijkmnpqrstuvwxyz','23456789','!@#$%&*'];
+  let p='';
+  for(let i=0;i<14;i++){ const s=sets[i%4]; p+=s[Math.floor(Math.random()*s.length)]; }
+  return p.split('').sort(()=>Math.random()-0.5).join('');
+}
+async function resetPassword(){
+  const id = document.getElementById('pw-user').value;
+  let pw = document.getElementById('pw-new').value || genPassword();
+  const force = document.getElementById('pw-force').checked;
+  const res = await ATCA.api.patch(`/admin/users/${id}/reset-password`, { password: pw, must_reset: force }); if (!res) return;
+  document.getElementById('pw-new').value = pw;
+  ATCA.toast(`Password reset. Temporary password: ${pw}${force?' (reset on next login)':''}`, 'success');
+  loadUsers();
+}
+
+/* ── Backups ── */
+let BACKUPS = [];
+async function loadBackups(){
+  const d = await ATCA.api.get('/admin/backups'); if (!d) return;
+  BACKUPS = d.items || [];
+  const tc = { FULL:'primary', MANUAL:'success', DIFF:'info' };
+  ATCA.table.render('tbl-backups', BACKUPS, b => `<tr>
+    <td><code class="mono">${b.filename}</code></td>
+    <td><small>${new Date(b.created_at).toLocaleString('en-SG',{hour12:false})}</small></td>
+    <td><span class="badge bg-${tc[b.type]||'secondary'}">${b.type}</span></td>
+    <td class="text-end">${fmtMb(b.size_mb)}</td>
+    <td><small>${b.retention}</small></td>
+    <td class="text-end">
+      <button class="btn btn-outline-primary btn-sm" onclick="downloadBackup(${b.backup_id})" title="Download"><i class="bi bi-download"></i></button>
+    </td></tr>`);
+}
+async function createBackup(){
+  ATCA.toast('Backup started…', 'info');
+  const res = await ATCA.api.post('/admin/backups', { type:'MANUAL' }); if (!res) return;
+  ATCA.toast('Manual backup completed.', 'success'); loadBackups();
+}
+function downloadBackup(id){
+  const b = BACKUPS.find(x => x.backup_id === id); if (!b) return;
+  // In production this streams the .bak from the backup volume. In preview we emit a manifest file.
+  const manifest = { product:'ATCA-ERP', database:'ATCA_ERP_DB', backup:b,
+    generated_at:new Date().toISOString(), note:'Preview manifest — production downloads the full .bak via a signed, time-limited URL.' };
+  const blob = new Blob([JSON.stringify(manifest, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = b.filename.replace('.bak', '') + '_manifest.json';
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+  ATCA.toast(`Downloading ${b.filename}…`, 'success');
+}
+
+function val(id){ return document.getElementById(id).value.trim(); }
+init();
+</script>
+</body>
+</html>

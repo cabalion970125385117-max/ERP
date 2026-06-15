@@ -6,7 +6,7 @@
 
 'use strict';
 
-const { query, sql } = require('../config/db');
+const { query, sql } = require('../config/database');
 
 /** Role hierarchy — higher index = more privilege */
 const ROLE_RANK = {

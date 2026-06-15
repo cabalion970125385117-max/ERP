@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOD-23 Payroll Processing — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-23 · Payroll Processing</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Pending Runs (Draft)</div><div id="kpi-pending" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Current Month Gross (SGD)</div><div id="kpi-gross" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Staff Paid This Month</div><div id="kpi-paid" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Runs Disbursed YTD</div><div id="kpi-ytd" class="kpi-value">—</div></div></div>
+  </div>
+
+  <div class="d-flex justify-content-between mb-3">
+    <select id="filter-status" class="form-select form-select-sm" style="width:160px">
+      <option value="">All Statuses</option><option>DRAFT</option><option>APPROVED</option><option>DISBURSED</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="openRunModal()"
+      data-compliance="SoR §12" data-linked="MOD-23,MOD-22" data-action-desc="Create new payroll run for a pay period">
+      <i class="bi bi-cash-coin me-1"></i>New Payroll Run
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle">
+      <thead class="table-dark"><tr><th>Pay Period</th><th>Run By</th><th>Staff Count</th><th>Total Gross (SGD)</th><th>Total Net (SGD)</th><th>Status</th><th>Approved By</th><th>Actions</th></tr></thead>
+      <tbody id="runs-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Payroll Run Detail Modal -->
+<div class="modal fade" id="runDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-xl"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="run-detail-title">Payroll Run</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead class="table-dark"><tr><th>Emp ID</th><th>Name</th><th>Dept</th><th>Basic</th><th>Allowances</th><th>OT</th><th>Gross</th><th>CPF (Emp)</th><th>CPF (Er)</th><th>Net Pay</th></tr></thead>
+          <tbody id="lines-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer" id="run-actions"></div>
+  </div></div>
+</div>
+
+<!-- New Run Modal -->
+<div class="modal fade" id="runModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">New Payroll Run</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label">Pay Period Start *</label><input id="pr-start" type="date" class="form-control form-control-sm" /></div>
+        <div class="col"><label class="form-label">Pay Period End *</label><input id="pr-end" type="date" class="form-control form-control-sm" /></div>
+      </div>
+      <div class="mb-2"><label class="form-label">Notes</label><textarea id="pr-notes" class="form-control form-control-sm" rows="2"></textarea></div>
+      <p class="text-muted small mb-0">Payroll lines will be added after run creation in the full implementation. This creates the run record.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveRun()"
+        data-compliance="SoR §12" data-linked="MOD-23" data-action-desc="Create payroll run draft">Create Run</button>
+    </div>
+  </div></div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+const runDetailModal = new bootstrap.Modal(document.getElementById('runDetailModal'));
+const runModal = new bootstrap.Modal(document.getElementById('runModal'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadRuns();
+  ATCA.tooltips.init();
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod23/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-pending').textContent = d.pending_runs ?? '—';
+  document.getElementById('kpi-gross').textContent = d.current_month_gross ? Number(d.current_month_gross).toLocaleString('en-SG', {minimumFractionDigits:2}) : '—';
+  document.getElementById('kpi-paid').textContent = d.staff_paid ?? '—';
+  document.getElementById('kpi-ytd').textContent = d.runs_disbursed_ytd ?? '—';
+}
+
+async function loadRuns() {
+  const stat = document.getElementById('filter-status').value;
+  const data = await ATCA.api.get('/mod23/runs' + (stat ? '?status=' + stat : ''));
+  const sc = { DRAFT: 'secondary', APPROVED: 'primary', DISBURSED: 'success' };
+  ATCA.table.render('runs-tbody', data || [], r => `<tr>
+    <td>${r.pay_period_start} → ${r.pay_period_end}</td>
+    <td>${r.run_by_name}</td>
+    <td>${r.line_count}</td>
+    <td>SGD ${Number(r.total_gross).toLocaleString('en-SG', {minimumFractionDigits:2})}</td>
+    <td>SGD ${Number(r.total_net).toLocaleString('en-SG', {minimumFractionDigits:2})}</td>
+    <td><span class="badge bg-${sc[r.status] || 'secondary'}">${r.status}</span></td>
+    <td>${r.approved_by_name || '—'}</td>
+    <td>
+      <button class="btn btn-outline-secondary btn-sm" onclick="viewRun(${r.run_id}, '${r.pay_period_start}', '${r.status}')"
+        data-compliance="SoR §12" data-linked="MOD-23" data-action-desc="View payroll run detail and lines">
+        <i class="bi bi-eye"></i>
+      </button>
+    </td>
+  </tr>`);
+}
+
+async function viewRun(id, period, status) {
+  const data = await ATCA.api.get(`/mod23/runs/${id}`);
+  if (!data) return;
+  document.getElementById('run-detail-title').textContent = `Payroll Run — ${period}`;
+  ATCA.table.render('lines-tbody', data.lines || [], l => `<tr>
+    <td>${l.employee_id}</td>
+    <td>${l.full_name || l.staff_name}</td>
+    <td>${l.department || '—'}</td>
+    <td>${Number(l.basic_pay).toFixed(2)}</td>
+    <td>${Number(l.allowances).toFixed(2)}</td>
+    <td>${Number(l.overtime_pay).toFixed(2)}</td>
+    <td><strong>${Number(l.gross_pay).toFixed(2)}</strong></td>
+    <td>${Number(l.cpf_employee).toFixed(2)}</td>
+    <td>${Number(l.cpf_employer).toFixed(2)}</td>
+    <td><strong class="text-success">${Number(l.net_pay).toFixed(2)}</strong></td>
+  </tr>`);
+  const actions = document.getElementById('run-actions');
+  actions.innerHTML = '';
+  if (status === 'DRAFT') {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-primary btn-sm';
+    btn.setAttribute('data-compliance', 'SoR §12');
+    btn.setAttribute('data-linked', 'MOD-23');
+    btn.setAttribute('data-action-desc', 'Approve payroll run for disbursement');
+    btn.textContent = 'Approve Run';
+    btn.onclick = () => approveRun(id);
+    actions.appendChild(btn);
+  } else if (status === 'APPROVED') {
+    const btn = document.createElement('button');
+    btn.className = 'btn btn-success btn-sm';
+    btn.setAttribute('data-compliance', 'SoR §12');
+    btn.setAttribute('data-linked', 'MOD-23');
+    btn.setAttribute('data-action-desc', 'Mark payroll as disbursed — cannot be undone');
+    btn.textContent = 'Mark Disbursed';
+    btn.onclick = () => disburseRun(id);
+    actions.appendChild(btn);
+  }
+  runDetailModal.show();
+  ATCA.tooltips.init();
+}
+
+function openRunModal() { runModal.show(); }
+
+async function saveRun() {
+  const r = await ATCA.api.post('/mod23/runs', {
+    pay_period_start: document.getElementById('pr-start').value,
+    pay_period_end: document.getElementById('pr-end').value,
+    notes: document.getElementById('pr-notes').value.trim() || null,
+    lines: [],
+  });
+  if (r) { runModal.hide(); ATCA.toast('Payroll run created', 'success'); loadRuns(); loadKpis(); }
+}
+
+async function approveRun(id) {
+  const r = await ATCA.api.patch(`/mod23/runs/${id}/approve`, {});
+  if (r) { runDetailModal.hide(); ATCA.toast('Payroll run approved', 'success'); loadRuns(); loadKpis(); }
+}
+
+async function disburseRun(id) {
+  if (!confirm('Mark this payroll run as DISBURSED? This cannot be undone.')) return;
+  const r = await ATCA.api.patch(`/mod23/runs/${id}/disburse`, {});
+  if (r) { runDetailModal.hide(); ATCA.toast('Payroll disbursed', 'success'); loadRuns(); loadKpis(); }
+}
+
+document.getElementById('filter-status').addEventListener('change', loadRuns);
+init();
+</script>
+</body>
+</html>

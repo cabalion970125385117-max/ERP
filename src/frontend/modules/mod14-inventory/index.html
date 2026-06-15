@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOD-14 Inventory Management — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-14 · Inventory Management · AS9100D §8.5.4</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Low Stock Items</div><div id="kpi-low" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-red"><div class="kpi-label">Out of Stock</div><div id="kpi-oos" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Expiring Chemicals</div><div id="kpi-exp" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Total Items</div><div id="kpi-total" class="kpi-value">—</div></div></div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" href="#tab-items" data-bs-toggle="tab">Inventory Register</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-movements" data-bs-toggle="tab">Stock Movements</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-items">
+      <div class="d-flex justify-content-between mb-3">
+        <select id="filter-category" class="form-select form-select-sm" style="width:160px">
+          <option value="">All Categories</option>
+          <option>CHEMICAL</option><option>CONSUMABLE</option><option>SPARE_PART</option><option>PPE</option><option>MATERIAL</option><option>TOOL</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openItemModal()"
+          data-compliance="AS9100D §8.5.4" data-linked="MOD-14,MOD-06" data-action-desc="Register new inventory item">
+          <i class="bi bi-plus-circle me-1"></i>New Item
+        </button>
+      </div>
+      <!-- Kanban-style cards by RAG -->
+      <div class="row g-2 mb-3" id="kanban-row"></div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr><th>Item Code</th><th>Name</th><th>Category</th><th>Location</th><th>Stock</th><th>Reorder</th><th>Hazardous</th><th>RAG</th><th>Actions</th></tr></thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-movements">
+      <div class="d-flex justify-content-between mb-3">
+        <span class="text-muted small">Recent stock movements</span>
+        <button class="btn btn-success btn-sm" onclick="openMovementModal()"
+          data-compliance="AS9100D §8.5.4" data-linked="MOD-14" data-action-desc="Record stock receipt, issue or adjustment">
+          <i class="bi bi-arrow-left-right me-1"></i>Record Movement
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr><th>Item</th><th>Type</th><th>Qty</th><th>Lot/Batch</th><th>Moved By</th><th>Date</th><th>Notes</th></tr></thead>
+          <tbody id="movements-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Item Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">New Inventory Item</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body row g-2">
+      <div class="col-md-8 mb-2"><label class="form-label">Item Name *</label><input id="i-name" class="form-control form-control-sm" /></div>
+      <div class="col-md-4 mb-2"><label class="form-label">Category *</label>
+        <select id="i-category" class="form-select form-select-sm"><option>CHEMICAL</option><option>CONSUMABLE</option><option>SPARE_PART</option><option>PPE</option><option>MATERIAL</option><option>TOOL</option></select>
+      </div>
+      <div class="col-md-4 mb-2"><label class="form-label">Unit *</label><input id="i-unit" class="form-control form-control-sm" /></div>
+      <div class="col-md-4 mb-2"><label class="form-label">Location</label><input id="i-location" class="form-control form-control-sm" /></div>
+      <div class="col-md-4 mb-2"><label class="form-label">Reorder Level</label><input id="i-reorder" type="number" class="form-control form-control-sm" value="0" /></div>
+      <div class="col-md-6 mb-2"><label class="form-label">Storage Conditions</label><input id="i-storage" class="form-control form-control-sm" /></div>
+      <div class="col-md-3 mb-2"><label class="form-label">SDS Ref</label><input id="i-sds" class="form-control form-control-sm" /></div>
+      <div class="col-md-3 mb-2"><label class="form-label">Shelf Life (days)</label><input id="i-shelf" type="number" class="form-control form-control-sm" /></div>
+      <div class="col-12 mb-2 form-check ms-2"><input type="checkbox" class="form-check-input" id="i-hazardous" /><label class="form-check-label" for="i-hazardous">Hazardous material — SDS/MSDS required</label></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveItem()"
+        data-compliance="AS9100D §8.5.4" data-linked="MOD-14" data-action-desc="Register inventory item">Save Item</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Movement Modal -->
+<div class="modal fade" id="movementModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Record Stock Movement</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Item ID *</label><input id="m-item-id" type="number" class="form-control form-control-sm" placeholder="Item ID" /></div>
+      <div class="mb-2"><label class="form-label">Movement Type *</label>
+        <select id="m-type" class="form-select form-select-sm"><option>RECEIPT</option><option>ISSUE</option><option>TRANSFER</option><option>DISPOSAL</option><option>ADJUSTMENT</option></select>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label">Quantity *</label><input id="m-qty" type="number" class="form-control form-control-sm" /></div>
+        <div class="col"><label class="form-label">Lot Number</label><input id="m-lot" class="form-control form-control-sm" /></div>
+      </div>
+      <div class="mb-2"><label class="form-label">Notes</label><textarea id="m-notes" class="form-control form-control-sm" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-success btn-sm" onclick="saveMovement()"
+        data-compliance="AS9100D §8.5.4" data-linked="MOD-14" data-action-desc="Record stock movement and update inventory level">Record</button>
+    </div>
+  </div></div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+const itemModal = new bootstrap.Modal(document.getElementById('itemModal'));
+const movementModal = new bootstrap.Modal(document.getElementById('movementModal'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadItems();
+  ATCA.tooltips.init();
+  document.querySelector('[href="#tab-movements"]').addEventListener('shown.bs.tab', loadMovements);
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod14/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-low').textContent = d.low_stock ?? '—';
+  document.getElementById('kpi-oos').textContent = d.out_of_stock ?? '—';
+  document.getElementById('kpi-exp').textContent = d.expiring_chemicals ?? '—';
+  document.getElementById('kpi-total').textContent = d.total_items ?? '—';
+  if ((d.out_of_stock || 0) > 0)
+    document.getElementById('nav-alerts').innerHTML = `<span class="badge bg-danger">${d.out_of_stock} Out of Stock</span>`;
+}
+
+async function loadItems() {
+  const cat = document.getElementById('filter-category').value;
+  const data = await ATCA.api.get('/mod14/items' + (cat ? '?category=' + cat : ''));
+  const items = data || [];
+  // Kanban summary
+  const red = items.filter(i => i.rag_status === 'RED').length;
+  const amber = items.filter(i => i.rag_status === 'AMBER').length;
+  const green = items.filter(i => i.rag_status === 'GREEN').length;
+  document.getElementById('kanban-row').innerHTML = `
+    <div class="col-auto"><div class="card border-danger text-danger p-2 text-center" style="min-width:100px"><div class="fw-bold fs-4">${red}</div><small>Out of Stock</small></div></div>
+    <div class="col-auto"><div class="card border-warning text-warning p-2 text-center" style="min-width:100px"><div class="fw-bold fs-4">${amber}</div><small>Low Stock</small></div></div>
+    <div class="col-auto"><div class="card border-success text-success p-2 text-center" style="min-width:100px"><div class="fw-bold fs-4">${green}</div><small>Adequate</small></div></div>
+  `;
+  ATCA.table.render('items-tbody', items, i => {
+    const rc = i.rag_status === 'RED' ? 'danger' : i.rag_status === 'AMBER' ? 'warning' : 'success';
+    return `<tr>
+      <td><strong>${i.item_code}</strong></td>
+      <td>${i.name}</td>
+      <td><span class="badge bg-secondary">${i.category}</span></td>
+      <td>${i.location || '—'}</td>
+      <td>${i.current_stock} ${i.unit}</td>
+      <td>${i.reorder_level} ${i.unit}</td>
+      <td>${i.hazardous_flag ? '<span class="badge bg-danger">Hazardous</span>' : '—'}</td>
+      <td><span class="badge bg-${rc}">${i.rag_status}</span></td>
+      <td>
+        <button class="btn btn-outline-success btn-sm" onclick="quickReceipt(${i.item_id})"
+          data-compliance="AS9100D §8.5.4" data-linked="MOD-14" data-action-desc="Record stock receipt for this item">
+          <i class="bi bi-box-arrow-in-down"></i>
+        </button>
+      </td>
+    </tr>`;
+  });
+}
+
+async function loadMovements() {
+  const data = await ATCA.api.get('/mod14/movements');
+  const typeColor = { RECEIPT: 'success', ISSUE: 'primary', TRANSFER: 'info', DISPOSAL: 'danger', ADJUSTMENT: 'warning' };
+  ATCA.table.render('movements-tbody', data || [], m => `<tr>
+    <td><strong>${m.item_code}</strong> ${m.item_name}</td>
+    <td><span class="badge bg-${typeColor[m.movement_type] || 'secondary'}">${m.movement_type}</span></td>
+    <td>${m.qty}</td>
+    <td>${m.lot_number || '—'}</td>
+    <td>${m.moved_by_name}</td>
+    <td>${new Date(m.moved_at).toLocaleDateString()}</td>
+    <td>${m.notes || '—'}</td>
+  </tr>`);
+}
+
+function openItemModal() { itemModal.show(); }
+function openMovementModal() { movementModal.show(); }
+
+async function saveItem() {
+  const r = await ATCA.api.post('/mod14/items', {
+    name: document.getElementById('i-name').value.trim(),
+    category: document.getElementById('i-category').value,
+    unit: document.getElementById('i-unit').value.trim(),
+    location: document.getElementById('i-location').value.trim() || null,
+    reorder_level: parseFloat(document.getElementById('i-reorder').value) || 0,
+    storage_conditions: document.getElementById('i-storage').value.trim() || null,
+    sds_ref: document.getElementById('i-sds').value.trim() || null,
+    shelf_life_days: parseInt(document.getElementById('i-shelf').value) || null,
+    hazardous_flag: document.getElementById('i-hazardous').checked,
+  });
+  if (r) { itemModal.hide(); ATCA.toast(`Item ${r.item_code} registered`, 'success'); loadItems(); loadKpis(); }
+}
+
+async function saveMovement() {
+  const r = await ATCA.api.post('/mod14/movements', {
+    item_id: parseInt(document.getElementById('m-item-id').value),
+    movement_type: document.getElementById('m-type').value,
+    qty: parseFloat(document.getElementById('m-qty').value),
+    lot_number: document.getElementById('m-lot').value.trim() || null,
+    notes: document.getElementById('m-notes').value.trim() || null,
+  });
+  if (r) { movementModal.hide(); ATCA.toast('Movement recorded', 'success'); loadItems(); loadKpis(); }
+}
+
+async function quickReceipt(itemId) {
+  const qty = prompt('Enter receipt quantity:');
+  if (!qty || isNaN(+qty)) return;
+  const r = await ATCA.api.post('/mod14/movements', { item_id: itemId, movement_type: 'RECEIPT', qty: +qty });
+  if (r) { ATCA.toast('Stock receipt recorded', 'success'); loadItems(); loadKpis(); }
+}
+
+document.getElementById('filter-category').addEventListener('change', loadItems);
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bug Report — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">Bug Report &amp; Issue Tracker</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Open Bugs</div><div id="kpi-open" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-red"><div class="kpi-label">Critical Open</div><div id="kpi-critical" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Resolved This Month</div><div id="kpi-resolved" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Avg Resolution (days)</div><div id="kpi-avgdays" class="kpi-value">—</div></div></div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex gap-2">
+      <select id="filter-status" class="form-select form-select-sm" style="width:150px">
+        <option value="">All Statuses</option>
+        <option>OPEN</option><option>IN_PROGRESS</option><option>RESOLVED</option><option>WONT_FIX</option>
+      </select>
+      <select id="filter-severity" class="form-select form-select-sm" style="width:140px">
+        <option value="">All Severities</option>
+        <option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option>
+      </select>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="openBugModal()"
+      data-compliance="SoR §1" data-linked="ALL" data-action-desc="Report a new bug or system defect — visible to all SUPERVISOR+ users">
+      <i class="bi bi-bug me-1"></i>Report Bug
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle">
+      <thead class="table-dark">
+        <tr><th>#</th><th>Title</th><th>Severity</th><th>Module</th><th>Status</th><th>Reported By</th><th>Reported</th><th>Resolved</th><th>Actions</th></tr>
+      </thead>
+      <tbody id="bugs-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Report Bug Modal -->
+<div class="modal fade" id="bugModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">Report a Bug</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-2">
+        <label class="form-label">Title *</label>
+        <input id="br-title" class="form-control form-control-sm" placeholder="Short descriptive title" />
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Severity *</label>
+          <select id="br-severity" class="form-select form-select-sm">
+            <option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>CRITICAL</option>
+          </select>
+        </div>
+        <div class="col-md-8">
+          <label class="form-label">Module Affected</label>
+          <input id="br-module" class="form-control form-control-sm" placeholder="e.g. MOD-05, MOD-07" />
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Description *</label>
+        <textarea id="br-description" class="form-control form-control-sm" rows="3" placeholder="Describe the bug — what happened vs what was expected"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Steps to Reproduce</label>
+        <textarea id="br-steps" class="form-control form-control-sm" rows="3" placeholder="1. Go to..&#10;2. Click...&#10;3. Observe..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="saveBug()"
+        data-compliance="SoR §1" data-linked="ALL" data-action-desc="Submit bug report — notifies QA_MANAGER">
+        Submit Report
+      </button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Resolve Modal -->
+<div class="modal fade" id="resolveModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="resolve-title">Resolve Bug</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="mb-2">
+        <label class="form-label">Resolution Status *</label>
+        <select id="res-status" class="form-select form-select-sm">
+          <option value="IN_PROGRESS">Mark In Progress</option>
+          <option value="RESOLVED">Mark Resolved</option>
+          <option value="WONT_FIX">Won't Fix</option>
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Resolution Notes</label>
+        <textarea id="res-notes" class="form-control form-control-sm" rows="3" placeholder="Describe how the issue was resolved or why it won't be fixed"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-success btn-sm" onclick="submitResolve()"
+        data-compliance="SoR §1" data-linked="ALL" data-action-desc="Update bug status — requires SUPERVISOR role or above">
+        Update Status
+      </button>
+    </div>
+  </div></div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+const bugModal     = new bootstrap.Modal(document.getElementById('bugModal'));
+const resolveModal = new bootstrap.Modal(document.getElementById('resolveModal'));
+let _resolveId = null;
+
+const SEV_COLOR = { CRITICAL: 'danger', HIGH: 'warning', MEDIUM: 'primary', LOW: 'secondary' };
+const STAT_COLOR = { OPEN: 'danger', IN_PROGRESS: 'warning', RESOLVED: 'success', WONT_FIX: 'secondary' };
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadBugs();
+  ATCA.tooltips.init();
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/bugreport/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-open').textContent     = d.open_bugs            ?? '—';
+  document.getElementById('kpi-critical').textContent = d.critical_bugs         ?? '—';
+  document.getElementById('kpi-resolved').textContent = d.resolved_this_month   ?? '—';
+  document.getElementById('kpi-avgdays').textContent  = d.avg_resolution_days != null
+    ? Number(d.avg_resolution_days).toFixed(1) : '—';
+  if ((d.critical_bugs || 0) > 0)
+    document.getElementById('nav-alerts').innerHTML =
+      `<span class="badge bg-danger">${d.critical_bugs} Critical</span>`;
+}
+
+async function loadBugs() {
+  const stat = document.getElementById('filter-status').value;
+  const sev  = document.getElementById('filter-severity').value;
+  const qs   = new URLSearchParams();
+  if (stat) qs.set('status', stat);
+  if (sev)  qs.set('severity', sev);
+  const data = await ATCA.api.get('/bugreport/bugs' + (qs.toString() ? '?' + qs : ''));
+  ATCA.table.render('bugs-tbody', data || [], b => `<tr>
+    <td class="text-muted small">#${b.bug_id}</td>
+    <td><strong>${b.title}</strong>${b.steps_to_reproduce
+      ? `<br><small class="text-muted">${b.steps_to_reproduce.substring(0,80)}${b.steps_to_reproduce.length > 80 ? '…' : ''}</small>`
+      : ''}</td>
+    <td><span class="badge bg-${SEV_COLOR[b.severity] || 'secondary'}">${b.severity}</span></td>
+    <td><small>${b.module_affected || '—'}</small></td>
+    <td><span class="badge bg-${STAT_COLOR[b.status] || 'secondary'}">${b.status.replace('_',' ')}</span></td>
+    <td><small>${b.reported_by_name}</small></td>
+    <td><small>${new Date(b.reported_at).toLocaleDateString('en-SG')}</small></td>
+    <td><small>${b.resolved_at ? new Date(b.resolved_at).toLocaleDateString('en-SG') : '—'}</small></td>
+    <td>
+      ${b.status !== 'RESOLVED' && b.status !== 'WONT_FIX'
+        ? `<button class="btn btn-outline-success btn-sm" onclick="openResolve(${b.bug_id}, '${b.title.replace(/'/g,'&#39;')}')"
+            data-compliance="SoR §1" data-linked="ALL" data-action-desc="Update bug status or mark resolved">
+            <i class="bi bi-check2-circle"></i>
+           </button>`
+        : `<span class="text-success small"><i class="bi bi-check-circle"></i></span>`}
+    </td>
+  </tr>`);
+  ATCA.tooltips.init();
+}
+
+function openBugModal() { bugModal.show(); }
+
+function openResolve(id, title) {
+  _resolveId = id;
+  document.getElementById('resolve-title').textContent = `Update: ${title}`;
+  document.getElementById('res-notes').value = '';
+  document.getElementById('res-status').value = 'RESOLVED';
+  resolveModal.show();
+}
+
+async function saveBug() {
+  const title       = document.getElementById('br-title').value.trim();
+  const description = document.getElementById('br-description').value.trim();
+  if (!title || !description) { ATCA.toast('Title and description are required', 'warning'); return; }
+  const r = await ATCA.api.post('/bugreport/bugs', {
+    title,
+    description,
+    severity:           document.getElementById('br-severity').value,
+    module_affected:    document.getElementById('br-module').value.trim() || null,
+    steps_to_reproduce: document.getElementById('br-steps').value.trim() || null,
+  });
+  if (r) {
+    bugModal.hide();
+    ATCA.toast(`Bug #${r.bug_id} reported`, 'success');
+    loadBugs();
+    loadKpis();
+  }
+}
+
+async function submitResolve() {
+  if (!_resolveId) return;
+  const r = await ATCA.api.patch(`/bugreport/bugs/${_resolveId}/resolve`, {
+    status:           document.getElementById('res-status').value,
+    resolution_notes: document.getElementById('res-notes').value.trim() || null,
+  });
+  if (r) {
+    resolveModal.hide();
+    ATCA.toast('Bug status updated', 'success');
+    _resolveId = null;
+    loadBugs();
+    loadKpis();
+  }
+}
+
+document.getElementById('filter-status').addEventListener('change', loadBugs);
+document.getElementById('filter-severity').addEventListener('change', loadBugs);
+init();
+</script>
+</body>
+</html>

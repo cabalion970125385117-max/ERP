@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-02: Retention Schedule
+  AS9100D §7.5.3 — Control of Documented Information
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Retention Schedule — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"    class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-document-control/" class="nav-link active"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"    class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"       class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi-process/"         class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-ndt-personnel/"   class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment-calibration/"   class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath-control/"        class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod13-traveler/"    class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"         class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"   class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-user-management/"       class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-archive me-1"></i>Retention Schedule</p>
+      <p class="topbar-subtitle mb-0">AS9100D §7.5.3 — Control of documented information</p>
+    </div>
+    <div class="topbar-alerts">
+      <a href="index.html" class="btn btn-sm btn-outline-secondary me-2"><i class="bi bi-arrow-left me-1"></i>Back</a>
+      <div class="alert-badge ms-2" id="topbar-alert-btn" tabindex="0" role="button">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill ms-2" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- REGULATORY NOTE -->
+    <div class="alert alert-info d-flex gap-2 mb-4" role="alert">
+      <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
+      <div>
+        <strong>AS9100D §7.5.3</strong> requires the organisation to control documented information
+        to ensure it is available, suitable for use, and adequately protected. Retention periods
+        below are minimum requirements; NADCAP / customer-specific requirements may be longer.
+      </div>
+    </div>
+
+    <!-- RETENTION TABLE -->
+    <div class="atca-card mb-4">
+      <div class="atca-card-header">
+        <span class="module-badge">MOD-02</span>
+        <h5>Retention Schedule by Document Category</h5>
+      </div>
+      <div class="atca-card-body p-0">
+        <table class="atca-table">
+          <thead>
+            <tr>
+              <th>Document Category</th>
+              <th>Examples</th>
+              <th>Min. Retention</th>
+              <th>Regulatory Basis</th>
+              <th>Storage</th>
+              <th>Disposition</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Quality Records</strong></td>
+              <td>NCR, CAPA, internal audits, management review minutes</td>
+              <td><strong>10 years</strong></td>
+              <td>AS9100D §10.2, §9.3</td>
+              <td>ERP + secure archive</td>
+              <td>QA Manager approval required</td>
+            </tr>
+            <tr>
+              <td><strong>NDT Process Records</strong></td>
+              <td>FPI job travelers, inspection reports, bath logs</td>
+              <td><strong>10 years</strong></td>
+              <td>NAS410 §6, ASTM E1417</td>
+              <td>ERP + physical file</td>
+              <td>QA Manager approval required</td>
+            </tr>
+            <tr>
+              <td><strong>Calibration Records</strong></td>
+              <td>Calibration certificates, equipment logs</td>
+              <td><strong>10 years</strong></td>
+              <td>AS9100D §7.1.5, NADCAP AC7114</td>
+              <td>ERP + physical file</td>
+              <td>QA Manager approval required</td>
+            </tr>
+            <tr>
+              <td><strong>Personnel / Training Records</strong></td>
+              <td>NAS410 certifications, eye exam records, OJT logs</td>
+              <td><strong>Life of employment + 5 years</strong></td>
+              <td>NAS410 §9, AS9100D §7.2</td>
+              <td>ERP + HR file</td>
+              <td>HR + QA Manager approval</td>
+            </tr>
+            <tr>
+              <td><strong>Work Orders / CoC</strong></td>
+              <td>Job travelers, certificates of conformance</td>
+              <td><strong>15 years</strong></td>
+              <td>AS9100D §8.1, Customer contracts</td>
+              <td>ERP + physical archive</td>
+              <td>QA Manager + GM approval</td>
+            </tr>
+            <tr>
+              <td><strong>Work Instructions</strong></td>
+              <td>Process instructions, SOPs, technique sheets</td>
+              <td><strong>Current + 3 superseded revisions</strong></td>
+              <td>AS9100D §7.5.2</td>
+              <td>ERP (controlled)</td>
+              <td>Superseded on approval of new rev</td>
+            </tr>
+            <tr>
+              <td><strong>Forms / Templates</strong></td>
+              <td>Blank forms, checklists</td>
+              <td><strong>Current revision only</strong></td>
+              <td>AS9100D §7.5</td>
+              <td>ERP (controlled)</td>
+              <td>Superseded on approval of new rev</td>
+            </tr>
+            <tr>
+              <td><strong>Supplier / Customer Documents</strong></td>
+              <td>Purchase orders, customer specs, supplier approvals</td>
+              <td><strong>10 years</strong></td>
+              <td>AS9100D §8.4, §8.2</td>
+              <td>ERP + physical file</td>
+              <td>QA Manager approval required</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CATEGORY SUMMARY -->
+    <div class="atca-card">
+      <div class="atca-card-header">
+        <span class="module-badge">MOD-02</span>
+        <h5>Categories in System</h5>
+      </div>
+      <div class="atca-card-body p-0">
+        <table class="atca-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Documents in System</th>
+              <th>Default Retention</th>
+            </tr>
+          </thead>
+          <tbody id="cat-tbody">
+            <tr><td colspan="3" class="text-center text-muted py-3">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /page-content -->
+</div><!-- /main-content -->
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+(async function () {
+  await ATCA.initPage();
+
+  const u = ATCA.currentUser;
+  if (u) {
+    document.getElementById('user-avatar-initials').textContent = ATCA.user.initials(u.full_name);
+    document.getElementById('user-display-name').textContent = u.full_name;
+  }
+
+  function esc(s) { const d=document.createElement('div'); d.textContent=s??''; return d.innerHTML; }
+
+  try {
+    const [cats, docs] = await Promise.all([
+      ATCA.api.get('/mod02/categories'),
+      ATCA.api.get('/mod02/documents'),
+    ]);
+    const items = docs.items || [];
+    const tbody = document.getElementById('cat-tbody');
+    tbody.innerHTML = cats.map(c => {
+      const count = items.filter(d => d.category === c.name).length;
+      return `<tr>
+        <td>${esc(c.name)}</td>
+        <td>${count}</td>
+        <td>10 years (default)</td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="3" class="text-center text-muted py-3">No categories defined</td></tr>';
+  } catch(e) {
+    document.getElementById('cat-tbody').innerHTML =
+      '<tr><td colspan="3" class="text-danger py-2 px-3">Error loading categories</td></tr>';
+  }
+})();
+</script>
+</body>
+</html>

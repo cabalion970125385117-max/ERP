@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOD-22 Leave & Attendance — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-22 · Leave & Attendance</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Pending Requests</div><div id="kpi-pending" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">On Leave Today</div><div id="kpi-leave" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-red"><div class="kpi-label">Absent Today</div><div id="kpi-absent" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Low Balance Staff</div><div id="kpi-lowbal" class="kpi-value">—</div></div></div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" href="#tab-leave" data-bs-toggle="tab">Leave Requests</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-types" data-bs-toggle="tab">Leave Types</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-leave">
+      <div class="d-flex justify-content-between mb-3">
+        <select id="filter-status" class="form-select form-select-sm" style="width:160px">
+          <option value="">All Statuses</option><option>PENDING</option><option>APPROVED</option><option>REJECTED</option><option>CANCELLED</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openLeaveModal()"
+          data-compliance="SoR §12" data-linked="MOD-22,MOD-18" data-action-desc="Submit leave request for approval">
+          <i class="bi bi-calendar-plus me-1"></i>Apply Leave
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr><th>Staff</th><th>Leave Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th><th>Approved By</th><th>Actions</th></tr></thead>
+          <tbody id="leave-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-types">
+      <div class="table-responsive mt-2">
+        <table class="table table-sm align-middle">
+          <thead class="table-dark"><tr><th>Leave Type</th><th>Days/Year</th><th>Max Carry Forward</th></tr></thead>
+          <tbody id="types-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Request Modal -->
+<div class="modal fade" id="leaveModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Apply for Leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Staff ID *</label><input id="lv-staff" type="number" class="form-control form-control-sm" placeholder="Staff ID" /></div>
+      <div class="mb-2"><label class="form-label">Leave Type *</label><select id="lv-type" class="form-select form-select-sm"></select></div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label">From *</label><input id="lv-start" type="date" class="form-control form-control-sm" /></div>
+        <div class="col"><label class="form-label">To *</label><input id="lv-end" type="date" class="form-control form-control-sm" /></div>
+        <div class="col"><label class="form-label">Days *</label><input id="lv-days" type="number" step="0.5" class="form-control form-control-sm" /></div>
+      </div>
+      <div class="mb-2"><label class="form-label">Reason</label><textarea id="lv-reason" class="form-control form-control-sm" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveLeave()"
+        data-compliance="SoR §12" data-linked="MOD-22" data-action-desc="Submit leave application">Submit</button>
+    </div>
+  </div></div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+const leaveModal = new bootstrap.Modal(document.getElementById('leaveModal'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadLeave();
+  loadLeaveTypes();
+  ATCA.tooltips.init();
+  document.querySelector('[href="#tab-types"]').addEventListener('shown.bs.tab', () => {});
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod22/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-pending').textContent = d.pending_requests ?? '—';
+  document.getElementById('kpi-leave').textContent = d.on_leave_today ?? '—';
+  document.getElementById('kpi-absent').textContent = d.absent_today ?? '—';
+  document.getElementById('kpi-lowbal').textContent = d.low_balance_staff ?? '—';
+  if ((d.pending_requests || 0) > 0)
+    document.getElementById('nav-alerts').innerHTML = `<span class="badge bg-warning text-dark">${d.pending_requests} Pending</span>`;
+}
+
+async function loadLeave() {
+  const stat = document.getElementById('filter-status').value;
+  const data = await ATCA.api.get('/mod22/leave-requests' + (stat ? '?status=' + stat : ''));
+  const sc = { PENDING: 'warning', APPROVED: 'success', REJECTED: 'danger', CANCELLED: 'secondary' };
+  ATCA.table.render('leave-tbody', data || [], r => `<tr>
+    <td>${r.staff_name}</td>
+    <td>${r.leave_type_name}</td>
+    <td>${r.start_date}</td>
+    <td>${r.end_date}</td>
+    <td>${r.days_taken}</td>
+    <td><span class="badge bg-${sc[r.status] || 'secondary'}">${r.status}</span></td>
+    <td>${r.approved_by_name || '—'}</td>
+    <td>
+      ${r.status === 'PENDING' ? `
+        <button class="btn btn-success btn-sm me-1" onclick="approveLeave(${r.request_id},'APPROVED')"
+          data-compliance="SoR §12" data-linked="MOD-22" data-action-desc="Approve leave request">Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="approveLeave(${r.request_id},'REJECTED')"
+          data-compliance="SoR §12" data-linked="MOD-22" data-action-desc="Reject leave request">Reject</button>` : '—'}
+    </td>
+  </tr>`);
+}
+
+async function loadLeaveTypes() {
+  const data = await ATCA.api.get('/mod22/leave-types');
+  const sel = document.getElementById('lv-type');
+  sel.innerHTML = '';
+  ATCA.table.render('types-tbody', data || [], t => {
+    const opt = document.createElement('option');
+    opt.value = t.type_id; opt.textContent = t.name;
+    sel.appendChild(opt);
+    return `<tr><td>${t.name}</td><td>${t.days_per_year}</td><td>${t.carry_forward_max}</td></tr>`;
+  });
+}
+
+function openLeaveModal() { leaveModal.show(); }
+
+async function saveLeave() {
+  const r = await ATCA.api.post('/mod22/leave-requests', {
+    staff_id: parseInt(document.getElementById('lv-staff').value),
+    leave_type_id: parseInt(document.getElementById('lv-type').value),
+    start_date: document.getElementById('lv-start').value,
+    end_date: document.getElementById('lv-end').value,
+    days_taken: parseFloat(document.getElementById('lv-days').value),
+    reason: document.getElementById('lv-reason').value.trim() || null,
+  });
+  if (r) { leaveModal.hide(); ATCA.toast('Leave request submitted', 'success'); loadLeave(); loadKpis(); }
+}
+
+async function approveLeave(id, status) {
+  const r = await ATCA.api.patch(`/mod22/leave-requests/${id}/approve`, { status });
+  if (r) { ATCA.toast(`Leave ${status.toLowerCase()}`, status === 'APPROVED' ? 'success' : 'warning'); loadLeave(); loadKpis(); }
+}
+
+document.getElementById('filter-status').addEventListener('change', loadLeave);
+init();
+</script>
+</body>
+</html>

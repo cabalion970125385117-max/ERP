@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOD-15 KPI Dashboard — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+  <style>
+    .health-card { background:#1A2520; color:#fff; border-radius:8px; padding:1.1rem 1.3rem; display:flex; align-items:center; gap:1.3rem; }
+    .health-ring { --p:0; width:104px; height:104px; border-radius:50%; flex-shrink:0;
+      background: conic-gradient(var(--ring,#198754) calc(var(--p)*1%), #2c3a33 0);
+      display:flex; align-items:center; justify-content:center; position:relative; }
+    .health-ring::before { content:""; position:absolute; inset:11px; background:#1A2520; border-radius:50%; }
+    .health-ring span { position:relative; font-size:1.5rem; font-weight:700; }
+    .domain-card { border:1px solid var(--atca-border,#dee2e6); border-radius:8px; background:#fff; padding:0; overflow:hidden; height:100%; }
+    .domain-head { padding:.6rem .9rem; font-weight:700; font-size:.82rem; color:#fff; display:flex; justify-content:space-between; align-items:center; }
+    .domain-body { padding:.55rem .9rem .8rem; }
+    .domain-metric { display:flex; justify-content:space-between; font-size:.78rem; padding:.18rem 0; border-bottom:1px dashed #eef0ee; }
+    .domain-metric:last-child { border-bottom:0; }
+    .domain-metric .v { font-weight:700; }
+    .att-item { display:flex; align-items:center; gap:.7rem; padding:.5rem .2rem; border-bottom:1px solid #f1f3f1; text-decoration:none; color:inherit; }
+    .att-item:hover { background:#f7faf7; }
+    .sev-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+    .sev-crit { background:#dc3545; } .sev-warn { background:#ffc107; } .sev-ok { background:#198754; }
+    .mod-chip { display:flex; align-items:center; gap:.45rem; padding:.4rem .55rem; border:1px solid var(--atca-border,#dee2e6);
+      border-radius:6px; font-size:.74rem; text-decoration:none; color:#212529; background:#fff; }
+    .mod-chip:hover { box-shadow:0 2px 8px rgba(0,0,0,.08); }
+    .mod-chip .mc-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .mod-chip .mc-id { font-weight:700; color:var(--atca-navy,#1A2520); }
+    .mod-chip .mc-n { font-weight:700; margin-left:auto; }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-15 · KPI Dashboard</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h5 class="mb-0"><i class="bi bi-speedometer2 me-1"></i>Cross-Module KPI Dashboard</h5>
+      <small class="text-muted">AS9100D §9.1 — Monitoring, Measurement & Analysis · Live roll-up of every module</small>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <small class="text-muted" id="last-updated">—</small>
+      <button class="btn btn-sm btn-outline-secondary" id="btn-refresh"
+        data-action-desc="Re-fetch all module alert summaries and recompute the dashboard"
+        data-compliance="AS9100D §9.1" data-linked="All modules">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Headline -->
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-5">
+      <div class="health-card">
+        <div class="health-ring" id="health-ring"><span id="health-pct">—</span></div>
+        <div>
+          <div style="font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.55)">Compliance Health</div>
+          <div style="font-size:1.05rem;font-weight:700" id="health-word">Calculating…</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.6)" id="health-sub">Aggregating module status…</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-4 col-lg-2"><div class="kpi-card rag-red"><div class="kpi-label">Critical Items</div><div class="kpi-value" id="hl-crit">—</div><div class="kpi-sub">overdue · expired · out-of-spec</div></div></div>
+    <div class="col-4 col-lg-2"><div class="kpi-card rag-amber"><div class="kpi-label">Warnings</div><div class="kpi-value" id="hl-warn">—</div><div class="kpi-sub">due-soon · pending</div></div></div>
+    <div class="col-4 col-lg-3"><div class="kpi-card" id="hl-att-card"><div class="kpi-label">Modules Needing Attention</div><div class="kpi-value" id="hl-att">—</div><div class="kpi-sub" id="hl-ok">— of — green</div></div></div>
+  </div>
+
+  <!-- Domain roll-ups -->
+  <div class="row g-3 mb-3" id="domain-row"></div>
+
+  <div class="row g-3">
+    <!-- Attention required -->
+    <div class="col-12 col-lg-7">
+      <div class="atca-card h-100">
+        <div class="atca-card-header"><span class="module-badge">PRIORITY</span><h5>Attention Required</h5>
+          <span class="ms-auto badge bg-secondary" id="att-count">0</span></div>
+        <div class="atca-card-body py-2" id="att-list" style="max-height:430px;overflow-y:auto">
+          <div class="text-muted small p-2">Loading…</div>
+        </div>
+      </div>
+    </div>
+    <!-- Module status matrix -->
+    <div class="col-12 col-lg-5">
+      <div class="atca-card h-100">
+        <div class="atca-card-header"><span class="module-badge">STATUS</span><h5>Module Status Matrix</h5></div>
+        <div class="atca-card-body py-2">
+          <div class="d-flex flex-wrap gap-2" id="mod-matrix"><div class="text-muted small">Loading…</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+
+/* Aggregation config — each module's alert endpoint + which fields are
+   critical (red) / warning (amber). Values are summed live from the same
+   /alerts/summary endpoints the home dashboard and each module already use. */
+const DOMAINS = [
+  { key:'Quality', color:'#1F6BAE', mods:[
+    { id:'MOD-07', name:'NCR & CAPA',   link:'/modules/mod07-ncr-capa/',           ep:'/mod07/alerts/summary',
+      metrics:[{f:'overdue_capa',l:'Overdue CAPAs',s:'crit'},{f:'open_ncr',l:'Open NCRs',s:'warn'},{f:'pending_verify',l:'Pending verification',s:'warn'}] },
+    { id:'MOD-08', name:'Audit Mgmt',   link:'/modules/mod08-audit-management/',   ep:'/mod08/alerts/summary',
+      metrics:[{f:'overdue_findings',l:'Overdue findings',s:'crit'},{f:'open_findings',l:'Open findings',s:'warn'}] },
+    { id:'MOD-20', name:'Complaint/8D', link:'/modules/mod20-customer-complaint/', ep:'/mod20/alerts/summary',
+      metrics:[{f:'overdue_complaints',l:'Overdue complaints',s:'crit'},{f:'critical_open',l:'Critical complaints open',s:'crit'},{f:'open_complaints',l:'Open complaints',s:'warn'},{f:'open_8d',l:'Open 8D reports',s:'warn'}] },
+  ]},
+  { key:'NDT Process', color:'#198754', mods:[
+    { id:'MOD-03', name:'FPI Process',  link:'/modules/mod03-fpi-process/',        ep:'/mod03/alerts/summary',
+      metrics:[{f:'rejected',l:'Rejected FPI parts',s:'crit'},{f:'pending_signoff',l:'Pending sign-off',s:'warn'}] },
+    { id:'MOD-17', name:'MPT Process',  link:'/modules/mod17-mpt-process/',        ep:'/mod17/alerts/summary',
+      metrics:[{f:'overdue',l:'Overdue MPT jobs',s:'crit'},{f:'pending_review',l:'Pending review',s:'warn'}] },
+    { id:'MOD-04', name:'Personnel',    link:'/modules/mod04-ndt-personnel/',      ep:'/mod04/alerts/summary',
+      metrics:[{f:'expired_certs',l:'Expired NAS410 certs',s:'crit'},{f:'expired_eye_exams',l:'Expired eye exams',s:'crit'},{f:'certs_expiring_90d',l:'Certs expiring <90d',s:'warn'},{f:'eye_expiring_60d',l:'Eye exams expiring <60d',s:'warn'}] },
+    { id:'MOD-05', name:'Equipment',    link:'/modules/mod05-equipment-calibration/', ep:'/mod05/alerts/summary',
+      metrics:[{f:'cal_overdue',l:'Calibrations overdue',s:'crit'},{f:'cal_due_30d',l:'Calibrations due <30d',s:'warn'}] },
+    { id:'MOD-06', name:'Bath Control', link:'/modules/mod06-bath-control/',       ep:'/mod06/alerts/summary',
+      metrics:[{f:'out_of_spec',l:'Baths out of spec',s:'crit'},{f:'overdue_sample',l:'Bath samples overdue',s:'crit'},{f:'due_soon',l:'Bath samples due soon',s:'warn'}] },
+  ]},
+  { key:'Operations', color:'#6C4AB6', mods:[
+    { id:'MOD-13', name:'Work Order',   link:'/modules/mod13-work-order/',         ep:'/mod13/alerts/summary',
+      metrics:[{f:'overdue_jobs',l:'Overdue work orders',s:'crit'},{f:'pending_qa',l:'Pending QA',s:'warn'},{f:'coc_pending',l:'CoC pending',s:'warn'}] },
+    { id:'MOD-11', name:'Maintenance',  link:'/modules/mod11-maintenance/',        ep:'/mod11/alerts/summary',
+      metrics:[{f:'overdue_pm',l:'Overdue PM',s:'crit'},{f:'due_this_week',l:'PM due this week',s:'warn'}] },
+    { id:'MOD-12', name:'Purchasing',   link:'/modules/mod12-purchasing/',         ep:'/mod12/alerts/summary',
+      metrics:[{f:'expiring_accreditations',l:'Supplier accreditations expiring',s:'crit'},{f:'pending_pr',l:'Pending PRs',s:'warn'}] },
+    { id:'MOD-14', name:'Inventory',    link:'/modules/mod14-inventory/',          ep:'/mod14/alerts/summary',
+      metrics:[{f:'out_of_stock',l:'Out of stock',s:'crit'},{f:'low_stock',l:'Low stock',s:'warn'},{f:'expiring_chemicals',l:'Chemicals expiring',s:'warn'}] },
+    { id:'MOD-24', name:'CoC',          link:'/modules/mod24-certificate-of-conformance/', ep:'/mod24/alerts/summary',
+      metrics:[{f:'pending_coc',l:'CoCs pending',s:'warn'}] },
+  ]},
+  { key:'Business & HR', color:'#C8922A', mods:[
+    { id:'MOD-16', name:'Finance',      link:'/modules/mod16-finance/',            ep:'/mod16/alerts/summary',
+      metrics:[{f:'overdue_invoices',l:'Overdue invoices',s:'crit'}] },
+    { id:'MOD-18', name:'HR',           link:'/modules/mod18-hr-management/',      ep:'/mod18/alerts/summary',
+      metrics:[{f:'pending_onboarding',l:'Pending onboarding',s:'warn'},{f:'conflict_declarations_due',l:'COI declarations due',s:'warn'}] },
+    { id:'MOD-22', name:'Leave',        link:'/modules/mod22-leave-attendance/',   ep:'/mod22/alerts/summary',
+      metrics:[{f:'pending_requests',l:'Leave requests pending',s:'warn'}] },
+    { id:'MOD-23', name:'Payroll',      link:'/modules/mod23-payroll/',            ep:'/mod23/alerts/summary',
+      metrics:[{f:'pending_runs',l:'Payroll runs pending',s:'warn'}] },
+    { id:'MOD-21', name:'Comms',        link:'/modules/mod21-communications/',     ep:'/mod21/alerts/summary',
+      metrics:[{f:'urgent_count',l:'Urgent announcements',s:'warn'},{f:'unacknowledged',l:'Unacknowledged',s:'warn'}] },
+  ]},
+];
+
+function ragClass(level){ return level==='crit'?'rag-red':level==='warn'?'rag-amber':'rag-green'; }
+
+async function init(){
+  await ATCA.initPage();
+  document.getElementById('btn-refresh').addEventListener('click', loadDashboard);
+  await loadDashboard();
+}
+
+async function loadDashboard(){
+  // Fetch every module summary in parallel (reuses existing endpoints)
+  const flat = DOMAINS.flatMap(d => d.mods.map(m => ({ d, m })));
+  const results = await Promise.all(flat.map(x => ATCA.api.get(x.m.ep).catch(()=>null)));
+  results.forEach((data, i) => { flat[i].data = data || {}; });
+
+  let totalCrit = 0, totalWarn = 0, redMods = 0, amberMods = 0, greenMods = 0;
+  const attention = [];
+
+  // Per-module status
+  flat.forEach(({ m, data }) => {
+    let crit = 0, warn = 0;
+    m.metrics.forEach(mt => {
+      const v = Number(data[mt.f]) || 0;
+      if (v <= 0) return;
+      if (mt.s === 'crit') { crit += v; totalCrit += v; }
+      else                 { warn += v; totalWarn += v; }
+      attention.push({ sev: mt.s, value: v, label: mt.l, modId: m.id, modName: m.name, link: m.link });
+    });
+    m._rag = crit > 0 ? 'crit' : warn > 0 ? 'warn' : 'ok';
+    m._crit = crit; m._warn = warn;
+    if (m._rag === 'crit') redMods++; else if (m._rag === 'warn') amberMods++; else greenMods++;
+  });
+
+  const totalMods = flat.length;
+  const health = Math.round(((greenMods + amberMods * 0.5) / totalMods) * 100);
+  renderHeadline(health, totalCrit, totalWarn, redMods + amberMods, greenMods, totalMods);
+  renderDomains();
+  renderAttention(attention);
+  renderMatrix(flat);
+
+  document.getElementById('last-updated').textContent =
+    'Updated ' + new Date().toLocaleTimeString('en-SG', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  const navAlerts = document.getElementById('nav-alerts');
+  navAlerts.innerHTML = totalCrit > 0 ? `<span class="badge bg-danger">${totalCrit} Critical</span>` : '<span class="badge bg-success">All Clear</span>';
+}
+
+function renderHeadline(health, crit, warn, att, ok, total){
+  const ring = document.getElementById('health-ring');
+  const color = health >= 85 ? '#198754' : health >= 60 ? '#ffc107' : '#dc3545';
+  ring.style.setProperty('--p', health);
+  ring.style.setProperty('--ring', color);
+  document.getElementById('health-pct').textContent = health + '%';
+  const word = health >= 85 ? 'Healthy' : health >= 60 ? 'Watch' : 'Action Needed';
+  document.getElementById('health-word').textContent = word;
+  document.getElementById('health-sub').textContent =
+    `${att} of ${total} monitored areas need attention · ${ok} green`;
+  document.getElementById('hl-crit').textContent = crit;
+  document.getElementById('hl-warn').textContent = warn;
+  document.getElementById('hl-att').textContent = att;
+  document.getElementById('hl-ok').textContent = `${ok} of ${total} green`;
+  document.getElementById('hl-att-card').className =
+    'kpi-card ' + (att > total/2 ? 'rag-red' : att > 0 ? 'rag-amber' : 'rag-green');
+}
+
+function renderDomains(){
+  const row = document.getElementById('domain-row');
+  row.innerHTML = DOMAINS.map(d => {
+    const crit = d.mods.reduce((s,m)=>s+(m._crit||0),0);
+    const warn = d.mods.reduce((s,m)=>s+(m._warn||0),0);
+    const rag = crit>0?'crit':warn>0?'warn':'ok';
+    const ragHex = rag==='crit'?'#dc3545':rag==='warn'?'#ffc107':'#198754';
+    const metrics = d.mods.map(m => `<div class="domain-metric">
+        <a href="${m.link}" class="text-decoration-none text-muted">${m.id} ${m.name}</a>
+        <span class="v" style="color:${m._rag==='crit'?'#dc3545':m._rag==='warn'?'#b8860b':'#198754'}">${m._crit?m._crit+'🔴':''}${m._warn?(' '+m._warn+'🟡'):''}${(!m._crit&&!m._warn)?'OK':''}</span>
+      </div>`).join('');
+    return `<div class="col-12 col-sm-6 col-lg-3"><div class="domain-card">
+      <div class="domain-head" style="background:${d.color}">${d.key}
+        <span class="badge" style="background:${ragHex}">${crit?crit+' crit':warn?warn+' warn':'OK'}</span></div>
+      <div class="domain-body">${metrics}</div></div></div>`;
+  }).join('');
+}
+
+function renderAttention(items){
+  const order = { crit:0, warn:1 };
+  items.sort((a,b)=> (order[a.sev]-order[b.sev]) || (b.value-a.value));
+  document.getElementById('att-count').textContent = items.length;
+  const el = document.getElementById('att-list');
+  if (!items.length){ el.innerHTML = '<div class="text-success small p-2"><i class="bi bi-check-circle-fill"></i> No outstanding items — all modules green.</div>'; return; }
+  el.innerHTML = items.map(it => `<a href="${it.link}" class="att-item">
+      <span class="sev-dot sev-${it.sev==='crit'?'crit':'warn'}"></span>
+      <span class="badge ${it.sev==='crit'?'bg-danger':'bg-warning text-dark'}" style="min-width:34px">${it.value}</span>
+      <span class="flex-grow-1">${it.label}</span>
+      <span class="text-muted small">${it.modId}</span>
+      <i class="bi bi-chevron-right text-muted"></i>
+    </a>`).join('');
+}
+
+function renderMatrix(flat){
+  const el = document.getElementById('mod-matrix');
+  el.innerHTML = flat.map(({m}) => {
+    const hex = m._rag==='crit'?'#dc3545':m._rag==='warn'?'#ffc107':'#198754';
+    const n = (m._crit||0)+(m._warn||0);
+    return `<a href="${m.link}" class="mod-chip" title="${m.name}">
+      <span class="mc-dot" style="background:${hex}"></span>
+      <span class="mc-id">${m.id}</span>
+      <span class="mc-n" style="color:${hex}">${n||'✓'}</span></a>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>

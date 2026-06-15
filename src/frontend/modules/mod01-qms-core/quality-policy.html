@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-01: Quality Policy
+  AS9100D §5.2 — Quality Policy
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Quality Policy — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/" class="nav-link active"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-document-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/" class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi-process/" class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-ndt-personnel/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment-calibration/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/" class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-user-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-file-earmark-text me-1"></i>Quality Policy</p>
+      <p class="topbar-subtitle mb-0">AS9100D §5.2 — Quality Policy Management</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button"><i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span></div>
+      <div class="user-pill" tabindex="0"><div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span></div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> /
+      <a href="/modules/mod01-qms-core/">QMS Core</a> /
+      <span>Quality Policy</span>
+    </div>
+
+    <!-- Current Active Policy -->
+    <div class="atca-card mb-4" id="active-policy-card">
+      <div class="atca-card-header">
+        <span class="module-badge">§5.2</span>
+        <h5>Current Approved Quality Policy</h5>
+        <div class="ms-auto d-flex gap-2">
+          <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+            <i class="bi bi-printer me-1"></i>Print
+          </button>
+          <button class="btn btn-sm btn-atca-primary" id="new-policy-btn"
+            data-bs-toggle="modal" data-bs-target="#policyModal"
+            onclick="openNewPolicyModal()">
+            <i class="bi bi-plus-lg me-1"></i>New Draft
+          </button>
+        </div>
+      </div>
+      <div class="atca-card-body" id="active-policy-body">
+        <div class="text-center text-muted py-4">Loading current policy…</div>
+      </div>
+    </div>
+
+    <!-- Policy Revision History -->
+    <div class="atca-card">
+      <div class="atca-card-header">
+        <span class="module-badge">§7.5</span>
+        <h5>Policy Revision History</h5>
+      </div>
+      <div class="atca-card-body p-0">
+        <table class="atca-table">
+          <thead>
+            <tr>
+              <th>Revision</th>
+              <th>Issue Date</th>
+              <th>Effective Date</th>
+              <th>Status</th>
+              <th>Approved By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="policy-history-tbody">
+            <tr><td colspan="6" class="text-center text-muted py-3">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- NEW POLICY MODAL -->
+<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-modal="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--atca-navy);color:#fff;">
+        <h6 class="modal-title" id="policyModalLabel">
+          <i class="bi bi-file-earmark-text me-1"></i>New Quality Policy Draft
+        </h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info" style="font-size:0.78rem;">
+          <i class="bi bi-info-circle me-1"></i>
+          A new draft will require QA Manager approval before superseding the current policy.
+          AS9100D §5.2 requires the policy to be appropriate, communicated, and available to interested parties.
+        </div>
+        <form id="policy-form" novalidate>
+          <div class="row g-3">
+            <div class="col-4">
+              <label class="atca-label" for="pol-revision">Revision <span class="req">*</span></label>
+              <input type="text" class="form-control form-control-sm" id="pol-revision" name="revision"
+                required placeholder="e.g. Rev B">
+            </div>
+            <div class="col-4">
+              <label class="atca-label" for="pol-issue">Issue Date <span class="req">*</span></label>
+              <input type="date" class="form-control form-control-sm" id="pol-issue" name="issue_date" required>
+            </div>
+            <div class="col-4">
+              <label class="atca-label" for="pol-effective">Effective Date <span class="req">*</span></label>
+              <input type="date" class="form-control form-control-sm" id="pol-effective" name="effective_date" required>
+            </div>
+            <div class="col-12">
+              <label class="atca-label" for="pol-text">
+                Policy Statement <span class="req">*</span>
+                <span class="clause">Must address AS9100D §5.2.1 a–e</span>
+              </label>
+              <textarea class="form-control form-control-sm" id="pol-text" name="policy_text"
+                rows="12" required
+                placeholder="Enter the full quality policy statement…&#10;&#10;AS9100D §5.2.1 requires the policy to:&#10;a) Be appropriate to the purpose and context of the organization&#10;b) Provide a framework for setting quality objectives&#10;c) Include a commitment to satisfy applicable requirements&#10;d) Include a commitment to continual improvement of the QMS&#10;e) Be available and maintained as documented information"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-atca-primary btn-sm" onclick="savePolicy()">
+          <i class="bi bi-floppy me-1"></i>Save Draft
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APPROVE MODAL -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h6 class="modal-title"><i class="bi bi-check-circle me-1"></i>Approve Policy</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.83rem;">Approving this policy will supersede the current approved version. This action is logged and cannot be undone.</p>
+        <p style="font-size:0.78rem;" class="text-muted">Approving as: <strong id="approve-as-name"></strong></p>
+        <input type="hidden" id="approve-policy-id">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success btn-sm" onclick="confirmApprove()">
+          <i class="bi bi-check-lg me-1"></i>Confirm Approve
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6></div>
+      <div class="modal-body text-center py-3"><p>Expires in <strong id="timeout-countdown">5:00</strong></p></div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+
+/* -------------------------------------------------------
+   Load current policy
+------------------------------------------------------- */
+async function loadCurrentPolicy() {
+  const data = await ATCA.api.get('/mod01/policy/current');
+  const body = document.getElementById('active-policy-body');
+  if (!data) {
+    body.innerHTML = `<div class="text-center text-muted py-4">
+      <i class="bi bi-exclamation-circle" style="font-size:2rem;"></i>
+      <p class="mt-2">No approved policy found. Create a draft and approve it.</p></div>`;
+    return;
+  }
+  body.innerHTML = `
+    <div class="d-flex align-items-center gap-3 mb-3">
+      ${ATCA.utils.statusBadge(data.status)}
+      <span style="font-size:0.8rem;color:var(--atca-muted);">
+        <strong>${ATCA.utils.escHtml(data.revision)}</strong>
+        &nbsp;|&nbsp; Issue: ${ATCA.utils.fmtDate(data.issue_date)}
+        &nbsp;|&nbsp; Effective: ${ATCA.utils.fmtDate(data.effective_date)}
+        &nbsp;|&nbsp; Approved by: ${ATCA.utils.escHtml(data.approved_by_name || '—')}
+      </span>
+    </div>
+    <div style="background:var(--atca-light);border:1px solid var(--atca-border);border-radius:4px;
+      padding:1.25rem;font-size:0.87rem;white-space:pre-wrap;line-height:1.7;">
+      ${ATCA.utils.escHtml(data.policy_text)}
+    </div>`;
+}
+
+/* -------------------------------------------------------
+   Load policy history
+------------------------------------------------------- */
+async function loadPolicyHistory() {
+  const data = await ATCA.api.get('/mod01/policy');
+  if (!data) return;
+  ATCA.table.render('policy-history-tbody', data.items, row => `
+    <tr>
+      <td><strong>${ATCA.utils.escHtml(row.revision)}</strong></td>
+      <td>${ATCA.utils.fmtDate(row.issue_date)}</td>
+      <td>${ATCA.utils.fmtDate(row.effective_date)}</td>
+      <td>${ATCA.utils.statusBadge(row.status)}</td>
+      <td>${ATCA.utils.escHtml(row.approved_by_name || '—')}</td>
+      <td>
+        ${row.status === 'DRAFT' && ATCA.user.isQA() ? `
+          <button class="btn btn-success btn-sm py-0 px-2" onclick="openApproveModal(${row.policy_id})">
+            <i class="bi bi-check-lg"></i> Approve
+          </button>` : '—'}
+      </td>
+    </tr>`);
+}
+
+/* -------------------------------------------------------
+   Modal: New Draft
+------------------------------------------------------- */
+function openNewPolicyModal() {
+  ATCA.form.clearErrors('policy-form');
+  document.getElementById('policy-form').reset();
+  // Default today's date
+  const today = new Date().toISOString().substring(0, 10);
+  document.getElementById('pol-issue').value     = today;
+  document.getElementById('pol-effective').value = today;
+}
+
+async function savePolicy() {
+  const body = ATCA.form.collect('policy-form');
+  if (!body.revision || !body.issue_date || !body.effective_date || !body.policy_text) {
+    ATCA.utils.toast('All fields are required.', 'warning'); return;
+  }
+  const result = await ATCA.api.post('/mod01/policy', body);
+  if (result) {
+    bootstrap.Modal.getInstance(document.getElementById('policyModal'))?.hide();
+    ATCA.utils.toast('Policy draft saved. Pending QA Manager approval.', 'success');
+    await loadPolicyHistory();
+  }
+}
+
+/* -------------------------------------------------------
+   Modal: Approve
+------------------------------------------------------- */
+function openApproveModal(policyId) {
+  document.getElementById('approve-policy-id').value = policyId;
+  document.getElementById('approve-as-name').textContent = ATCA.currentUser?.full_name || '—';
+  new bootstrap.Modal(document.getElementById('approveModal')).show();
+}
+
+async function confirmApprove() {
+  const id = document.getElementById('approve-policy-id').value;
+  const result = await ATCA.api.put(`/mod01/policy/${id}/approve`, {});
+  if (result) {
+    bootstrap.Modal.getInstance(document.getElementById('approveModal'))?.hide();
+    ATCA.utils.toast('Policy approved and active.', 'success');
+    await Promise.all([loadCurrentPolicy(), loadPolicyHistory()]);
+  }
+}
+
+/* -------------------------------------------------------
+   Init
+------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  loadCurrentPolicy();
+  loadPolicyHistory();
+});
+</script>
+</body>
+</html>

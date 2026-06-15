@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-19: Extended Laboratory
+  AS9100D §7.1.5 (Monitoring & Measurement) | §8.5.1
+  NADCAP AC7108 (Chemical Processing) | AC7114 (FPI) | AC7110 (MPT)
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Extended Laboratory — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-document-control/"  class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"          class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"             class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <a href="/modules/mod20-customer-complaint/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>Customer Complaint</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-ndt-personnel/"     class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment-calibration/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod09-sales-customer-service/" class="nav-link"><span class="nav-icon"><i class="bi bi-briefcase"></i></span>Sales &amp; Customer Service</a>
+  <a href="/modules/mod10-production-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Production Management</a>
+  <a href="/modules/mod13-traveler/"          class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"               class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">Laboratory</div>
+  <a href="/modules/mod19-extended-laboratory/" class="nav-link active"><span class="nav-icon"><i class="bi bi-flask"></i></span>Extended Laboratory</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-user-management/"   class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-flask me-1"></i>MOD-19 — Extended Laboratory</p>
+      <p class="topbar-subtitle mb-0">AS9100D §7.1.5 · NADCAP AC7108 · AC7110 · AC7114 | Chemical Inventory · SDS/MSDS · External Labs</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-19 Extended Laboratory</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-overdue-analyses">
+        <div class="kpi-label">Overdue Analyses</div>
+        <div class="kpi-value" id="val-overdue-analyses">—</div>
+        <div class="kpi-sub">Past scheduled date</div>
+      </div>
+      <div class="kpi-card" id="kpi-due-soon">
+        <div class="kpi-label">Due in 7 Days</div>
+        <div class="kpi-value" id="val-due-soon">—</div>
+        <div class="kpi-sub">Upcoming analyses</div>
+      </div>
+      <div class="kpi-card" id="kpi-low-stock">
+        <div class="kpi-label">Low Stock Chemicals</div>
+        <div class="kpi-value" id="val-low-stock">—</div>
+        <div class="kpi-sub">Below minimum level</div>
+      </div>
+      <div class="kpi-card" id="kpi-validation-overdue">
+        <div class="kpi-label">Validation Overdue</div>
+        <div class="kpi-value" id="val-validation-overdue">—</div>
+        <div class="kpi-sub">Lab method validations</div>
+      </div>
+      <div class="kpi-card" id="kpi-lab-accred">
+        <div class="kpi-label">Lab Accred Expiring</div>
+        <div class="kpi-value" id="val-lab-accred">—</div>
+        <div class="kpi-sub">Within 90 days</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="mod19-tabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-schedules">Analysis Schedules</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-results">Results</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-chemicals">Chemical Inventory &amp; SDS</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-validations">Lab Validations</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-external-labs">External Labs</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-ext-jobs">External Lab Jobs</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ── SCHEDULES ── -->
+      <div class="tab-pane fade show active" id="tab-schedules">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <button class="btn btn-sm btn-outline-warning" id="btn-filter-overdue">
+            <i class="bi bi-exclamation-triangle me-1"></i>Show Overdue Only
+          </button>
+          <button class="btn btn-primary btn-sm" id="btn-new-schedule"
+            data-compliance="AS9100D §7.1.5 · NADCAP AC7108 §8"
+            data-linked="MOD-06 Bath Control · MOD-19 Analysis Results · MOD-19 External Labs"
+            data-action-desc="Create a recurring analysis schedule. Drives alerts and due-date tracking for chemical, physical, or environmental tests.">
+            <i class="bi bi-plus-lg me-1"></i>New Analysis Schedule
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Analysis Name</th><th>Type</th><th>Process Area</th><th>Frequency</th><th>Next Due</th><th>Last Done</th><th>Responsible</th><th>External</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tbody-schedules"><tr><td colspan="10" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="schedules-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── RESULTS ── -->
+      <div class="tab-pane fade" id="tab-results">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <select class="form-select form-select-sm" id="result-filter" style="width:150px;">
+            <option value="">All Results</option>
+            <option value="PASS">Pass</option><option value="FAIL">Fail</option><option value="PENDING">Pending</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-new-result"
+            data-compliance="AS9100D §7.1.5"
+            data-linked="MOD-19 Analysis Schedule · MOD-07 NCR · MOD-06 Bath Control"
+            data-action-desc="Record analysis result against a schedule. Out-of-spec results should trigger NCR.">
+            <i class="bi bi-plus-lg me-1"></i>Record Result
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Analysis</th><th>Process Area</th><th>Date</th><th>Result Value</th><th>Unit</th><th>Pass/Fail</th><th>Tested By</th></tr>
+            </thead>
+            <tbody id="tbody-results"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="results-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── CHEMICAL INVENTORY ── -->
+      <div class="tab-pane fade" id="tab-chemicals">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <button class="btn btn-sm btn-outline-warning" id="btn-filter-low-stock">
+            <i class="bi bi-exclamation-circle me-1"></i>Low Stock Only
+          </button>
+          <button class="btn btn-primary btn-sm" id="btn-new-chemical"
+            data-compliance="AS9100D §7.1.5 · NADCAP AC7108 §6"
+            data-linked="MOD-06 Bath Control · MOD-09 GRN · MOD-10 Prod Condition"
+            data-action-desc="Register a new chemical with SDS/MSDS details. Required for NADCAP chemical processing chemical inventory control.">
+            <i class="bi bi-plus-lg me-1"></i>Register Chemical
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Code</th><th>Chemical Name</th><th>CAS#</th><th>Process Use</th><th>On Hand</th><th>Min Level</th><th>SDS Version</th><th>SDS Review</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="tbody-chemicals"><tr><td colspan="10" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="chemicals-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── LAB VALIDATIONS ── -->
+      <div class="tab-pane fade" id="tab-validations">
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-primary btn-sm" id="btn-new-validation"
+            data-compliance="AS9100D §7.1.5 · NADCAP AC7108 App A"
+            data-linked="MOD-05 Equipment · MOD-19 Analysis Schedule"
+            data-action-desc="Record a method or equipment validation. Required for NADCAP accreditation and ISO 17025 alignment.">
+            <i class="bi bi-plus-lg me-1"></i>New Validation Record
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Type</th><th>Description</th><th>Process Area</th><th>Standard Ref</th><th>Date</th><th>Next Review</th><th>Performed By</th><th>Result</th></tr>
+            </thead>
+            <tbody id="tbody-validations"><tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="validations-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── EXTERNAL LABS ── -->
+      <div class="tab-pane fade" id="tab-external-labs">
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-primary btn-sm" id="btn-new-ext-lab"
+            data-compliance="AS9100D §8.4 · NADCAP AC7108 §8 (External Testing)"
+            data-linked="MOD-09 GRN · MOD-19 External Lab Jobs"
+            data-action-desc="Register an external testing laboratory. Accreditation body, scope and expiry must be recorded.">
+            <i class="bi bi-plus-lg me-1"></i>Register External Lab
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Code</th><th>Lab Name</th><th>Accreditation Body</th><th>Accred No.</th><th>Expiry</th><th>Days Left</th><th>Status</th><th>Last Audit</th></tr>
+            </thead>
+            <tbody id="tbody-ext-labs"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="ext-labs-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── EXTERNAL LAB JOBS ── -->
+      <div class="tab-pane fade" id="tab-ext-jobs">
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-primary btn-sm" id="btn-new-ext-job"
+            data-compliance="AS9100D §8.4.3 · NADCAP AC7108 §8"
+            data-linked="MOD-19 External Labs · MOD-19 Analysis Schedule"
+            data-action-desc="Submit a sample to an external lab. Tracks submission, expected return date, and test results.">
+            <i class="bi bi-plus-lg me-1"></i>Submit External Lab Job
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Lab</th><th>Sample Description</th><th>Submitted</th><th>Expected By</th><th>Received</th><th>Cert No.</th><th>Result</th><th>Submitted By</th></tr>
+            </thead>
+            <tbody id="tbody-ext-jobs"><tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="ext-jobs-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast-msg" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+(async () => {
+  await ATCA.initPage();
+  ATCA.tooltips.init();
+
+  const toast = new bootstrap.Toast(document.getElementById('toast-msg'));
+  let schedPage = 1, resultPage = 1, chemPage = 1, valPage = 1, elPage = 1, eljPage = 1;
+  let overdueOnly = false, lowStockOnly = false;
+
+  function showToast(msg, ok = true) {
+    const el = document.getElementById('toast-msg');
+    el.className = `toast align-items-center text-bg-${ok ? 'success' : 'danger'} border-0`;
+    document.getElementById('toast-body').textContent = msg;
+    toast.show();
+  }
+
+  // ── KPIs ──────────────────────────────────────────────────────
+  async function loadKpis() {
+    try {
+      const a = await ATCA.api.get('/mod19/alerts/summary');
+      document.getElementById('val-overdue-analyses').textContent = a.overdue_analyses;
+      document.getElementById('val-due-soon').textContent         = a.due_soon;
+      document.getElementById('val-low-stock').textContent        = a.low_stock;
+      document.getElementById('val-validation-overdue').textContent = a.validation_overdue;
+      document.getElementById('val-lab-accred').textContent       = a.lab_accred_expiring;
+      document.getElementById('kpi-overdue-analyses').classList.toggle('rag-red', a.overdue_analyses > 0);
+      document.getElementById('kpi-due-soon').classList.toggle('rag-amber', a.due_soon > 0);
+      document.getElementById('kpi-low-stock').classList.toggle('rag-amber', a.low_stock > 0);
+      document.getElementById('kpi-validation-overdue').classList.toggle('rag-red', a.validation_overdue > 0);
+      document.getElementById('kpi-lab-accred').classList.toggle('rag-amber', a.lab_accred_expiring > 0);
+    } catch {}
+  }
+
+  // ── Analysis Schedules ────────────────────────────────────────
+  async function loadSchedules(page = 1) {
+    schedPage = page;
+    try {
+      const d = await ATCA.api.get(`/mod19/analysis-schedules?overdue=${overdueOnly?'1':''}&page=${page}`);
+      ATCA.table.render('tbody-schedules', d.items, r => {
+        const days = r.days_to_due;
+        const rag = days < 0 ? 'rag-red' : days <= 7 ? 'rag-amber' : '';
+        return `
+          <tr class="${rag}">
+            <td><code>${r.schedule_ref}</code></td>
+            <td>${r.analysis_name}</td>
+            <td>${r.analysis_type}</td>
+            <td>${r.process_area || '—'}</td>
+            <td>${r.frequency_type}</td>
+            <td>${r.next_due_date || '—'}</td>
+            <td>${r.last_done_date || '—'}</td>
+            <td>${r.responsible_name || '—'}</td>
+            <td>${r.external_lab ? `<i class="bi bi-building me-1"></i>${r.external_lab_name||'External'}` : '—'}</td>
+            <td>${days < 0 ? '<span class="badge bg-danger">OVERDUE</span>' : days <= 7 ? '<span class="badge bg-warning text-dark">DUE SOON</span>' : '<span class="badge bg-success">OK</span>'}</td>
+          </tr>`;
+      });
+      ATCA.pagination.render('schedules-pagination', page, d.total, 50, loadSchedules);
+    } catch {}
+  }
+
+  // ── Results ───────────────────────────────────────────────────
+  async function loadResults(page = 1) {
+    resultPage = page;
+    const pf = document.getElementById('result-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod19/analysis-results?pass_fail=${pf}&page=${page}`);
+      ATCA.table.render('tbody-results', d.items, r => `
+        <tr>
+          <td><code>${r.result_ref}</code></td>
+          <td>${r.analysis_name}</td>
+          <td>${r.process_area || '—'}</td>
+          <td>${r.test_date ? new Date(r.test_date).toLocaleDateString() : '—'}</td>
+          <td>${r.result_value || '—'}</td>
+          <td>${r.result_unit || '—'}</td>
+          <td><span class="badge bg-${r.pass_fail==='PASS'?'success':r.pass_fail==='FAIL'?'danger':'secondary'}">${r.pass_fail}</span>
+              ${r.out_of_spec ? '<span class="badge bg-danger ms-1">OOS</span>' : ''}</td>
+          <td>${r.tested_by_name || '—'}</td>
+        </tr>`);
+      ATCA.pagination.render('results-pagination', page, d.total, 50, loadResults);
+    } catch {}
+  }
+
+  // ── Chemical Inventory ────────────────────────────────────────
+  async function loadChemicals(page = 1) {
+    chemPage = page;
+    try {
+      const d = await ATCA.api.get(`/mod19/chemical-inventory?low_stock=${lowStockOnly?'1':''}&page=${page}`);
+      ATCA.table.render('tbody-chemicals', d.items, r => {
+        const lowStock = r.is_low_stock;
+        return `
+          <tr ${lowStock ? 'class="rag-amber"' : ''}>
+            <td><code>${r.chem_code}</code></td>
+            <td>${r.chem_name}</td>
+            <td><small>${r.cas_number || '—'}</small></td>
+            <td>${r.process_use || '—'}</td>
+            <td>${Number(r.qty_on_hand).toFixed(2)} ${r.unit_of_measure}</td>
+            <td>${r.qty_minimum ? Number(r.qty_minimum).toFixed(2) + ' ' + r.unit_of_measure : '—'}</td>
+            <td>${r.sds_version || '—'}</td>
+            <td>${r.sds_next_review || '—'}</td>
+            <td>${lowStock ? '<span class="badge bg-danger">LOW STOCK</span>' : '<span class="badge bg-success">OK</span>'}</td>
+            <td>
+              <button class="btn btn-xs btn-outline-secondary" onclick="recordTransaction(${r.chem_id},'${r.chem_code}')"><i class="bi bi-arrow-left-right"></i></button>
+            </td>
+          </tr>`;
+      });
+      ATCA.pagination.render('chemicals-pagination', page, d.total, 50, loadChemicals);
+    } catch {}
+  }
+
+  window.recordTransaction = async (chemId, code) => {
+    const txnType = prompt(`Chemical ${code}\nTransaction type (RECEIPT / ISSUE / DISPOSAL / ADJUSTMENT / RETURN):`);
+    if (!txnType) return;
+    const qty = parseFloat(prompt('Quantity:'));
+    if (!qty || qty <= 0) return;
+    try {
+      await ATCA.api.post(`/mod19/chemical-inventory/${chemId}/transaction`, { txn_type: txnType.toUpperCase(), qty });
+      showToast('Transaction recorded.');
+      loadChemicals(chemPage); loadKpis();
+    } catch { showToast('Error.', false); }
+  };
+
+  // ── Lab Validations ───────────────────────────────────────────
+  async function loadValidations(page = 1) {
+    valPage = page;
+    try {
+      const d = await ATCA.api.get(`/mod19/lab-validations?page=${page}`);
+      ATCA.table.render('tbody-validations', d.items, r => {
+        const overdue = r.days_to_review < 0;
+        return `
+          <tr ${overdue ? 'class="rag-red"' : ''}>
+            <td><code>${r.validation_ref}</code></td>
+            <td>${r.validation_type}</td>
+            <td>${r.description}</td>
+            <td>${r.process_area || '—'}</td>
+            <td><small>${r.standard_ref || '—'}</small></td>
+            <td>${r.validation_date}</td>
+            <td>${r.next_review_date || '—'}</td>
+            <td>${r.performed_by_name}</td>
+            <td><span class="badge bg-${r.result==='VALID'?'success':r.result==='INVALID'?'danger':'secondary'}">${r.result}</span></td>
+          </tr>`;
+      });
+      ATCA.pagination.render('validations-pagination', page, d.total, 50, loadValidations);
+    } catch {}
+  }
+
+  // ── External Labs ─────────────────────────────────────────────
+  async function loadExternalLabs(page = 1) {
+    elPage = page;
+    try {
+      const d = await ATCA.api.get(`/mod19/external-labs?page=${page}`);
+      ATCA.table.render('tbody-ext-labs', d.items, r => {
+        const expiring = r.days_to_expiry !== null && r.days_to_expiry < 90;
+        return `
+          <tr ${expiring ? 'class="rag-amber"' : ''}>
+            <td><code>${r.lab_code}</code></td>
+            <td>${r.lab_name}</td>
+            <td>${r.accreditation_body || '—'}</td>
+            <td>${r.accreditation_no || '—'}</td>
+            <td>${r.accreditation_expiry || '—'}</td>
+            <td>${r.days_to_expiry !== null ? r.days_to_expiry + 'd' : '—'}</td>
+            <td><span class="badge bg-${r.approved_status==='APPROVED'?'success':r.approved_status==='SUSPENDED'?'danger':'warning'}">${r.approved_status}</span></td>
+            <td>${r.last_audit_date || '—'}</td>
+          </tr>`;
+      });
+      ATCA.pagination.render('ext-labs-pagination', page, d.total, 50, loadExternalLabs);
+    } catch {}
+  }
+
+  // ── External Lab Jobs ─────────────────────────────────────────
+  async function loadExtLabJobs(page = 1) {
+    eljPage = page;
+    try {
+      const d = await ATCA.api.get(`/mod19/external-lab-jobs?page=${page}`);
+      ATCA.table.render('tbody-ext-jobs', d.items, r => `
+        <tr>
+          <td><code>${r.ext_job_ref}</code></td>
+          <td>${r.lab_name}</td>
+          <td>${r.sample_desc}</td>
+          <td>${r.submitted_date}</td>
+          <td>${r.expected_by || '—'}</td>
+          <td>${r.received_date || '—'}</td>
+          <td>${r.cert_number || '—'}</td>
+          <td>${r.pass_fail ? `<span class="badge bg-${r.pass_fail==='PASS'?'success':r.pass_fail==='FAIL'?'danger':'secondary'}">${r.pass_fail}</span>` : '—'}</td>
+          <td>${r.submitted_by_name}</td>
+        </tr>`);
+      ATCA.pagination.render('ext-jobs-pagination', page, d.total, 50, loadExtLabJobs);
+    } catch {}
+  }
+
+  // ── Filter buttons ────────────────────────────────────────────
+  document.getElementById('btn-filter-overdue').addEventListener('click', () => {
+    overdueOnly = !overdueOnly;
+    document.getElementById('btn-filter-overdue').className = `btn btn-sm ${overdueOnly ? 'btn-warning' : 'btn-outline-warning'}`;
+    loadSchedules(1);
+  });
+
+  document.getElementById('btn-filter-low-stock').addEventListener('click', () => {
+    lowStockOnly = !lowStockOnly;
+    document.getElementById('btn-filter-low-stock').className = `btn btn-sm ${lowStockOnly ? 'btn-warning' : 'btn-outline-warning'}`;
+    loadChemicals(1);
+  });
+
+  // ── Quick-add stubs (modal-less prompt approach for simplicity) ──
+  document.getElementById('btn-new-schedule').addEventListener('click', () => {
+    const name = prompt('Analysis name:');
+    if (!name) return;
+    const type = prompt('Type (CHEMICAL / PHYSICAL / ENVIRONMENTAL / OTHER):', 'CHEMICAL');
+    ATCA.api.post('/mod19/analysis-schedules', { analysis_name: name, analysis_type: type?.toUpperCase() || 'CHEMICAL', frequency_type: 'WEEKLY' })
+      .then(() => { showToast('Schedule created.'); loadSchedules(); })
+      .catch(() => showToast('Error.', false));
+  });
+
+  document.getElementById('btn-new-result').addEventListener('click', async () => {
+    const d = await ATCA.api.get('/mod19/analysis-schedules?limit=100');
+    const list = d.items.map(s => `${s.schedule_id}: ${s.analysis_name}`).join('\n');
+    const sid = prompt('Select schedule ID:\n' + list);
+    if (!sid) return;
+    const val = prompt('Result value:');
+    const pf = prompt('Pass/Fail (PASS / FAIL / INCONCLUSIVE / PENDING):', 'PASS');
+    ATCA.api.post('/mod19/analysis-results', { schedule_id: parseInt(sid), result_value: val, pass_fail: pf?.toUpperCase()||'PASS' })
+      .then(() => { showToast('Result recorded.'); loadResults(); loadKpis(); })
+      .catch(() => showToast('Error.', false));
+  });
+
+  document.getElementById('btn-new-chemical').addEventListener('click', () => {
+    const name = prompt('Chemical name:');
+    if (!name) return;
+    const cas = prompt('CAS Number (optional):');
+    const use = prompt('Process use (e.g. FPI penetrant):');
+    ATCA.api.post('/mod19/chemical-inventory', { chem_name: name, cas_number: cas, process_use: use, qty_on_hand: 0 })
+      .then(() => { showToast('Chemical registered.'); loadChemicals(); })
+      .catch(() => showToast('Error.', false));
+  });
+
+  document.getElementById('btn-new-validation').addEventListener('click', () => {
+    const desc = prompt('Validation description:');
+    if (!desc) return;
+    const type = prompt('Type (METHOD / EQUIPMENT / INTER_LAB / UNCERTAINTY / LINEARITY / OTHER):', 'METHOD');
+    const result = prompt('Result (VALID / INVALID / CONDITIONAL / PENDING):', 'VALID');
+    ATCA.api.post('/mod19/lab-validations', { description: desc, validation_type: type?.toUpperCase()||'METHOD', result: result?.toUpperCase()||'VALID', performed_by: ATCA.user?.personnel_id || 1, validation_date: new Date().toISOString().slice(0,10) })
+      .then(() => { showToast('Validation recorded.'); loadValidations(); })
+      .catch(() => showToast('Error.', false));
+  });
+
+  document.getElementById('btn-new-ext-lab').addEventListener('click', () => {
+    const name = prompt('Lab name:');
+    if (!name) return;
+    const body = prompt('Accreditation body (e.g. SAC-SINGLAS, A2LA):');
+    const expiry = prompt('Accreditation expiry date (YYYY-MM-DD):');
+    ATCA.api.post('/mod19/external-labs', { lab_name: name, accreditation_body: body, accreditation_expiry: expiry })
+      .then(() => { showToast('External lab registered.'); loadExternalLabs(); })
+      .catch(() => showToast('Error.', false));
+  });
+
+  document.getElementById('btn-new-ext-job').addEventListener('click', async () => {
+    const labs = await ATCA.api.get('/mod19/external-labs?limit=50');
+    const list = labs.items.map(l => `${l.lab_id}: ${l.lab_name}`).join('\n');
+    const lid = prompt('Select lab ID:\n' + list);
+    if (!lid) return;
+    const sample = prompt('Sample description:');
+    if (!sample) return;
+    ATCA.api.post('/mod19/external-lab-jobs', { lab_id: parseInt(lid), sample_desc: sample })
+      .then(() => { showToast('External lab job submitted.'); loadExtLabJobs(); })
+      .catch(() => showToast('Error.', false));
+  });
+
+  // ── Tab events ────────────────────────────────────────────────
+  document.querySelectorAll('#mod19-tabs .nav-link').forEach(tab => {
+    tab.addEventListener('shown.bs.tab', e => {
+      const t = e.target.getAttribute('href');
+      if (t === '#tab-schedules')      loadSchedules();
+      if (t === '#tab-results')        loadResults();
+      if (t === '#tab-chemicals')      loadChemicals();
+      if (t === '#tab-validations')    loadValidations();
+      if (t === '#tab-external-labs')  loadExternalLabs();
+      if (t === '#tab-ext-jobs')       loadExtLabJobs();
+    });
+  });
+
+  document.getElementById('result-filter').addEventListener('change', () => loadResults(1));
+
+  await Promise.all([loadKpis(), loadSchedules()]);
+})();
+</script>
+</body>
+</html>

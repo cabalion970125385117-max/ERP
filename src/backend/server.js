@@ -19,7 +19,7 @@ const morgan         = require('morgan');
 const path           = require('path');
 const bcrypt         = require('bcrypt');
 
-const { query, sql, getPool } = require('./config/db');
+const { query, sql, getPool } = require('./config/database');
 const { requireAuth, requireMinRole, auditLog, getLanIp } = require('./middleware/auth');
 
 const app  = express();
@@ -198,6 +198,93 @@ authRouter.post('/session-extend', requireAuth, (req, res) => {
   res.json({ message: 'Session extended.' });
 });
 
+// PATCH /api/v1/auth/signature — upload own signature (base64 PNG/JPG, max ~500 KB)
+authRouter.patch('/signature', requireAuth, async (req, res) => {
+  const { signature_data } = req.body;
+  if (!signature_data) return res.status(400).json({ message: 'signature_data required.' });
+  if (!signature_data.startsWith('data:image/')) {
+    return res.status(400).json({ message: 'signature_data must be a data URI (data:image/...).' });
+  }
+  if (Buffer.byteLength(signature_data, 'utf8') > 700_000) {
+    return res.status(413).json({ message: 'Signature image too large (max ~500 KB).' });
+  }
+  try {
+    await query(
+      `UPDATE dbo.Users SET signature_data = @sig, signature_updated_at = GETUTCDATE() WHERE user_id = @id`,
+      [
+        { name: 'sig', type: sql.NVarChar(sql.MAX), value: signature_data },
+        { name: 'id',  type: sql.Int,               value: req.user.userId },
+      ]
+    );
+    await auditLog({ userId: req.user.userId, username: req.user.username,
+      lanIp: getLanIp(req), action: 'UPDATE', tableName: 'Users',
+      recordId: String(req.user.userId), moduleId: 'AUTH', newValue: 'signature_updated' });
+    res.json({ message: 'Signature saved.' });
+  } catch (err) {
+    console.error('[auth/signature]', err.message);
+    res.status(500).json({ message: 'Error saving signature.' });
+  }
+});
+
+// GET /api/v1/auth/signature — get own signature
+authRouter.get('/signature', requireAuth, async (req, res) => {
+  try {
+    const rows = await query(
+      `SELECT signature_data, signature_updated_at FROM dbo.Users WHERE user_id = @id`,
+      [{ name: 'id', type: sql.Int, value: req.user.userId }]
+    );
+    res.json(rows.length ? rows[0] : { signature_data: null, signature_updated_at: null });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching signature.' });
+  }
+});
+
+// PATCH /api/v1/auth/signature/admin/:userId — admin uploads signature for any user
+authRouter.patch('/signature/admin/:userId', requireAuth, requireMinRole('ADMIN'), async (req, res) => {
+  const { signature_data } = req.body;
+  const targetId = parseInt(req.params.userId, 10);
+  if (!signature_data) return res.status(400).json({ message: 'signature_data required.' });
+  if (!signature_data.startsWith('data:image/')) {
+    return res.status(400).json({ message: 'signature_data must be a data URI.' });
+  }
+  if (Buffer.byteLength(signature_data, 'utf8') > 700_000) {
+    return res.status(413).json({ message: 'Image too large (max ~500 KB).' });
+  }
+  try {
+    const check = await query(`SELECT user_id FROM dbo.Users WHERE user_id = @id AND is_active = 1`,
+      [{ name: 'id', type: sql.Int, value: targetId }]);
+    if (!check.length) return res.status(404).json({ message: 'User not found.' });
+    await query(
+      `UPDATE dbo.Users SET signature_data = @sig, signature_updated_at = GETUTCDATE() WHERE user_id = @id`,
+      [
+        { name: 'sig', type: sql.NVarChar(sql.MAX), value: signature_data },
+        { name: 'id',  type: sql.Int,               value: targetId },
+      ]
+    );
+    await auditLog({ userId: req.user.userId, username: req.user.username,
+      lanIp: getLanIp(req), action: 'UPDATE', tableName: 'Users',
+      recordId: String(targetId), moduleId: 'MOD-25', newValue: 'signature_updated_by_admin' });
+    res.json({ message: 'Signature saved.' });
+  } catch (err) {
+    console.error('[auth/signature/admin]', err.message);
+    res.status(500).json({ message: 'Error saving signature.' });
+  }
+});
+
+// GET /api/v1/auth/signature/:userId — get another user's signature (any auth)
+authRouter.get('/signature/:userId', requireAuth, async (req, res) => {
+  try {
+    const rows = await query(
+      `SELECT signature_data, signature_updated_at FROM dbo.Users WHERE user_id = @id AND is_active = 1`,
+      [{ name: 'id', type: sql.Int, value: parseInt(req.params.userId, 10) }]
+    );
+    if (!rows.length) return res.status(404).json({ message: 'User not found.' });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching signature.' });
+  }
+});
+
 // POST /api/v1/auth/change-password
 authRouter.post('/change-password', requireAuth, async (req, res) => {
   const { current_password, new_password } = req.body;
@@ -251,21 +338,34 @@ const apiRouter = express.Router();
 
 apiRouter.use('/auth',    authRouter);
 apiRouter.use('/alerts',  requireAuth, alertsRouter);
-apiRouter.use('/mod01',   require('./api/mod01/index'));
-apiRouter.use('/mod02',   require('./api/mod02/index'));
-apiRouter.use('/mod04',   require('./api/mod04/index'));   // Personnel & NAS410 Certifications
-apiRouter.use('/mod05',   require('./api/mod05/index'));   // Equipment & Calibration
-apiRouter.use('/mod07',   require('./api/mod07/index'));   // NCR & CAPA
-// Future modules mount here:
-// apiRouter.use('/mod03', require('./api/mod03/index'));   // FPI Process Control
-// apiRouter.use('/mod06', require('./api/mod06/index'));   // Chemical / Bath Control
-// apiRouter.use('/mod08', require('./api/mod08/index'));   // Audit Management
-// apiRouter.use('/mod12', require('./api/mod12/index'));   // Traceability & Lot Control
-// apiRouter.use('/mod13', require('./api/mod13/index'));   // Work Order / Traveler
+apiRouter.use('/mod01',   require('./api/qms-core/index'));
+apiRouter.use('/mod02',   require('./api/document-control/index'));
+apiRouter.use('/mod03',   require('./api/fpi-process/index'));   // FPI Process Control (AC7114)
+apiRouter.use('/mod04',   require('./api/ndt-personnel/index'));   // Personnel & NAS410 Certifications
+apiRouter.use('/mod05',   require('./api/equipment-calibration/index'));   // Equipment & Calibration
+apiRouter.use('/mod06',   require('./api/chemical-bath-control/index'));   // Chemical / Bath Control (AC7108/AC7110/AC7114)
+apiRouter.use('/mod07',   require('./api/ncr-capa/index'));                      // NCR & CAPA
+apiRouter.use('/mod08',   require('./api/audit-management/index'));              // Audit Management
+apiRouter.use('/mod09',   require('./api/sales-customer-service/index'));        // Sales & Customer Service
+apiRouter.use('/mod10',   require('./api/production-management/index'));         // Production Management
+apiRouter.use('/mod13',   require('./api/work-order/index'));                    // Work Order / Job Traveler
+apiRouter.use('/mod17',   require('./api/mpt-process/index'));                   // MPT Process Control
+apiRouter.use('/mod19',   require('./api/extended-laboratory/index'));           // Extended Laboratory
+apiRouter.use('/mod20',   require('./api/customer-complaint/index'));            // Customer Complaint & 8D
+apiRouter.use('/mod24',   require('./api/certificate-of-conformance/index'));    // Certificate of Conformance
+apiRouter.use('/mod11',   require('./api/maintenance/index'));               // Maintenance Management
+apiRouter.use('/mod12',   require('./api/purchasing/index'));                // Purchasing & Supplier/AVL
+apiRouter.use('/mod14',   require('./api/inventory/index'));                 // Inventory Management
+apiRouter.use('/mod16',   require('./api/finance/index'));                   // Finance (GL, AR/AP, Assets, Budget)
+apiRouter.use('/mod18',   require('./api/hr-management/index'));             // HR & Organisation Management
+apiRouter.use('/mod21',   require('./api/communications/index'));            // Communications & Announcements
+apiRouter.use('/mod22',   require('./api/leave-attendance/index'));          // Leave & Attendance
+apiRouter.use('/mod23',   require('./api/payroll/index'));                   // Payroll Processing
+apiRouter.use('/changelog',  require('./api/changelog/index'));              // System Change Log
+apiRouter.use('/bugreport',  require('./api/bugreport/index'));              // Bug Report / Issue Tracker
+apiRouter.use('/chat',       require('./api/chat/index'));                   // Internal Chat Messaging
 // apiRouter.use('/mod15', require('./api/mod15/index'));   // KPI Dashboard
-// apiRouter.use('/mod17', require('./api/mod17/index'));   // MPT Process Control
-// apiRouter.use('/mod24', require('./api/mod24/index'));   // Certificate of Conformance
-// apiRouter.use('/mod25', require('./api/mod25/index'));   // User Management
+apiRouter.use('/mod25',   require('./api/mod25/index'));              // User & Role Management
 // apiRouter.use('/mod26', require('./api/mod26/index'));   // System Configuration
 
 app.use('/api/v1', apiRouter);

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>System Change Log — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">System Change Log</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Total Entries</div><div id="kpi-total" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">This Month</div><div id="kpi-month" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Features</div><div id="kpi-features" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Bug Fixes</div><div id="kpi-bugfixes" class="kpi-value">—</div></div></div>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <select id="filter-category" class="form-select form-select-sm" style="width:180px">
+      <option value="">All Categories</option>
+      <option>FEATURE</option><option>BUGFIX</option><option>MIGRATION</option><option>CONFIG</option><option>SECURITY</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="openEntryModal()"
+      data-compliance="SoR §1" data-linked="ALL" data-action-desc="Add new change log entry for this ERP version">
+      <i class="bi bi-journal-plus me-1"></i>New Entry
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle">
+      <thead class="table-dark">
+        <tr><th>Version</th><th>Category</th><th>Description</th><th>Affected Modules</th><th>Logged By</th><th>Date</th></tr>
+      </thead>
+      <tbody id="entries-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- New Entry Modal -->
+<div class="modal fade" id="entryModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title">New Change Log Entry</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="row g-2 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Version *</label>
+          <input id="cl-version" class="form-control form-control-sm" placeholder="e.g. 1.7.1" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Category *</label>
+          <select id="cl-category" class="form-select form-select-sm">
+            <option>FEATURE</option><option>BUGFIX</option><option>MIGRATION</option><option>CONFIG</option><option>SECURITY</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Affected Modules</label>
+          <input id="cl-modules" class="form-control form-control-sm" placeholder="e.g. MOD-04,MOD-05" />
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Description *</label>
+        <textarea id="cl-description" class="form-control form-control-sm" rows="3" placeholder="Describe the change clearly and concisely"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Additional Notes</label>
+        <textarea id="cl-notes" class="form-control form-control-sm" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveEntry()"
+        data-compliance="SoR §1" data-linked="ALL" data-action-desc="Save change log entry — requires ENGINEER role or above">
+        Save Entry
+      </button>
+    </div>
+  </div></div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+const entryModal = new bootstrap.Modal(document.getElementById('entryModal'));
+
+const CATEGORY_COLOR = {
+  FEATURE:   'success',
+  BUGFIX:    'warning',
+  MIGRATION: 'info',
+  CONFIG:    'secondary',
+  SECURITY:  'danger',
+};
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadEntries();
+  ATCA.tooltips.init();
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/changelog/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-total').textContent    = d.total_entries    ?? '—';
+  document.getElementById('kpi-month').textContent    = d.entries_this_month ?? '—';
+  document.getElementById('kpi-features').textContent = d.feature_count    ?? '—';
+  document.getElementById('kpi-bugfixes').textContent = d.bugfix_count     ?? '—';
+}
+
+async function loadEntries() {
+  const cat  = document.getElementById('filter-category').value;
+  const data = await ATCA.api.get('/changelog/entries' + (cat ? '?category=' + cat : ''));
+  ATCA.table.render('entries-tbody', data || [], e => `<tr>
+    <td><span class="badge bg-dark font-monospace">${e.version}</span></td>
+    <td><span class="badge bg-${CATEGORY_COLOR[e.category] || 'secondary'}">${e.category}</span></td>
+    <td>${e.description}</td>
+    <td><small class="text-muted">${e.affected_modules || '—'}</small></td>
+    <td>${e.created_by_name}</td>
+    <td><small>${new Date(e.created_at).toLocaleDateString('en-SG')}</small></td>
+  </tr>`);
+}
+
+function openEntryModal() { entryModal.show(); }
+
+async function saveEntry() {
+  const version = document.getElementById('cl-version').value.trim();
+  const description = document.getElementById('cl-description').value.trim();
+  if (!version || !description) { ATCA.toast('Version and description are required', 'warning'); return; }
+  const r = await ATCA.api.post('/changelog/entries', {
+    version,
+    category:         document.getElementById('cl-category').value,
+    description,
+    affected_modules: document.getElementById('cl-modules').value.trim() || null,
+    notes:            document.getElementById('cl-notes').value.trim()   || null,
+  });
+  if (r) {
+    entryModal.hide();
+    ATCA.toast(`Change log v${r.version} saved`, 'success');
+    loadEntries();
+    loadKpis();
+  }
+}
+
+document.getElementById('filter-category').addEventListener('change', loadEntries);
+init();
+</script>
+</body>
+</html>

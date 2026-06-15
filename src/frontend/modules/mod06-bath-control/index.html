@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'">
+  <title>Bath &amp; Chemical Control — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────── -->
+<div id="atca-sidebar"></div>
+
+<!-- ── Main layout ─────────────────────────────────────────────── -->
+<div class="atca-main">
+
+  <!-- Top bar -->
+  <div id="atca-topbar" class="atca-topbar d-flex align-items-center justify-content-between px-4 py-2">
+    <div>
+      <span class="badge bg-secondary me-2">MOD-06</span>
+      <strong>Chemical / Bath Control</strong>
+      <small class="text-muted ms-2">NADCAP AC7108 · AC7110 · AC7114 §6.3</small>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-sm btn-outline-secondary" onclick="loadBaths()"
+              data-action-desc="Refresh bath register and RAG status from server"
+              data-compliance="NADCAP AC7108 · AC7110 · AC7114 §6.3"
+              data-linked="MOD-03 FPI Process · MOD-05 Equipment">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+      <button class="btn btn-sm btn-success" id="btn-add-bath" onclick="openAddBathModal()" style="display:none"
+              data-action-desc="Register a new chemical bath or tank in the system"
+              data-compliance="NADCAP AC7108 (Coatings) · AC7110 (Chemical Processing) · AC7114 §6.3 (NDT)"
+              data-linked="MOD-03 FPI Process · MOD-05 Equipment & Calibration">
+        <i class="bi bi-plus-circle"></i> Add Bath
+      </button>
+      <div id="atca-user-chip"></div>
+    </div>
+  </div>
+
+  <!-- Alerts KPI row -->
+  <div class="px-4 pt-3">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="kpi-card" id="kpi-out-of-spec">
+          <div class="kpi-label">OUT OF SPEC</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-sub">Baths failing spec</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card" id="kpi-overdue">
+          <div class="kpi-label">OVERDUE SAMPLE</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-sub">Past sample frequency</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card" id="kpi-due-soon">
+          <div class="kpi-label">DUE SOON</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-sub">Within 1 day of frequency</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card rag-green" id="kpi-total">
+          <div class="kpi-label">ACTIVE BATHS</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-sub">Total registered</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bath register table -->
+  <div class="px-4">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-droplet-half me-2"></i>Bath / Tank Register</span>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" id="filter-type" onchange="loadBaths()" style="width:180px">
+            <option value="">All Types</option>
+            <option value="PENETRANT">Penetrant</option>
+            <option value="EMULSIFIER">Emulsifier</option>
+            <option value="DEVELOPER">Developer</option>
+            <option value="RINSE">Rinse</option>
+            <option value="ANODIZE">Anodize</option>
+            <option value="PLATING">Plating</option>
+            <option value="PASSIVATION">Passivation</option>
+            <option value="CONVERSION">Conversion</option>
+            <option value="COATING">Coating</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Bath Code</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Area</th>
+                <th>Spec Ref</th>
+                <th>Freq (days)</th>
+                <th>Last Sampled</th>
+                <th>Days Since</th>
+                <th>Last Result</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-baths">
+              <tr><td colspan="11" class="text-center text-muted py-4">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bath detail panel (shown below table when a bath is selected) -->
+  <div class="px-4 mt-4 d-none" id="panel-bath-detail">
+    <div class="card shadow-sm border-primary">
+      <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+        <span id="detail-title"><i class="bi bi-info-circle me-2"></i>Bath Detail</span>
+        <button class="btn btn-sm btn-outline-light" onclick="closeBathDetail()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <!-- Parameters table -->
+          <div class="col-md-5">
+            <h6 class="text-uppercase text-muted mb-2" style="font-size:.7rem;letter-spacing:.05em">Parameter Limits</h6>
+            <table class="table table-sm table-bordered mb-0">
+              <thead class="table-light">
+                <tr><th>Parameter</th><th>Min</th><th>Max</th><th>Unit</th><th>Method</th></tr>
+              </thead>
+              <tbody id="tbody-params">
+                <tr><td colspan="5" class="text-muted text-center">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Sample history -->
+          <div class="col-md-7">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h6 class="text-uppercase text-muted mb-0" style="font-size:.7rem;letter-spacing:.05em">Sample History</h6>
+              <button class="btn btn-sm btn-primary" id="btn-record-sample" onclick="openSampleModal()"
+                      data-action-desc="Record bath sample result — all parameters checked against spec limits. FAIL triggers corrective action workflow."
+                      data-compliance="NADCAP AC7114 §6.3 · AC7110 §8 · AMS 2644 §7 · ASTM E1417"
+                      data-linked="MOD-03 FPI Process · MOD-05 Equipment (titration/pH meters)">
+                <i class="bi bi-clipboard-plus me-1"></i>Record Sample
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                  <tr><th>Ref</th><th>Sampled At</th><th>By</th><th>Result</th><th>Fails</th><th></th></tr>
+                </thead>
+                <tbody id="tbody-samples">
+                  <tr><td colspan="6" class="text-muted text-center">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pb-5"></div>
+</div>
+
+<!-- ── Add Bath Modal ──────────────────────────────────────────── -->
+<div class="modal fade" id="modal-add-bath" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Add Bath / Tank</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Bath Code <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="f-bath-code" placeholder="BATH-PT-002" maxlength="20">
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">Bath Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="f-bath-name" placeholder="Penetrant Tank B — Type II FPI" maxlength="100">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="f-bath-type">
+              <option value="">— Select —</option>
+              <option value="PENETRANT">Penetrant</option>
+              <option value="EMULSIFIER">Emulsifier</option>
+              <option value="DEVELOPER">Developer</option>
+              <option value="RINSE">Rinse</option>
+              <option value="ANODIZE">Anodize</option>
+              <option value="PLATING">Plating</option>
+              <option value="PASSIVATION">Passivation</option>
+              <option value="CONVERSION">Conversion</option>
+              <option value="COATING">Coating</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Process Area</label>
+            <input type="text" class="form-control" id="f-process-area" placeholder="FPI Bay 1" maxlength="100">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Sample Frequency (days)</label>
+            <input type="number" class="form-control" id="f-freq" value="7" min="1" max="365">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Spec Reference</label>
+            <input type="text" class="form-control" id="f-spec-ref" placeholder="AMS 2644 / ASTM E1417" maxlength="200">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Notes</label>
+            <textarea class="form-control" id="f-notes" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" onclick="saveBath()"
+                data-action-desc="Save new bath/tank to the register with spec reference and sampling frequency"
+                data-compliance="NADCAP AC7108 · AC7110 · AC7114 §6.3"
+                data-linked="MOD-03 FPI Process · MOD-05 Equipment">
+          <i class="bi bi-check-circle me-1"></i>Create Bath
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Record Sample Modal ─────────────────────────────────────── -->
+<div class="modal fade" id="modal-sample" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-clipboard-plus me-2"></i>Record Sample — <span id="modal-sample-title"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Sample Date/Time</label>
+            <input type="datetime-local" class="form-control" id="s-sampled-at">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Notes</label>
+            <input type="text" class="form-control" id="s-notes" placeholder="Optional notes">
+          </div>
+        </div>
+
+        <h6 class="fw-semibold mb-2">Parameter Results <small class="text-muted fw-normal">(enter measured values; spec limits shown)</small></h6>
+        <div id="param-inputs">
+          <p class="text-muted">Loading parameters…</p>
+        </div>
+
+        <div class="alert alert-danger d-none mt-3" id="s-fail-warning">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Out of spec detected.</strong> Corrective action is required before this bath can be used.
+        </div>
+        <div class="mb-0 d-none" id="s-ca-group">
+          <label class="form-label fw-semibold">Corrective Action Taken <span class="text-danger">*</span></label>
+          <textarea class="form-control" id="s-corrective-action" rows="3" placeholder="Describe corrective action taken or planned…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div id="s-status-badge" class="me-auto"></div>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSample()"
+                data-action-desc="Submit sample — auto-determines PASS/FAIL. FAIL locks bath and requires corrective action before reuse."
+                data-compliance="NADCAP AC7114 §6.3 · AC7110 (daily/weekly titration) · AC7108 (coating bath check) · AMS 2644"
+                data-linked="MOD-03 FPI Process · MOD-07 NCR &amp; CAPA (if FAIL)">
+          <i class="bi bi-check-circle me-1"></i>Submit Sample
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+
+const ROLE_LEVELS = { READONLY:0, NDT_INSPECTOR:1, SUPERVISOR:2, ENGINEER:3, QA_MANAGER:4, ADMIN:5 };
+let currentUser = null;
+let activeBathId = null;
+let activeBathParams = [];
+
+const TYPE_BADGES = {
+  PENETRANT:'primary', EMULSIFIER:'info', DEVELOPER:'secondary',
+  RINSE:'light', ANODIZE:'warning', PLATING:'success',
+  PASSIVATION:'dark', CONVERSION:'danger', COATING:'purple',
+};
+
+(async () => {
+  await ATCA.initPage();
+  currentUser = ATCA.user.current();
+  if (currentUser && ROLE_LEVELS[currentUser.role] >= ROLE_LEVELS['ENGINEER']) {
+    document.getElementById('btn-add-bath').style.display = '';
+  }
+  await loadAlerts();
+  await loadBaths();
+})();
+
+async function loadAlerts() {
+  const data = await ATCA.api.get('/mod06/alerts/summary');
+  if (!data) return;
+  setKpi('kpi-out-of-spec', data.out_of_spec, data.out_of_spec > 0 ? 'rag-red' : 'rag-green');
+  setKpi('kpi-overdue',     data.overdue_sample, data.overdue_sample > 0 ? 'rag-red' : 'rag-green');
+  setKpi('kpi-due-soon',    data.due_soon, data.due_soon > 0 ? 'rag-amber' : 'rag-green');
+  document.querySelector('#kpi-total .kpi-value').textContent = data.total_baths ?? '—';
+}
+
+function setKpi(id, value, ragClass) {
+  const el = document.getElementById(id);
+  el.querySelector('.kpi-value').textContent = value ?? '—';
+  el.className = `kpi-card ${ragClass}`;
+}
+
+async function loadBaths() {
+  const typeFilter = document.getElementById('filter-type').value;
+  const data = await ATCA.api.get('/mod06/baths');
+  if (!data) return;
+  let items = data.items;
+  if (typeFilter) items = items.filter(b => b.bath_type === typeFilter);
+
+  const tbody = document.getElementById('tbody-baths');
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No baths registered.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = items.map(b => {
+    const ragBadge = b.rag_status === 'RED' ? 'danger' : b.rag_status === 'AMBER' ? 'warning' : 'success';
+    const ragText  = b.rag_status === 'RED' ? (b.last_status === 'FAIL' ? 'OUT OF SPEC' : 'OVERDUE') :
+                     b.rag_status === 'AMBER' ? 'DUE SOON' : 'OK';
+    const typeBadge = TYPE_BADGES[b.bath_type] || 'secondary';
+    return `<tr style="cursor:pointer" onclick="selectBath(${b.bath_id})">
+      <td><code>${b.bath_code}</code></td>
+      <td>${b.bath_name}</td>
+      <td><span class="badge bg-${typeBadge}">${b.bath_type}</span></td>
+      <td>${b.process_area || '—'}</td>
+      <td><small>${b.spec_ref || '—'}</small></td>
+      <td class="text-center">${b.sample_frequency_days}</td>
+      <td>${b.last_sampled_at ? new Date(b.last_sampled_at).toLocaleDateString() : '<span class="text-danger">Never</span>'}</td>
+      <td class="text-center">${b.days_since_sample ?? '—'}</td>
+      <td>${b.last_status ? `<span class="badge bg-${b.last_status==='PASS'?'success':'danger'}">${b.last_status}</span>` : '—'}</td>
+      <td><span class="badge bg-${ragBadge} text-${ragBadge==='warning'?'dark':'white'}">${ragText}</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();selectBath(${b.bath_id})">
+          <i class="bi bi-eye"></i>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function selectBath(id) {
+  activeBathId = id;
+  const bath = await ATCA.api.get(`/mod06/baths/${id}`);
+  if (!bath) return;
+  activeBathParams = bath.parameters || [];
+
+  document.getElementById('detail-title').innerHTML =
+    `<i class="bi bi-droplet-half me-2"></i>${bath.bath_code} — ${bath.bath_name}`;
+  document.getElementById('panel-bath-detail').classList.remove('d-none');
+  document.getElementById('panel-bath-detail').scrollIntoView({ behavior: 'smooth' });
+
+  // Parameters table
+  const tbodyP = document.getElementById('tbody-params');
+  if (activeBathParams.length) {
+    tbodyP.innerHTML = activeBathParams.map(p => `
+      <tr>
+        <td>${p.param_name}</td>
+        <td>${p.min_value ?? '—'}</td>
+        <td>${p.max_value ?? '—'}</td>
+        <td>${p.unit || '—'}</td>
+        <td><small>${p.test_method || '—'}</small></td>
+      </tr>`).join('');
+  } else {
+    tbodyP.innerHTML = '<tr><td colspan="5" class="text-muted text-center">No limits defined.</td></tr>';
+  }
+
+  await loadSamples(id);
+}
+
+async function loadSamples(bathId) {
+  const data = await ATCA.api.get(`/mod06/baths/${bathId}/samples?limit=10`);
+  if (!data) return;
+  const tbody = document.getElementById('tbody-samples');
+  if (!data.items.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">No samples recorded.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.items.map(s => `
+    <tr>
+      <td><code>${s.sample_ref}</code></td>
+      <td>${new Date(s.sampled_at).toLocaleString()}</td>
+      <td>${s.sampled_by_name}</td>
+      <td><span class="badge bg-${s.overall_status==='PASS'?'success':'danger'}">${s.overall_status}</span></td>
+      <td>${s.failed_params > 0 ? `<span class="text-danger">${s.failed_params} fail</span>` : '<span class="text-success">All OK</span>'}</td>
+      <td>${s.corrective_action ? `<small class="text-warning"><i class="bi bi-exclamation-triangle"></i> CA on file</small>` : ''}</td>
+    </tr>`).join('');
+}
+
+function closeBathDetail() {
+  document.getElementById('panel-bath-detail').classList.add('d-none');
+  activeBathId = null;
+}
+
+// ── Add Bath ──────────────────────────────────────────────────
+function openAddBathModal() {
+  ['f-bath-code','f-bath-name','f-process-area','f-spec-ref','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-bath-type').value = '';
+  document.getElementById('f-freq').value = '7';
+  new bootstrap.Modal(document.getElementById('modal-add-bath')).show();
+}
+
+async function saveBath() {
+  const body = {
+    bath_code:            document.getElementById('f-bath-code').value.trim(),
+    bath_name:            document.getElementById('f-bath-name').value.trim(),
+    bath_type:            document.getElementById('f-bath-type').value,
+    process_area:         document.getElementById('f-process-area').value.trim(),
+    spec_ref:             document.getElementById('f-spec-ref').value.trim(),
+    sample_frequency_days: parseInt(document.getElementById('f-freq').value) || 7,
+    notes:                document.getElementById('f-notes').value.trim(),
+  };
+  if (!body.bath_code || !body.bath_name || !body.bath_type) {
+    return ATCA.toast('Bath code, name and type are required.', 'danger');
+  }
+  const res = await ATCA.api.post('/mod06/baths', body);
+  if (!res) return;
+  ATCA.toast('Bath created.', 'success');
+  bootstrap.Modal.getInstance(document.getElementById('modal-add-bath')).hide();
+  await loadBaths();
+  await loadAlerts();
+}
+
+// ── Record Sample ─────────────────────────────────────────────
+function openSampleModal() {
+  if (!activeBathId) return;
+  document.getElementById('modal-sample-title').textContent =
+    document.getElementById('detail-title').textContent.replace('', '').trim();
+  document.getElementById('s-notes').value = '';
+  document.getElementById('s-corrective-action').value = '';
+  document.getElementById('s-fail-warning').classList.add('d-none');
+  document.getElementById('s-ca-group').classList.add('d-none');
+  document.getElementById('s-status-badge').innerHTML = '';
+
+  // Set default datetime to now
+  const now = new Date();
+  now.setSeconds(0, 0);
+  document.getElementById('s-sampled-at').value = now.toISOString().slice(0,16);
+
+  // Build param inputs
+  const container = document.getElementById('param-inputs');
+  if (!activeBathParams.length) {
+    container.innerHTML = `<div class="alert alert-warning">
+      No parameter limits defined for this bath. Record sample as free-text notes only.
+      <br><small>Add parameters via the bath edit function (ENGINEER+).</small>
+    </div>`;
+  } else {
+    container.innerHTML = activeBathParams.map((p, i) => {
+      const limitStr = [
+        p.min_value != null ? `Min: ${p.min_value}` : null,
+        p.max_value != null ? `Max: ${p.max_value}` : null,
+      ].filter(Boolean).join(', ');
+      return `<div class="row g-2 align-items-center mb-2 param-row" data-idx="${i}">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold mb-0">${p.param_name}</label>
+          <small class="text-muted d-block">${p.test_method || ''}</small>
+        </div>
+        <div class="col-md-3">
+          <div class="input-group input-group-sm">
+            <input type="number" step="any" class="form-control param-value"
+                   id="pv-${i}" placeholder="Measured value" oninput="checkParamSpec(${i})">
+            <span class="input-group-text">${p.unit || ''}</span>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <small class="text-muted">${limitStr || 'No limits set'}</small>
+        </div>
+        <div class="col-md-2 text-center" id="pv-status-${i}">—</div>
+      </div>`;
+    }).join('');
+  }
+
+  new bootstrap.Modal(document.getElementById('modal-sample')).show();
+}
+
+function checkParamSpec(idx) {
+  const p   = activeBathParams[idx];
+  const val = parseFloat(document.getElementById(`pv-${idx}`).value);
+  const statusEl = document.getElementById(`pv-status-${idx}`);
+  if (isNaN(val)) { statusEl.innerHTML = '—'; }
+  else {
+    const ok = (p.min_value == null || val >= p.min_value) && (p.max_value == null || val <= p.max_value);
+    statusEl.innerHTML = ok
+      ? '<span class="badge bg-success">OK</span>'
+      : '<span class="badge bg-danger">FAIL</span>';
+  }
+  updateOverallStatus();
+}
+
+function updateOverallStatus() {
+  const rows = document.querySelectorAll('.param-row');
+  let anyFail = false;
+  rows.forEach((row, i) => {
+    const statusEl = document.getElementById(`pv-status-${i}`);
+    if (statusEl && statusEl.innerHTML.includes('FAIL')) anyFail = true;
+  });
+  document.getElementById('s-fail-warning').classList.toggle('d-none', !anyFail);
+  document.getElementById('s-ca-group').classList.toggle('d-none', !anyFail);
+  document.getElementById('s-status-badge').innerHTML = anyFail
+    ? '<span class="badge bg-danger fs-6">FAIL — Out of Spec</span>'
+    : '<span class="badge bg-success fs-6">PASS</span>';
+}
+
+async function submitSample() {
+  const params = activeBathParams.map((p, i) => {
+    const val = parseFloat(document.getElementById(`pv-${i}`)?.value);
+    const ok  = (p.min_value == null || val >= p.min_value) && (p.max_value == null || val <= p.max_value);
+    return {
+      param_name:   p.param_name,
+      result_value: val,
+      unit:         p.unit,
+      within_spec:  !isNaN(val) ? ok : true,
+    };
+  }).filter(p => !isNaN(p.result_value));
+
+  if (!params.length && activeBathParams.length > 0) {
+    return ATCA.toast('Enter at least one parameter result.', 'danger');
+  }
+
+  const anyFail = params.some(p => !p.within_spec);
+  const ca      = document.getElementById('s-corrective-action').value.trim();
+  if (anyFail && !ca) {
+    return ATCA.toast('Corrective action is required for out-of-spec results.', 'danger');
+  }
+
+  const body = {
+    sampled_at:         document.getElementById('s-sampled-at').value,
+    notes:              document.getElementById('s-notes').value.trim() || null,
+    corrective_action:  ca || null,
+    params:             params.length ? params : [{ param_name: 'General', result_value: 1, unit: '', within_spec: true }],
+  };
+
+  const res = await ATCA.api.post(`/mod06/baths/${activeBathId}/samples`, body);
+  if (!res) return;
+  ATCA.toast(`Sample ${res.sample_ref} recorded — ${res.overall_status}`, res.overall_status === 'PASS' ? 'success' : 'warning');
+  bootstrap.Modal.getInstance(document.getElementById('modal-sample')).hide();
+  await loadSamples(activeBathId);
+  await loadAlerts();
+  await loadBaths();
+}
+</script>
+</body>
+</html>

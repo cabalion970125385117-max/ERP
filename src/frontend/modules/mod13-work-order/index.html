@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOD-13 Work Order / Job Traveler — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-core.css">
+</head>
+<body class="atca-body">
+
+<nav class="navbar navbar-dark atca-navbar px-3">
+  <a class="navbar-brand fw-bold" href="/"><i class="bi bi-file-earmark-text me-2"></i>ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-13 · Work Order / Job Traveler · AS9100D §8.1</span>
+  <div class="ms-auto d-flex align-items-center gap-3">
+    <span class="badge bg-warning text-dark" id="badge-active">—</span>
+    <a href="/" class="btn btn-outline-light btn-sm"><i class="bi bi-grid me-1"></i>Dashboard</a>
+  </div>
+</nav>
+
+<div class="container-fluid py-3">
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-active">
+        <div class="kpi-label">Active Jobs</div>
+        <div class="kpi-value" id="kv-active">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-red" id="kpi-overdue">
+        <div class="kpi-label">Overdue Jobs</div>
+        <div class="kpi-value" id="kv-overdue">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-pending-qa">
+        <div class="kpi-label">Pending QA Sign-off</div>
+        <div class="kpi-value" id="kv-pending-qa">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-coc">
+        <div class="kpi-label">CoC Pending</div>
+        <div class="kpi-value" id="kv-coc">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex gap-2">
+      <select class="form-select form-select-sm w-auto" id="filter-status" onchange="loadWOs()">
+        <option value="">All Statuses</option>
+        <option value="DRAFT">Draft</option>
+        <option value="ISSUED">Issued</option>
+        <option value="IN_PROGRESS">In Progress</option>
+        <option value="PENDING_QA">Pending QA</option>
+        <option value="COMPLETE">Complete</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+      <select class="form-select form-select-sm w-auto" id="filter-priority" onchange="loadWOs()">
+        <option value="">All Priorities</option>
+        <option value="URGENT">Urgent</option>
+        <option value="HIGH">High</option>
+        <option value="NORMAL">Normal</option>
+        <option value="LOW">Low</option>
+      </select>
+    </div>
+    <button class="btn btn-primary btn-sm"
+      data-compliance="AS9100D §8.1 — Work orders define operational planning requirements per job"
+      data-linked="MOD-03 FPI, MOD-06 Chemical Bath, MOD-09 Contract Review, MOD-17 MPT, MOD-24 CoC"
+      data-action-desc="Create a new work order with traveler steps linking to process modules"
+      onclick="showNewWOModal()">
+      <i class="bi bi-plus-circle me-1"></i>New Work Order
+    </button>
+  </div>
+
+  <!-- Work Orders Table -->
+  <div class="table-responsive">
+    <table class="table table-hover table-sm atca-table">
+      <thead>
+        <tr>
+          <th>WO No.</th><th>Job Title</th><th>Customer</th><th>Part No.</th>
+          <th>Priority</th><th>Planned End</th><th>Progress</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-wo"></tbody>
+    </table>
+  </div>
+  <div id="pagination-wo"></div>
+</div>
+
+<!-- New Work Order Modal -->
+<div class="modal fade" id="modalNewWO" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-file-earmark-plus me-2"></i>New Work Order</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">Job Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="nw-title" placeholder="e.g. FPI + MPT on Engine Blades Batch #42">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Priority</label>
+            <select class="form-select" id="nw-priority">
+              <option value="NORMAL">Normal</option>
+              <option value="HIGH">High</option>
+              <option value="URGENT">Urgent</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="nw-customer" placeholder="Customer name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Order / PO Reference</label>
+            <input type="text" class="form-control" id="nw-oref" placeholder="PO or quotation number">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Part Number</label>
+            <input type="text" class="form-control" id="nw-pnum">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Part Description</label>
+            <input type="text" class="form-control" id="nw-pdesc">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Qty</label>
+            <input type="number" class="form-control" id="nw-qty" value="1" min="1">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Planned Start</label>
+            <input type="date" class="form-control" id="nw-ps">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Planned End</label>
+            <input type="date" class="form-control" id="nw-pe">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Special Instructions</label>
+            <textarea class="form-control" id="nw-si" rows="2"></textarea>
+          </div>
+        </div>
+
+        <!-- Traveler Steps -->
+        <hr>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0"><i class="bi bi-list-ol me-1"></i>Traveler Steps</h6>
+          <button class="btn btn-outline-secondary btn-sm" onclick="addStep()">
+            <i class="bi bi-plus me-1"></i>Add Step
+          </button>
+        </div>
+        <div id="steps-container">
+          <!-- Steps added dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary"
+          data-compliance="AS9100D §8.1 — Operational planning must define methods, resources and acceptance criteria"
+          data-linked="MOD-03 FPI, MOD-06 Chemical Bath, MOD-09 Sales, MOD-17 MPT, MOD-24 CoC"
+          data-action-desc="Create work order and issue traveler with process steps"
+          onclick="saveWO()">
+          <i class="bi bi-save me-1"></i>Create Work Order
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Traveler Detail Modal -->
+<div class="modal fade" id="modalTraveler" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="traveler-title">Job Traveler</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="traveler-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-success" id="btn-advance-status"
+          data-compliance="AS9100D §8.5.1 — Production and service provision must be controlled"
+          data-linked="MOD-13 Work Order, MOD-24 CoC"
+          data-action-desc="Advance work order status to next stage"
+          onclick="advanceStatus()">
+          <i class="bi bi-arrow-right-circle me-1"></i>Advance Status
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+let stepCount = 0;
+let currentWO = null;
+const newWOModal   = new bootstrap.Modal(document.getElementById('modalNewWO'));
+const travelerModal = new bootstrap.Modal(document.getElementById('modalTraveler'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadWOs();
+  addStep(); addStep(); // start with 2 blank steps
+  ATCA.tooltips.init();
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod13/alerts/summary');
+  document.getElementById('kv-active').textContent    = d.active_jobs ?? '—';
+  document.getElementById('kv-overdue').textContent   = d.overdue_jobs ?? '—';
+  document.getElementById('kv-pending-qa').textContent = d.pending_qa ?? '—';
+  document.getElementById('kv-coc').textContent       = d.coc_pending ?? '—';
+  document.getElementById('badge-active').textContent = `${d.active_jobs ?? 0} Active`;
+  document.getElementById('kpi-overdue').className = `kpi-card ${d.overdue_jobs > 0 ? 'kpi-red' : 'kpi-green'}`;
+}
+
+async function loadWOs() {
+  const status   = document.getElementById('filter-status').value;
+  const priority = document.getElementById('filter-priority').value;
+  let url = '/mod13/work-orders?limit=30';
+  if (status)   url += `&status=${status}`;
+  if (priority) url += `&priority=${priority}`;
+  const rows = await ATCA.api.get(url);
+  ATCA.table.render('tbody-wo', rows, woRow);
+}
+
+function woRow(w) {
+  const priBadge = { URGENT:'danger', HIGH:'warning', NORMAL:'primary', LOW:'secondary' }[w.priority] || 'secondary';
+  const stBadge  = { DRAFT:'secondary', ISSUED:'info', IN_PROGRESS:'primary', PENDING_QA:'warning',
+                     COMPLETE:'success', CANCELLED:'dark' }[w.status] || 'secondary';
+  const pct = w.total_steps > 0 ? Math.round((w.done_steps / w.total_steps) * 100) : 0;
+  const today = new Date(); const pe = w.planned_end ? new Date(w.planned_end) : null;
+  const overdue = pe && pe < today && !['COMPLETE','CANCELLED'].includes(w.status);
+  return `<tr class="${overdue ? 'table-danger' : ''}">
+    <td><strong>${w.wo_number}</strong></td>
+    <td>${w.job_title}</td>
+    <td>${w.customer_name}</td>
+    <td><small>${w.part_number || '—'}</small></td>
+    <td><span class="badge bg-${priBadge}">${w.priority}</span></td>
+    <td class="${overdue ? 'text-danger fw-bold' : ''}">${w.planned_end ? w.planned_end.substring(0,10) : '—'}</td>
+    <td style="min-width:100px">
+      <div class="progress" style="height:14px">
+        <div class="progress-bar ${pct===100?'bg-success':''}" style="width:${pct}%">${pct}%</div>
+      </div>
+      <small class="text-muted">${w.done_steps}/${w.total_steps} steps</small>
+    </td>
+    <td><span class="badge bg-${stBadge}">${w.status}</span></td>
+    <td>
+      <button class="btn btn-outline-primary btn-xs"
+        data-compliance="AS9100D §8.5.1 — Job traveler records process steps and sign-offs"
+        data-linked="MOD-03 FPI, MOD-06 Bath, MOD-17 MPT, MOD-24 CoC"
+        data-action-desc="Open job traveler to view and sign off process steps"
+        onclick="viewTraveler(${w.work_order_id})">
+        <i class="bi bi-journal-text"></i> Traveler
+      </button>
+    </td>
+  </tr>`;
+}
+
+function showNewWOModal() { newWOModal.show(); }
+
+function addStep() {
+  stepCount++;
+  const container = document.getElementById('steps-container');
+  const div = document.createElement('div');
+  div.className = 'row g-2 mb-2 align-items-end border rounded p-2';
+  div.id = `step-${stepCount}`;
+  div.innerHTML = `
+    <div class="col-1 text-center"><span class="badge bg-secondary">${stepCount}</span></div>
+    <div class="col-4"><input type="text" class="form-control form-control-sm" placeholder="Step name" id="step-name-${stepCount}"></div>
+    <div class="col-3">
+      <select class="form-select form-select-sm" id="step-type-${stepCount}">
+        <option value="">Select process type</option>
+        <option value="FPI">FPI (Fluorescent Penetrant)</option>
+        <option value="MPT">MPT (Magnetic Particle)</option>
+        <option value="CHEM_BATH">Chemical Bath</option>
+        <option value="VISUAL">Visual Inspection</option>
+        <option value="OTHER">Other</option>
+      </select>
+    </div>
+    <div class="col-3"><input type="text" class="form-control form-control-sm" placeholder="Standard ref (e.g. AC7114 §4)" id="step-std-${stepCount}"></div>
+    <div class="col-1 text-center">
+      <button class="btn btn-outline-danger btn-xs" onclick="removeStep(${stepCount})"><i class="bi bi-trash"></i></button>
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+function removeStep(n) { document.getElementById(`step-${n}`)?.remove(); }
+
+async function saveWO() {
+  const title    = document.getElementById('nw-title').value.trim();
+  const customer = document.getElementById('nw-customer').value.trim();
+  if (!title || !customer) { ATCA.toast('Job title and customer required.', 'warning'); return; }
+
+  const steps = [];
+  document.querySelectorAll('[id^="step-name-"]').forEach(el => {
+    const n = el.id.replace('step-name-','');
+    const name = el.value.trim();
+    if (name) steps.push({
+      step_name:    name,
+      process_type: document.getElementById(`step-type-${n}`)?.value || null,
+      standard_ref: document.getElementById(`step-std-${n}`)?.value.trim() || null,
+    });
+  });
+
+  try {
+    const res = await ATCA.api.post('/mod13/work-orders', {
+      job_title:    title,
+      customer_name: customer,
+      part_number:  document.getElementById('nw-pnum').value.trim(),
+      part_description: document.getElementById('nw-pdesc').value.trim(),
+      quantity:     parseInt(document.getElementById('nw-qty').value) || 1,
+      order_reference: document.getElementById('nw-oref').value.trim(),
+      priority:     document.getElementById('nw-priority').value,
+      planned_start: document.getElementById('nw-ps').value || null,
+      planned_end:  document.getElementById('nw-pe').value || null,
+      special_instructions: document.getElementById('nw-si').value.trim(),
+      steps,
+    });
+    ATCA.toast(`Work Order ${res.wo_number} created.`, 'success');
+    newWOModal.hide();
+    loadWOs(); loadKpis();
+  } catch { ATCA.toast('Error creating work order.', 'danger'); }
+}
+
+async function viewTraveler(id) {
+  const wo = await ATCA.api.get(`/mod13/work-orders/${id}`);
+  currentWO = wo;
+  document.getElementById('traveler-title').textContent = `${wo.wo_number} — ${wo.job_title}`;
+  const stepsHtml = wo.steps.map(s => {
+    const stColors = { PENDING:'secondary', IN_PROGRESS:'primary', COMPLETE:'success', SKIPPED:'warning', FAILED:'danger' };
+    const bg = stColors[s.status] || 'secondary';
+    return `<tr>
+      <td>${s.step_seq}</td>
+      <td><strong>${s.step_name}</strong>${s.standard_ref ? `<br><small class="text-muted">${s.standard_ref}</small>` : ''}</td>
+      <td>${s.process_type ? `<span class="badge bg-info text-dark">${s.process_type}</span>` : '—'}</td>
+      <td><span class="badge bg-${bg}">${s.status}</span></td>
+      <td>${s.completed_name || '—'}</td>
+      <td>${s.completed_at ? s.completed_at.substring(0,10) : '—'}</td>
+      <td>
+        ${s.status === 'PENDING' || s.status === 'IN_PROGRESS' ? `
+        <button class="btn btn-success btn-xs"
+          data-compliance="AS9100D §8.5.1 — Each process step requires qualified personnel sign-off"
+          data-linked="MOD-13 Work Order"
+          data-action-desc="Sign off this traveler step as complete"
+          onclick="completeStep(${wo.work_order_id}, ${s.step_id})">
+          <i class="bi bi-check-circle"></i> Sign Off
+        </button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('traveler-body').innerHTML = `
+    <div class="row g-2 mb-3 small">
+      <div class="col-md-4"><strong>Customer:</strong> ${wo.customer_name}</div>
+      <div class="col-md-4"><strong>Part:</strong> ${wo.part_number || '—'}</div>
+      <div class="col-md-4"><strong>Qty:</strong> ${wo.quantity}</div>
+      <div class="col-md-4"><strong>Priority:</strong> ${wo.priority}</div>
+      <div class="col-md-4"><strong>Planned End:</strong> ${wo.planned_end ? wo.planned_end.substring(0,10) : '—'}</div>
+      <div class="col-md-4"><strong>Status:</strong> <span class="badge bg-primary">${wo.status}</span></div>
+    </div>
+    <table class="table table-sm table-bordered">
+      <thead class="table-dark"><tr><th>#</th><th>Step</th><th>Type</th><th>Status</th><th>By</th><th>Date</th><th></th></tr></thead>
+      <tbody>${stepsHtml}</tbody>
+    </table>
+    ${wo.notes.length ? `<h6>Activity Notes</h6><ul class="list-unstyled small">${wo.notes.map(n=>`<li><span class="badge bg-secondary me-1">${n.note_type}</span>${n.note_text} <span class="text-muted">(${n.created_at.substring(0,10)})</span></li>`).join('')}</ul>` : ''}
+  `;
+  ATCA.tooltips.init();
+  travelerModal.show();
+}
+
+async function completeStep(woId, stepId) {
+  const notes = prompt('Sign-off notes (optional):');
+  if (notes === null) return;
+  try {
+    await ATCA.api.patch(`/mod13/work-orders/${woId}/steps/${stepId}/complete`, { sign_off_notes: notes });
+    ATCA.toast('Step signed off.', 'success');
+    viewTraveler(woId);
+    loadWOs(); loadKpis();
+  } catch { ATCA.toast('Error signing off step.', 'danger'); }
+}
+
+async function advanceStatus() {
+  if (!currentWO) return;
+  const map = { DRAFT:'ISSUED', ISSUED:'IN_PROGRESS', IN_PROGRESS:'PENDING_QA', PENDING_QA:'COMPLETE' };
+  const next = map[currentWO.status];
+  if (!next) { ATCA.toast('Cannot advance from current status.', 'warning'); return; }
+  if (!confirm(`Advance WO to status: ${next}?`)) return;
+  try {
+    await ATCA.api.patch(`/mod13/work-orders/${currentWO.work_order_id}/status`, { status: next });
+    ATCA.toast(`Status advanced to ${next}.`, 'success');
+    travelerModal.hide();
+    loadWOs(); loadKpis();
+  } catch { ATCA.toast('Error advancing status.', 'danger'); }
+}
+
+init();
+</script>
+</body>
+</html>

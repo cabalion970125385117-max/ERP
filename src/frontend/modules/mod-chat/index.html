@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Internal Chat — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+  <style>
+    body { background: #f4f6f4; }
+    .chat-layout { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+    .chat-sidebar { width: 300px; min-width: 260px; background: #fff; border-right: 1px solid #dee2e6; display: flex; flex-direction: column; }
+    .chat-main { flex: 1; display: flex; flex-direction: column; }
+    .sidebar-header { padding: 12px 16px; border-bottom: 1px solid #dee2e6; background: #f8f9fa; }
+    .room-list { overflow-y: auto; flex: 1; }
+    .room-item { padding: 10px 16px; cursor: pointer; border-bottom: 1px solid #f0f0f0; transition: background .15s; }
+    .room-item:hover, .room-item.active { background: #e8f5e9; }
+    .room-item .room-name { font-weight: 600; font-size: .9rem; color: #1A2520; }
+    .room-item .room-preview { font-size: .78rem; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .room-item .room-time { font-size: .72rem; color: #adb5bd; }
+    .chat-header { padding: 12px 20px; border-bottom: 1px solid #dee2e6; background: #fff; display: flex; align-items: center; gap: 10px; }
+    .chat-header .room-title { font-weight: 700; color: #1A2520; }
+    .messages-wrap { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+    .msg { max-width: 70%; display: flex; flex-direction: column; }
+    .msg.mine { align-self: flex-end; align-items: flex-end; }
+    .msg.theirs { align-self: flex-start; align-items: flex-start; }
+    .msg-bubble { padding: 8px 14px; border-radius: 18px; font-size: .88rem; line-height: 1.4; }
+    .msg.mine .msg-bubble { background: #1A2520; color: #fff; border-bottom-right-radius: 4px; }
+    .msg.theirs .msg-bubble { background: #fff; border: 1px solid #dee2e6; color: #212529; border-bottom-left-radius: 4px; }
+    .msg-bubble.deleted { color: #adb5bd; font-style: italic; background: #f8f9fa !important; border: 1px solid #dee2e6 !important; }
+    .msg-meta { font-size: .7rem; color: #adb5bd; margin-top: 2px; }
+    .chat-input-bar { padding: 12px 16px; border-top: 1px solid #dee2e6; background: #fff; }
+    .chat-input-bar form { display: flex; gap: 8px; }
+    .empty-state { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #adb5bd; gap: 12px; }
+    .new-dm-btn { width: 100%; text-align: left; border: 0; background: none; color: #2e7d32; font-size: .85rem; padding: 8px 16px; cursor: pointer; }
+    .new-dm-btn:hover { background: #f0f9f0; }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">Internal Chat</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="chat-layout">
+
+  <!-- Sidebar -->
+  <div class="chat-sidebar">
+    <div class="sidebar-header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <a href="/index.html" class="btn btn-sm btn-outline-secondary" title="Back to Home"><i class="bi bi-house"></i></a>
+        <span class="fw-bold" style="color:#1A2520">Messages</span>
+      </div>
+      <button class="btn btn-sm btn-success" id="btn-new-dm" title="New Direct Message">
+        <i class="bi bi-pencil-square"></i>
+      </button>
+    </div>
+    <div class="room-list" id="room-list">
+      <div class="p-3 text-center text-muted small">Loading…</div>
+    </div>
+  </div>
+
+  <!-- Main chat area -->
+  <div class="chat-main" id="chat-main">
+    <div class="empty-state" id="empty-state">
+      <i class="bi bi-chat-dots" style="font-size:3rem;color:#c8e6c9"></i>
+      <p class="mb-0">Select a conversation or start a new one.</p>
+      <button class="btn btn-outline-success" id="btn-new-dm2"><i class="bi bi-plus-lg"></i> New Message</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- New DM Modal -->
+<div class="modal fade" id="modal-new-dm" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">New Message</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="dm-type">
+            <option value="DIRECT">Direct Message</option>
+            <option value="GROUP">Group Chat</option>
+          </select>
+        </div>
+        <div class="mb-3" id="group-name-row" style="display:none">
+          <label class="form-label">Group Name</label>
+          <input type="text" class="form-control" id="dm-group-name" placeholder="e.g. QA Team" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Select People</label>
+          <div id="user-list-check" class="border rounded p-2" style="max-height:200px;overflow-y:auto">
+            <div class="text-muted small">Loading…</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" id="btn-create-room">Start Chat</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  await ATCA.initPage();
+
+  let currentRoomId  = null;
+  let pollTimer      = null;
+  let lastSentAt     = null;
+  let allUsers       = [];
+  let myUserId       = null;
+
+  const { user_id } = await ATCA.api.get('/auth/me');
+  myUserId = user_id;
+
+  // ── Rooms ──
+  async function loadRooms() {
+    const rooms = await ATCA.api.get('/chat/rooms');
+    const list  = document.getElementById('room-list');
+    if (!rooms.length) {
+      list.innerHTML = '<div class="p-3 text-muted small text-center">No conversations yet.</div>';
+      return;
+    }
+    list.innerHTML = rooms.map(r => {
+      const title   = r.room_type === 'DIRECT' ? (r.other_names || 'Unknown') : (r.name || 'Group');
+      const preview = r.last_message ? (r.last_message.length > 40 ? r.last_message.slice(0, 40) + '…' : r.last_message) : 'No messages yet';
+      const timeStr = r.last_sent_at ? new Date(r.last_sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const icon    = r.room_type === 'GROUP' ? '<i class="bi bi-people-fill me-1"></i>' : '<i class="bi bi-person-fill me-1"></i>';
+      return `<div class="room-item${r.room_id === currentRoomId ? ' active' : ''}" data-id="${r.room_id}" data-title="${title}">
+        <div class="d-flex justify-content-between"><span class="room-name">${icon}${title}</span><span class="room-time">${timeStr}</span></div>
+        <div class="room-preview">${preview}</div>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.room-item').forEach(el => {
+      el.addEventListener('click', () => openRoom(+el.dataset.id, el.dataset.title));
+    });
+  }
+
+  // ── Open Room ──
+  function openRoom(roomId, title) {
+    currentRoomId = roomId;
+    lastSentAt    = null;
+    clearInterval(pollTimer);
+
+    const main = document.getElementById('chat-main');
+    main.innerHTML = `
+      <div class="chat-header">
+        <i class="bi bi-chat-dots-fill text-success"></i>
+        <span class="room-title">${title}</span>
+      </div>
+      <div class="messages-wrap" id="messages-wrap"></div>
+      <div class="chat-input-bar">
+        <form id="send-form">
+          <input type="text" class="form-control" id="msg-input" placeholder="Type a message…" autocomplete="off" required />
+          <button class="btn btn-success px-3" type="submit"><i class="bi bi-send-fill"></i></button>
+        </form>
+      </div>`;
+
+    document.getElementById('send-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const body = document.getElementById('msg-input').value.trim();
+      if (!body) return;
+      document.getElementById('msg-input').value = '';
+      await ATCA.api.post(`/chat/rooms/${currentRoomId}/messages`, { body });
+      await fetchMessages();
+    });
+
+    fetchMessages();
+    pollTimer = setInterval(fetchMessages, 3000);
+
+    // Mark active in sidebar
+    document.querySelectorAll('.room-item').forEach(el => el.classList.toggle('active', +el.dataset.id === roomId));
+  }
+
+  // ── Messages ──
+  async function fetchMessages() {
+    if (!currentRoomId) return;
+    const url  = lastSentAt ? `/chat/rooms/${currentRoomId}/messages?since=${encodeURIComponent(lastSentAt)}` : `/chat/rooms/${currentRoomId}/messages`;
+    const msgs = await ATCA.api.get(url);
+    if (!msgs.length) return;
+
+    const wrap   = document.getElementById('messages-wrap');
+    const atBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 80;
+    const frag   = document.createDocumentFragment();
+
+    msgs.forEach(m => {
+      const mine    = m.sender_id === myUserId;
+      const timeStr = new Date(m.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const div     = document.createElement('div');
+      div.className = `msg ${mine ? 'mine' : 'theirs'}`;
+      div.innerHTML = `
+        ${!mine ? `<div class="msg-meta">${m.sender_name}</div>` : ''}
+        <div class="msg-bubble${m.is_deleted ? ' deleted' : ''}">${m.is_deleted ? 'This message was deleted.' : escHtml(m.body)}</div>
+        <div class="msg-meta">${timeStr}${mine && !m.is_deleted ? ` <span class="delete-msg" data-id="${m.message_id}" style="cursor:pointer;margin-left:6px;color:#dc3545" title="Delete"><i class="bi bi-trash3"></i></span>` : ''}</div>`;
+      frag.appendChild(div);
+      lastSentAt = m.sent_at;
+    });
+
+    if (lastSentAt === null) {
+      wrap.appendChild(frag);
+    } else {
+      wrap.appendChild(frag);
+    }
+
+    wrap.querySelectorAll('.delete-msg').forEach(el => {
+      el.addEventListener('click', async () => {
+        if (!confirm('Delete this message?')) return;
+        await ATCA.api.delete(`/chat/rooms/${currentRoomId}/messages/${el.dataset.id}`);
+        await fetchMessages();
+      });
+    });
+
+    if (atBottom) wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── New DM ──
+  async function openNewDmModal() {
+    if (!allUsers.length) {
+      allUsers = await ATCA.api.get('/chat/users');
+    }
+    const myId = myUserId;
+    const others = allUsers.filter(u => u.user_id !== myId);
+    document.getElementById('user-list-check').innerHTML = others.map(u =>
+      `<div class="form-check p-1">
+        <input class="form-check-input" type="checkbox" value="${u.user_id}" id="u-${u.user_id}">
+        <label class="form-check-label small" for="u-${u.user_id}">${u.full_name} <span class="badge bg-secondary">${u.role}</span></label>
+      </div>`
+    ).join('');
+    new bootstrap.Modal(document.getElementById('modal-new-dm')).show();
+  }
+
+  document.getElementById('dm-type').addEventListener('change', e => {
+    document.getElementById('group-name-row').style.display = e.target.value === 'GROUP' ? '' : 'none';
+  });
+  document.getElementById('btn-new-dm').addEventListener('click', openNewDmModal);
+  document.getElementById('btn-new-dm2')?.addEventListener('click', openNewDmModal);
+
+  document.getElementById('btn-create-room').addEventListener('click', async () => {
+    const type  = document.getElementById('dm-type').value;
+    const name  = document.getElementById('dm-group-name').value.trim() || null;
+    const pids  = [...document.querySelectorAll('#user-list-check input:checked')].map(cb => +cb.value);
+    if (!pids.length) { alert('Select at least one person.'); return; }
+    bootstrap.Modal.getInstance(document.getElementById('modal-new-dm')).hide();
+    const result = await ATCA.api.post('/chat/rooms', { name, room_type: type, participant_ids: pids });
+    await loadRooms();
+    const title = allUsers.filter(u => pids.includes(u.user_id)).map(u => u.full_name).join(', ');
+    openRoom(result.room_id, name || title);
+  });
+
+  await loadRooms();
+});
+</script>
+</body>
+</html>

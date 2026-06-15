@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOD-24 Certificate of Conformance — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-core.css">
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      .coc-print-frame { border: 2px solid #000; padding: 24px; }
+    }
+  </style>
+</head>
+<body class="atca-body">
+
+<nav class="navbar navbar-dark atca-navbar px-3 no-print">
+  <a class="navbar-brand fw-bold" href="/"><i class="bi bi-award me-2"></i>ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-24 · Certificate of Conformance · AS9100D §8.6</span>
+  <div class="ms-auto d-flex align-items-center gap-3">
+    <span class="badge bg-success" id="badge-issued">—</span>
+    <a href="/" class="btn btn-outline-light btn-sm"><i class="bi bi-grid me-1"></i>Dashboard</a>
+  </div>
+</nav>
+
+<div class="container-fluid py-3 no-print">
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-draft">
+        <div class="kpi-label">Draft CoCs</div>
+        <div class="kpi-value" id="kv-draft">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-green" id="kpi-issued">
+        <div class="kpi-label">Issued CoCs</div>
+        <div class="kpi-value" id="kv-issued">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-red" id="kpi-pending">
+        <div class="kpi-label">WOs Awaiting CoC</div>
+        <div class="kpi-value" id="kv-pending">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-void">
+        <div class="kpi-label">Voided CoCs</div>
+        <div class="kpi-value" id="kv-void">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <select class="form-select form-select-sm w-auto" id="filter-status" onchange="loadCocs()">
+      <option value="">All Statuses</option>
+      <option value="DRAFT">Draft</option>
+      <option value="ISSUED">Issued</option>
+      <option value="SUPERSEDED">Superseded</option>
+      <option value="VOID">Void</option>
+    </select>
+    <button class="btn btn-primary btn-sm"
+      data-compliance="AS9100D §8.6 — CoC required for release of products to customers"
+      data-linked="MOD-03 FPI, MOD-06 Chemical Bath, MOD-09 Delivery Order, MOD-13 Work Order, MOD-17 MPT"
+      data-action-desc="Create a new Certificate of Conformance for a completed job"
+      onclick="showNewCocModal()">
+      <i class="bi bi-award me-1"></i>New Certificate
+    </button>
+  </div>
+
+  <!-- CoC List Table -->
+  <div class="table-responsive">
+    <table class="table table-hover table-sm atca-table">
+      <thead>
+        <tr>
+          <th>CoC No.</th><th>Customer</th><th>Part No.</th><th>Qty</th>
+          <th>Processes</th><th>Issued By</th><th>Issued Date</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-cocs"></tbody>
+    </table>
+  </div>
+  <div id="pagination-cocs"></div>
+</div>
+
+<!-- New CoC Modal -->
+<div class="modal fade" id="modalNewCoc" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-award me-2"></i>New Certificate of Conformance</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="nc-customer">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Customer PO No.</label>
+            <input type="text" class="form-control" id="nc-cpo">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Part Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="nc-pnum">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Part Description</label>
+            <input type="text" class="form-control" id="nc-pdesc">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Serial No.</label>
+            <input type="text" class="form-control" id="nc-serial">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Qty Certified</label>
+            <input type="number" class="form-control" id="nc-qty" value="1" min="1">
+          </div>
+
+          <!-- Processes -->
+          <div class="col-12">
+            <label class="form-label">Processes Performed</label>
+            <div class="d-flex gap-3">
+              <div class="form-check"><input class="form-check-input" type="checkbox" id="nc-fpi"><label class="form-check-label" for="nc-fpi">FPI (AC7114)</label></div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" id="nc-mpt"><label class="form-check-label" for="nc-mpt">MPT (AC7114)</label></div>
+              <div class="form-check"><input class="form-check-input" type="checkbox" id="nc-chem"><label class="form-check-label" for="nc-chem">Chemical Bath (AC7110)</label></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Specification References</label>
+            <input type="text" class="form-control" id="nc-specref" placeholder="e.g. AMS2647, AC7114 Rev F, AMS2644">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Material Certificate Ref</label>
+            <input type="text" class="form-control" id="nc-matref">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Inspection Report Ref</label>
+            <input type="text" class="form-control" id="nc-inpref">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Exceptions / Deviations</label>
+            <textarea class="form-control" id="nc-exc" rows="2" placeholder="Leave blank if none"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Conformance Statement</label>
+            <textarea class="form-control" id="nc-stmt" rows="3">We hereby certify that the product described above was produced, inspected and tested in accordance with the referenced specifications and requirements, and meets all applicable requirements.</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary"
+          data-compliance="AS9100D §8.6 — Release authority must verify all requirements met before issuing CoC"
+          data-linked="MOD-13 Work Order, MOD-03 FPI, MOD-17 MPT, MOD-09 Delivery Order"
+          data-action-desc="Create draft CoC — requires QA Manager approval to issue"
+          onclick="saveCoc()">
+          <i class="bi bi-save me-1"></i>Create Draft CoC
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CoC Print / View Modal -->
+<div class="modal fade" id="modalCocPrint" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header no-print">
+        <h5 class="modal-title" id="coc-print-title">Certificate of Conformance</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="coc-print-body"></div>
+      <div class="modal-footer no-print">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-warning" id="btn-issue-coc"
+          data-compliance="AS9100D §8.6 — Only authorised QA personnel may release product with CoC"
+          data-linked="MOD-24 CoC, MOD-09 Delivery Order"
+          data-action-desc="Approve and issue CoC — records authorised signatory and timestamp"
+          onclick="issueCoc()">
+          <i class="bi bi-check-circle me-1"></i>Approve & Issue
+        </button>
+        <button class="btn btn-primary" onclick="window.print()">
+          <i class="bi bi-printer me-1"></i>Print CoC
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+let currentCocId = null, currentCocStatus = null;
+const newCocModal   = new bootstrap.Modal(document.getElementById('modalNewCoc'));
+const printModal    = new bootstrap.Modal(document.getElementById('modalCocPrint'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadCocs();
+  ATCA.tooltips.init();
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod24/alerts/summary');
+  document.getElementById('kv-draft').textContent   = d.draft_cocs ?? '—';
+  document.getElementById('kv-issued').textContent  = d.issued_cocs ?? '—';
+  document.getElementById('kv-pending').textContent = d.pending_coc ?? '—';
+  document.getElementById('kv-void').textContent    = d.voided_cocs ?? '—';
+  document.getElementById('badge-issued').textContent = `${d.issued_cocs ?? 0} Issued`;
+  document.getElementById('kpi-pending').className = `kpi-card ${d.pending_coc > 0 ? 'kpi-red' : 'kpi-green'}`;
+}
+
+async function loadCocs() {
+  const status = document.getElementById('filter-status').value;
+  let url = '/mod24/cocs?limit=30';
+  if (status) url += `&status=${status}`;
+  const rows = await ATCA.api.get(url);
+  ATCA.table.render('tbody-cocs', rows, cocRow);
+}
+
+function cocRow(c) {
+  const stColors = { DRAFT:'warning', ISSUED:'success', SUPERSEDED:'secondary', VOID:'dark' };
+  const processes = [
+    c.process_fpi  ? '<span class="badge bg-info text-dark me-1">FPI</span>' : '',
+    c.process_mpt  ? '<span class="badge bg-primary me-1">MPT</span>' : '',
+    c.process_chem_bath ? '<span class="badge bg-success me-1">Chem Bath</span>' : '',
+    c.process_other ? `<span class="badge bg-secondary me-1">${c.process_other}</span>` : '',
+  ].filter(Boolean).join('');
+  return `<tr>
+    <td><strong>${c.coc_number}</strong></td>
+    <td>${c.customer_name}</td>
+    <td>${c.part_number}</td>
+    <td>${c.quantity_certified}</td>
+    <td>${processes || '—'}</td>
+    <td>${c.issued_by_name || '—'}</td>
+    <td>${c.issued_at ? c.issued_at.substring(0,10) : '—'}</td>
+    <td><span class="badge bg-${stColors[c.status] || 'secondary'}">${c.status}</span></td>
+    <td>
+      <button class="btn btn-outline-primary btn-xs me-1"
+        data-compliance="AS9100D §8.6 — CoC must be retained as quality record"
+        data-linked="MOD-09 Delivery Order, MOD-13 Work Order"
+        data-action-desc="View and print Certificate of Conformance"
+        onclick="viewCoc(${c.coc_id})">
+        <i class="bi bi-eye"></i>
+      </button>
+      ${c.status === 'DRAFT' ? `<button class="btn btn-outline-danger btn-xs"
+        data-compliance="AS9100D §8.6 — Only QA Manager may void a Certificate of Conformance"
+        data-linked="MOD-24 CoC"
+        data-action-desc="Void this CoC — requires reason and audit trail"
+        onclick="voidCoc(${c.coc_id})"><i class="bi bi-x-circle"></i></button>` : ''}
+    </td>
+  </tr>`;
+}
+
+function showNewCocModal() { newCocModal.show(); }
+
+async function saveCoc() {
+  const customer = document.getElementById('nc-customer').value.trim();
+  const pnum     = document.getElementById('nc-pnum').value.trim();
+  if (!customer || !pnum) { ATCA.toast('Customer and part number required.', 'warning'); return; }
+  try {
+    const res = await ATCA.api.post('/mod24/cocs', {
+      customer_name: customer,
+      customer_po:   document.getElementById('nc-cpo').value.trim(),
+      part_number:   pnum,
+      part_description: document.getElementById('nc-pdesc').value.trim(),
+      part_serial_no:   document.getElementById('nc-serial').value.trim(),
+      quantity_certified: parseInt(document.getElementById('nc-qty').value) || 1,
+      process_fpi:  document.getElementById('nc-fpi').checked,
+      process_mpt:  document.getElementById('nc-mpt').checked,
+      process_chem_bath: document.getElementById('nc-chem').checked,
+      specification_refs: document.getElementById('nc-specref').value.trim(),
+      material_cert_ref:  document.getElementById('nc-matref').value.trim(),
+      inspection_report_ref: document.getElementById('nc-inpref').value.trim(),
+      exceptions_noted:   document.getElementById('nc-exc').value.trim(),
+      conformance_statement: document.getElementById('nc-stmt').value.trim(),
+    });
+    ATCA.toast(`CoC ${res.coc_number} created (Draft). QA Manager must approve to issue.`, 'success');
+    newCocModal.hide();
+    loadCocs(); loadKpis();
+  } catch { ATCA.toast('Error creating CoC.', 'danger'); }
+}
+
+async function viewCoc(id) {
+  const c = await ATCA.api.get(`/mod24/cocs/${id}`);
+  currentCocId = id;
+  currentCocStatus = c.status;
+  document.getElementById('coc-print-title').textContent = `CoC: ${c.coc_number}`;
+  document.getElementById('btn-issue-coc').style.display = c.status === 'DRAFT' ? '' : 'none';
+
+  const processes = [
+    c.process_fpi ? 'Fluorescent Penetrant Inspection (FPI) per AC7114' : '',
+    c.process_mpt ? 'Magnetic Particle Testing (MPT) per AC7114' : '',
+    c.process_chem_bath ? 'Chemical Bath Processing per AC7110' : '',
+    c.process_other || '',
+  ].filter(Boolean);
+
+  document.getElementById('coc-print-body').innerHTML = `
+    <div class="coc-print-frame p-4">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold">ATC AVIATION PTE LTD</h3>
+        <h5>CERTIFICATE OF CONFORMANCE</h5>
+        <div class="row mt-2">
+          <div class="col text-start"><strong>CoC No.:</strong> ${c.coc_number}</div>
+          <div class="col text-end"><strong>Date Issued:</strong> ${c.issued_at ? c.issued_at.substring(0,10) : 'DRAFT — Not Issued'}</div>
+        </div>
+      </div>
+      <hr>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6"><strong>Customer:</strong> ${c.customer_name}</div>
+        <div class="col-md-6"><strong>Customer PO:</strong> ${c.customer_po || '—'}</div>
+        <div class="col-md-4"><strong>Part Number:</strong> ${c.part_number}</div>
+        <div class="col-md-4"><strong>Description:</strong> ${c.part_description || '—'}</div>
+        <div class="col-md-2"><strong>Serial No.:</strong> ${c.part_serial_no || '—'}</div>
+        <div class="col-md-2"><strong>Quantity:</strong> ${c.quantity_certified}</div>
+      </div>
+      <hr>
+      <div class="mb-3">
+        <strong>Processes Performed:</strong>
+        <ul class="mt-1">${processes.map(p => `<li>${p}</li>`).join('') || '<li>—</li>'}</ul>
+      </div>
+      <div class="mb-3">
+        <strong>Applicable Specifications:</strong><br>${c.specification_refs || '—'}
+      </div>
+      ${c.material_cert_ref ? `<div class="mb-2"><strong>Material Certificate Ref:</strong> ${c.material_cert_ref}</div>` : ''}
+      ${c.inspection_report_ref ? `<div class="mb-2"><strong>Inspection Report Ref:</strong> ${c.inspection_report_ref}</div>` : ''}
+      ${c.exceptions_noted ? `<div class="mb-3"><strong>Exceptions / Deviations:</strong><br><em>${c.exceptions_noted}</em></div>` : '<div class="mb-3"><strong>Exceptions / Deviations:</strong> None</div>'}
+      <hr>
+      <div class="mb-4"><strong>Conformance Statement:</strong><br>${c.conformance_statement}</div>
+      <div class="row mt-5">
+        <div class="col-md-6">
+          <div class="border-top pt-2">
+            <strong>Approved By:</strong> ${c.approved_by_name || '______________________'}<br>
+            <small>Quality Manager — ATC Aviation Pte Ltd</small>
+          </div>
+        </div>
+        <div class="col-md-3 offset-md-3">
+          <div class="border-top pt-2">
+            <strong>Date:</strong> ${c.approved_at ? c.approved_at.substring(0,10) : '______________________'}
+          </div>
+        </div>
+      </div>
+      ${c.status === 'DRAFT' ? '<div class="alert alert-warning mt-3 text-center"><strong>DRAFT — NOT ISSUED</strong></div>' : ''}
+      ${c.status === 'VOID'  ? '<div class="alert alert-danger mt-3 text-center"><strong>VOID</strong></div>' : ''}
+    </div>
+  `;
+  printModal.show();
+}
+
+async function issueCoc() {
+  if (!confirm('Issue this Certificate of Conformance? This action will be recorded in the audit trail.')) return;
+  try {
+    await ATCA.api.patch(`/mod24/cocs/${currentCocId}/issue`);
+    ATCA.toast('Certificate issued.', 'success');
+    printModal.hide();
+    loadCocs(); loadKpis();
+  } catch { ATCA.toast('Error issuing CoC.', 'danger'); }
+}
+
+async function voidCoc(id) {
+  const reason = prompt('Reason for voiding this CoC:');
+  if (!reason) return;
+  try {
+    await ATCA.api.patch(`/mod24/cocs/${id}/void`, { void_reason: reason });
+    ATCA.toast('CoC voided.', 'warning');
+    loadCocs(); loadKpis();
+  } catch { ATCA.toast('Error voiding CoC.', 'danger'); }
+}
+
+init();
+</script>
+</body>
+</html>

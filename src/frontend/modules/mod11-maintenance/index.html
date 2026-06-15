@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOD-11 Maintenance Management — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-11 · Maintenance Management · AS9100D §7.1.3</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">PM Due This Week</div><div id="kpi-due" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-red"><div class="kpi-label">Overdue PM</div><div id="kpi-overdue" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Open Work Permits</div><div id="kpi-permits" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-red"><div class="kpi-label">Active Breakdowns</div><div id="kpi-breakdowns" class="kpi-value">—</div></div></div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="mainTabs">
+    <li class="nav-item"><a class="nav-link active" href="#tab-assets" data-bs-toggle="tab">Asset Register</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-schedules" data-bs-toggle="tab">PM Schedule</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-permits" data-bs-toggle="tab">Work Permits</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Assets Tab -->
+    <div class="tab-pane fade show active" id="tab-assets">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2">
+          <select id="filter-category" class="form-select form-select-sm" style="width:160px">
+            <option value="">All Categories</option>
+            <option>PRODUCTION</option><option>FACILITY</option><option>LAB</option><option>SAFETY</option><option>RECTIFIER</option>
+          </select>
+          <select id="filter-status" class="form-select form-select-sm" style="width:160px">
+            <option value="">All Statuses</option>
+            <option>ACTIVE</option><option>UNDER_MAINTENANCE</option><option>DECOMMISSIONED</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openNewAssetModal()"
+          data-compliance="AS9100D §7.1.3" data-linked="MOD-05,MOD-11" data-action-desc="Register a new maintenance asset">
+          <i class="bi bi-plus-circle me-1"></i>New Asset
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Asset Code</th><th>Name</th><th>Category</th><th>Location</th><th>Next PM Due</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="assets-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PM Schedule Tab -->
+    <div class="tab-pane fade" id="tab-schedules">
+      <div class="table-responsive mt-2">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Asset</th><th>Category</th><th>Frequency</th><th>Next Due</th><th>NADCAP</th><th>Assigned To</th><th>RAG</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="schedules-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Work Permits Tab -->
+    <div class="tab-pane fade" id="tab-permits">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <select id="filter-permit-status" class="form-select form-select-sm" style="width:160px">
+          <option value="">All Statuses</option>
+          <option>OPEN</option><option>ACTIVE</option><option>CLOSED</option><option>CANCELLED</option>
+        </select>
+        <button class="btn btn-warning btn-sm" onclick="openNewPermitModal()"
+          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Create a work permit for hazardous maintenance activity">
+          <i class="bi bi-shield-exclamation me-1"></i>New Work Permit
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Permit No.</th><th>Asset</th><th>Hazard Type</th><th>Description</th><th>Authorised By</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="permits-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Asset Modal -->
+<div class="modal fade" id="assetModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">New Maintenance Asset</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Asset Name *</label><input id="a-name" class="form-control form-control-sm" /></div>
+      <div class="mb-2"><label class="form-label">Category *</label>
+        <select id="a-category" class="form-select form-select-sm">
+          <option>PRODUCTION</option><option>FACILITY</option><option>LAB</option><option>SAFETY</option><option>RECTIFIER</option>
+        </select>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label">Make</label><input id="a-make" class="form-control form-control-sm" /></div>
+        <div class="col"><label class="form-label">Model</label><input id="a-model" class="form-control form-control-sm" /></div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label">Serial No.</label><input id="a-serial" class="form-control form-control-sm" /></div>
+        <div class="col"><label class="form-label">Location</label><input id="a-location" class="form-control form-control-sm" /></div>
+      </div>
+      <div class="mb-2"><label class="form-label">Notes</label><textarea id="a-notes" class="form-control form-control-sm" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveAsset()"
+        data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Save new maintenance asset record">Save Asset</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- New Work Permit Modal -->
+<div class="modal fade" id="permitModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">New Work Permit</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Asset *</label><input id="p-asset-id" type="hidden" /><input id="p-asset-display" class="form-control form-control-sm" placeholder="Asset code..." /></div>
+      <div class="mb-2"><label class="form-label">Hazard Type *</label>
+        <select id="p-hazard" class="form-select form-select-sm">
+          <option>ELECTRICAL</option><option>MECHANICAL</option><option>CHEMICAL</option><option>HEIGHT</option><option>CONFINED_SPACE</option><option>HOT_WORK</option>
+        </select>
+      </div>
+      <div class="mb-2"><label class="form-label">Description *</label><textarea id="p-desc" class="form-control form-control-sm" rows="2"></textarea></div>
+      <div class="mb-2"><label class="form-label">Safety Precautions</label><textarea id="p-safety" class="form-control form-control-sm" rows="2"></textarea></div>
+      <div class="mb-2"><label class="form-label">PPE Required</label><input id="p-ppe" class="form-control form-control-sm" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-warning btn-sm" onclick="savePermit()"
+        data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Issue work permit for hazardous activity">Issue Permit</button>
+    </div>
+  </div></div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+const assetModal  = new bootstrap.Modal(document.getElementById('assetModal'));
+const permitModal = new bootstrap.Modal(document.getElementById('permitModal'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadAssets();
+  ATCA.tooltips.init();
+  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(t =>
+    t.addEventListener('shown.bs.tab', e => {
+      const href = e.target.getAttribute('href');
+      if (href === '#tab-schedules') loadSchedules();
+      if (href === '#tab-permits') loadPermits();
+    })
+  );
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod11/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-due').textContent = d.due_this_week ?? '—';
+  document.getElementById('kpi-overdue').textContent = d.overdue_pm ?? '—';
+  document.getElementById('kpi-permits').textContent = d.open_permits ?? '—';
+  document.getElementById('kpi-breakdowns').textContent = d.active_breakdowns ?? '—';
+  const nav = document.getElementById('nav-alerts');
+  if ((d.overdue_pm || 0) > 0) nav.innerHTML = `<span class="badge bg-danger">${d.overdue_pm} Overdue PM</span>`;
+}
+
+async function loadAssets() {
+  const cat = document.getElementById('filter-category').value;
+  const stat = document.getElementById('filter-status').value;
+  const params = new URLSearchParams();
+  if (cat) params.set('category', cat);
+  if (stat) params.set('status', stat);
+  const data = await ATCA.api.get('/mod11/assets?' + params);
+  ATCA.table.render('assets-tbody', data || [], a => {
+    const ragClass = a.status === 'UNDER_MAINTENANCE' ? 'text-warning fw-bold' : a.status === 'DECOMMISSIONED' ? 'text-muted' : '';
+    const pmBadge = a.next_pm_due
+      ? (new Date(a.next_pm_due) < new Date() ? `<span class="badge bg-danger">${a.next_pm_due}</span>` : `<span class="badge bg-success">${a.next_pm_due}</span>`)
+      : '<span class="text-muted">—</span>';
+    return `<tr>
+      <td><strong>${a.asset_code}</strong></td>
+      <td>${a.name}</td>
+      <td><span class="badge bg-secondary">${a.category}</span></td>
+      <td>${a.location || '—'}</td>
+      <td>${pmBadge}</td>
+      <td class="${ragClass}">${a.status}</td>
+      <td>
+        <button class="btn btn-outline-secondary btn-sm" onclick="viewAsset(${a.asset_id})"
+          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="View asset details and maintenance history">
+          <i class="bi bi-eye"></i>
+        </button>
+      </td>
+    </tr>`;
+  });
+}
+
+async function loadSchedules() {
+  const data = await ATCA.api.get('/mod11/schedules');
+  ATCA.table.render('schedules-tbody', data || [], s => {
+    const rag = s.rag_status === 'OVERDUE' ? 'danger' : s.rag_status === 'DUE_SOON' ? 'warning' : 'success';
+    return `<tr>
+      <td><strong>${s.asset_code}</strong> ${s.asset_name}</td>
+      <td><span class="badge bg-secondary">${s.category}</span></td>
+      <td>${s.frequency_value} × ${s.frequency_type}</td>
+      <td>${s.next_due_date}</td>
+      <td>${s.nadcap_flag ? '<span class="badge bg-info">NADCAP</span>' : '—'}</td>
+      <td>${s.assigned_name || '—'}</td>
+      <td><span class="badge bg-${rag}">${s.rag_status}</span></td>
+      <td>
+        <button class="btn btn-outline-primary btn-sm" onclick="completeSchedule(${s.schedule_id}, ${s.asset_id})"
+          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Record PM completion for this schedule">
+          <i class="bi bi-check2-circle"></i>
+        </button>
+      </td>
+    </tr>`;
+  });
+}
+
+async function loadPermits() {
+  const stat = document.getElementById('filter-permit-status').value;
+  const params = stat ? '?status=' + stat : '';
+  const data = await ATCA.api.get('/mod11/permits' + params);
+  ATCA.table.render('permits-tbody', data || [], p => {
+    const sc = p.status === 'ACTIVE' ? 'success' : p.status === 'OPEN' ? 'warning' : p.status === 'CLOSED' ? 'secondary' : 'danger';
+    return `<tr>
+      <td><strong>${p.permit_number}</strong></td>
+      <td>${p.asset_code} ${p.asset_name}</td>
+      <td><span class="badge bg-danger">${p.hazard_type}</span></td>
+      <td>${p.description}</td>
+      <td>${p.authorised_by_name || '—'}</td>
+      <td><span class="badge bg-${sc}">${p.status}</span></td>
+      <td>
+        ${p.status === 'OPEN' ? `<button class="btn btn-success btn-sm" onclick="activatePermit(${p.permit_id})"
+          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Activate and authorise work permit">Activate</button>` : ''}
+        ${p.status === 'ACTIVE' ? `<button class="btn btn-secondary btn-sm" onclick="closePermit(${p.permit_id})"
+          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Close completed work permit">Close</button>` : ''}
+      </td>
+    </tr>`;
+  });
+}
+
+function openNewAssetModal() { assetModal.show(); }
+function openNewPermitModal() { permitModal.show(); }
+
+async function saveAsset() {
+  const payload = {
+    name: document.getElementById('a-name').value.trim(),
+    category: document.getElementById('a-category').value,
+    make: document.getElementById('a-make').value.trim() || null,
+    model: document.getElementById('a-model').value.trim() || null,
+    serial_no: document.getElementById('a-serial').value.trim() || null,
+    location: document.getElementById('a-location').value.trim() || null,
+    notes: document.getElementById('a-notes').value.trim() || null,
+  };
+  if (!payload.name) return ATCA.toast('Asset name required', 'danger');
+  const r = await ATCA.api.post('/mod11/assets', payload);
+  if (r) { assetModal.hide(); ATCA.toast(`Asset ${r.asset_code} created`, 'success'); loadAssets(); }
+}
+
+async function savePermit() {
+  const payload = {
+    asset_id: parseInt(document.getElementById('p-asset-id').value),
+    hazard_type: document.getElementById('p-hazard').value,
+    description: document.getElementById('p-desc').value.trim(),
+    safety_precautions: document.getElementById('p-safety').value.trim() || null,
+    ppe_required: document.getElementById('p-ppe').value.trim() || null,
+  };
+  if (!payload.asset_id || !payload.description) return ATCA.toast('Asset and description required', 'danger');
+  const r = await ATCA.api.post('/mod11/permits', payload);
+  if (r) { permitModal.hide(); ATCA.toast(`Permit ${r.permit_number} issued`, 'success'); loadPermits(); }
+}
+
+async function activatePermit(id) {
+  const r = await ATCA.api.patch(`/mod11/permits/${id}/status`, { status: 'ACTIVE' });
+  if (r) { ATCA.toast('Work permit activated', 'success'); loadPermits(); loadKpis(); }
+}
+
+async function closePermit(id) {
+  const r = await ATCA.api.patch(`/mod11/permits/${id}/status`, { status: 'CLOSED' });
+  if (r) { ATCA.toast('Work permit closed', 'success'); loadPermits(); loadKpis(); }
+}
+
+async function completeSchedule(schedId, assetId) {
+  const r = await ATCA.api.post('/mod11/records', {
+    asset_id: assetId, schedule_id: schedId, type: 'PM',
+    start_datetime: new Date().toISOString(), outcome: 'PASS',
+  });
+  if (r) { ATCA.toast('PM recorded', 'success'); loadSchedules(); loadKpis(); }
+}
+
+async function viewAsset(id) { ATCA.toast('Asset detail view — open job card in full implementation', 'info'); }
+
+document.getElementById('filter-category').addEventListener('change', loadAssets);
+document.getElementById('filter-status').addEventListener('change', loadAssets);
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-10: Production Management
+  NADCAP AC7108 App D (Production Condition) | AC7114 (Test Piece)
+  AS9100D §8.5 (Production & Service Provision)
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Production Management — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-document-control/"  class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"          class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"             class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <a href="/modules/mod20-customer-complaint/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>Customer Complaint</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-ndt-personnel/"     class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment-calibration/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod09-sales-customer-service/" class="nav-link"><span class="nav-icon"><i class="bi bi-briefcase"></i></span>Sales &amp; Customer Service</a>
+  <a href="/modules/mod10-production-management/" class="nav-link active"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Production Management</a>
+  <a href="/modules/mod13-traveler/"          class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"               class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">Laboratory</div>
+  <a href="/modules/mod19-extended-laboratory/" class="nav-link"><span class="nav-icon"><i class="bi bi-flask"></i></span>Extended Laboratory</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-user-management/"   class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-diagram-3 me-1"></i>MOD-10 — Production Management</p>
+      <p class="topbar-subtitle mb-0">NADCAP AC7108 App D · AC7114 (Test Piece) · AS9100D §8.5</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-10 Production Management</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-due-soon">
+        <div class="kpi-label">Due in 3 Days</div>
+        <div class="kpi-value" id="val-due-soon">—</div>
+        <div class="kpi-sub">Route cards approaching deadline</div>
+      </div>
+      <div class="kpi-card" id="kpi-overdue-jobs">
+        <div class="kpi-label">Overdue Jobs</div>
+        <div class="kpi-value" id="val-overdue-jobs">—</div>
+        <div class="kpi-sub">Past required-by date</div>
+      </div>
+      <div class="kpi-card" id="kpi-checklist-incomplete">
+        <div class="kpi-label">Incomplete Checklists</div>
+        <div class="kpi-value" id="val-checklist-incomplete">—</div>
+        <div class="kpi-sub">Shift checklists pending sign-off</div>
+      </div>
+      <div class="kpi-card" id="kpi-failed-tp">
+        <div class="kpi-label">Failed Test Pieces</div>
+        <div class="kpi-value" id="val-failed-tp">—</div>
+        <div class="kpi-sub">TAM panel / coupon failures</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="mod10-tabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-route-cards">Route Cards</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-prod-conditions">Production Conditions (AC7108 App D)</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-test-pieces">Test Pieces / Coupons</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-shift-checklists">Shift Checklists</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ── ROUTE CARDS ── -->
+      <div class="tab-pane fade show active" id="tab-route-cards">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="rc-status-filter" style="width:150px;">
+              <option value="">All Statuses</option>
+              <option value="OPEN">Open</option><option value="IN_PROGRESS">In Progress</option>
+              <option value="PENDING_REVIEW">Pending Review</option><option value="COMPLETE">Complete</option>
+            </select>
+            <select class="form-select form-select-sm" id="rc-priority-filter" style="width:130px;">
+              <option value="">All Priorities</option>
+              <option value="URGENT">Urgent</option><option value="HIGH">High</option>
+              <option value="NORMAL">Normal</option><option value="LOW">Low</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-new-rc"
+            data-compliance="AS9100D §8.5.1 · NADCAP AC7108 App D"
+            data-linked="MOD-09 Contract Review · MOD-03 FPI Process · MOD-10 Prod Condition"
+            data-action-desc="Create a Route Card (production job traveler). Defines process sequence, part details, and customer requirements.">
+            <i class="bi bi-plus-lg me-1"></i>New Route Card
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr>
+                <th>Ref</th><th>Part Number</th><th>Customer</th><th>Job Type</th>
+                <th>Qty</th><th>Priority</th><th>Required By</th>
+                <th>Progress</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-rc"><tr><td colspan="10" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="rc-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── PRODUCTION CONDITIONS ── -->
+      <div class="tab-pane fade" id="tab-prod-conditions">
+        <div class="atca-info-banner mb-3">
+          <i class="bi bi-info-circle me-1"></i>
+          NADCAP AC7108 Appendix D — Production condition records verify that all process parameters (bath temp, UV intensity, ambient light, current) are within spec before a job commences.
+        </div>
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-primary btn-sm" id="btn-new-pc"
+            data-compliance="NADCAP AC7108 App D · AC7114 §5"
+            data-linked="MOD-10 Route Card · MOD-06 Bath Control · MOD-05 Equipment"
+            data-action-desc="Record a pre-job production condition check. All parameters must be within specification before work begins.">
+            <i class="bi bi-plus-lg me-1"></i>New Condition Check
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Process Type</th><th>Process Spec</th><th>Route Card</th><th>Check Date</th><th>Checked By</th><th>Bath Temp</th><th>UV Intensity</th><th>Overall</th></tr>
+            </thead>
+            <tbody id="tbody-pc"><tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="pc-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── TEST PIECES ── -->
+      <div class="tab-pane fade" id="tab-test-pieces">
+        <div class="atca-info-banner mb-3">
+          <i class="bi bi-info-circle me-1"></i>
+          AC7114 §5.3 / AC7108 — System performance indicators (TAM panels, Ketos rings, mock-ups) must be checked at defined intervals to verify system sensitivity.
+        </div>
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-primary btn-sm" id="btn-new-tp"
+            data-compliance="NADCAP AC7114 §5.3 · AC7108 §7"
+            data-linked="MOD-10 Route Card · MOD-05 Equipment · MOD-07 NCR"
+            data-action-desc="Record a test piece / system performance indicator check result.">
+            <i class="bi bi-plus-lg me-1"></i>New Test Piece Record
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Type</th><th>Serial No.</th><th>Route Card</th><th>Standard Ref</th><th>Date</th><th>Checked By</th><th>Result</th></tr>
+            </thead>
+            <tbody id="tbody-tp"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="tp-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── SHIFT CHECKLISTS ── -->
+      <div class="tab-pane fade" id="tab-shift-checklists">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <select class="form-select form-select-sm" id="sc-status-filter" style="width:150px;">
+            <option value="">All Statuses</option>
+            <option value="DRAFT">Draft</option>
+            <option value="SUBMITTED">Submitted</option>
+            <option value="APPROVED">Approved</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-new-sc"
+            data-compliance="AS9100D §8.5.1 · NADCAP AC7108 §5"
+            data-linked="MOD-10 Prod Condition · MOD-05 Equipment · MOD-06 Bath Control"
+            data-action-desc="Submit start-of-shift readiness checklist. Must be completed and approved by supervisor before production commences.">
+            <i class="bi bi-plus-lg me-1"></i>New Shift Checklist
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Shift</th><th>Date</th><th>Process Area</th><th>Equip</th><th>Chem</th><th>PPE</th><th>UV Lamp</th><th>Checked By</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="tbody-sc"><tr><td colspan="11" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="sc-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ══ MODALS ════════════════════════════════════════════════════ -->
+
+<!-- Route Card Modal -->
+<div class="modal fade" id="modal-rc" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New Route Card</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Part Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="rc-part-number">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Part Description</label>
+            <input type="text" class="form-control form-control-sm" id="rc-part-desc">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Qty</label>
+            <input type="number" class="form-control form-control-sm" id="rc-qty" value="1" min="1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Job Type</label>
+            <select class="form-select form-select-sm" id="rc-job-type">
+              <option value="FPI">FPI</option><option value="MPT">MPT</option>
+              <option value="CHEM_PROC">Chem Process</option><option value="MULTI_PROCESS">Multi-Process</option>
+              <option value="INSPECTION_ONLY">Inspection Only</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Priority</label>
+            <select class="form-select form-select-sm" id="rc-priority">
+              <option value="NORMAL" selected>Normal</option><option value="HIGH">High</option>
+              <option value="URGENT">Urgent</option><option value="LOW">Low</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Required By</label>
+            <input type="date" class="form-control form-control-sm" id="rc-required-by">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Customer PO Number</label>
+            <input type="text" class="form-control form-control-sm" id="rc-po">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Material Spec</label>
+            <input type="text" class="form-control form-control-sm" id="rc-mat-spec" placeholder="e.g. AMS 4045">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-rc"
+          data-compliance="AS9100D §8.5.1 · NADCAP AC7108"
+          data-linked="MOD-09 Contract Review · MOD-03 FPI · MOD-24 CoC"
+          data-action-desc="Save route card. Creates the production job record and assigns a unique reference number.">
+          <i class="bi bi-floppy me-1"></i>Save Route Card
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Shift Checklist Modal -->
+<div class="modal fade" id="modal-sc" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Start-of-Shift Checklist — AS9100D §8.5.1</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Process Area <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="sc-area">
+              <option value="FPI">FPI</option><option value="MPT">MPT</option>
+              <option value="CHEM_PROC">Chemical Processing</option>
+              <option value="NDT_GENERAL">NDT General</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Shift</label>
+            <select class="form-select form-select-sm" id="sc-shift">
+              <option value="DAY">Day</option><option value="NIGHT">Night</option>
+              <option value="OVERTIME">Overtime</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-control form-control-sm" id="sc-date">
+          </div>
+          <div class="col-12">
+            <p class="fw-semibold mb-2">Readiness Checks</p>
+            <div class="row g-2">
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-equip"><label class="form-check-label" for="sc-equip">Equipment ready and functional</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-chem"><label class="form-check-label" for="sc-chem">Chemicals within specification</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-ppe"><label class="form-check-label" for="sc-ppe">PPE available and serviceable</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-lighting"><label class="form-check-label" for="sc-lighting">Lighting within AC7114 §6 limits</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-safety"><label class="form-check-label" for="sc-safety">Safety eyewash/shower station OK</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-housekeeping"><label class="form-check-label" for="sc-housekeeping">Housekeeping satisfactory</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-readings"><label class="form-check-label" for="sc-readings">Bath/parameter readings recorded</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-uv"><label class="form-check-label" for="sc-uv">UV lamp intensity checked (FPI)</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-penetrant"><label class="form-check-label" for="sc-penetrant">Penetrant level OK (FPI)</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="sc-demag"><label class="form-check-label" for="sc-demag">Demagnetiser operational (MPT)</label></div></div>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Previous Shift Issues / Handover Notes</label>
+            <textarea class="form-control form-control-sm" id="sc-prev-issues" rows="2"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Additional Notes</label>
+            <textarea class="form-control form-control-sm" id="sc-notes" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-sc"
+          data-compliance="AS9100D §8.5.1 · NADCAP AC7108 §5 · AC7114 §6"
+          data-linked="MOD-05 Equipment · MOD-06 Bath Control · MOD-10 Prod Condition"
+          data-action-desc="Submit shift checklist for supervisor approval. Work must not commence until checklist is approved.">
+          <i class="bi bi-floppy me-1"></i>Submit Checklist
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast-msg" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+(async () => {
+  await ATCA.initPage();
+  ATCA.tooltips.init();
+
+  const toast = new bootstrap.Toast(document.getElementById('toast-msg'));
+  let rcPage = 1, pcPage = 1, tpPage = 1, scPage = 1;
+
+  function showToast(msg, ok = true) {
+    const el = document.getElementById('toast-msg');
+    el.className = `toast align-items-center text-bg-${ok ? 'success' : 'danger'} border-0`;
+    document.getElementById('toast-body').textContent = msg;
+    toast.show();
+  }
+
+  // ── KPIs ──────────────────────────────────────────────────────
+  async function loadKpis() {
+    try {
+      const a = await ATCA.api.get('/mod10/alerts/summary');
+      document.getElementById('val-due-soon').textContent           = a.due_soon;
+      document.getElementById('val-overdue-jobs').textContent       = a.overdue_jobs;
+      document.getElementById('val-checklist-incomplete').textContent = a.incomplete_checklists;
+      document.getElementById('val-failed-tp').textContent          = a.failed_test_pieces;
+      document.getElementById('kpi-due-soon').classList.toggle('rag-amber', a.due_soon > 0);
+      document.getElementById('kpi-overdue-jobs').classList.toggle('rag-red', a.overdue_jobs > 0);
+      document.getElementById('kpi-checklist-incomplete').classList.toggle('rag-amber', a.incomplete_checklists > 0);
+      document.getElementById('kpi-failed-tp').classList.toggle('rag-red', a.failed_test_pieces > 0);
+    } catch {}
+  }
+
+  // ── Route Cards ───────────────────────────────────────────────
+  async function loadRouteCards(page = 1) {
+    rcPage = page;
+    const status   = document.getElementById('rc-status-filter').value;
+    const priority = document.getElementById('rc-priority-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod10/route-cards?status=${status}&priority=${priority}&page=${page}`);
+      const sc  = { OPEN:'warning', IN_PROGRESS:'primary', PENDING_REVIEW:'info', COMPLETE:'success', CANCELLED:'dark', ON_HOLD:'secondary' };
+      const pri = { URGENT:'danger', HIGH:'warning', NORMAL:'info', LOW:'secondary' };
+      ATCA.table.render('tbody-rc', d.items, r => {
+        const pct = r.total_ops > 0 ? Math.round((r.done_ops / r.total_ops) * 100) : 0;
+        return `
+          <tr>
+            <td><code>${r.route_ref}</code></td>
+            <td><code>${r.part_number}</code></td>
+            <td>${r.customer_name || '—'}</td>
+            <td>${r.job_type}</td>
+            <td>${r.quantity}</td>
+            <td><span class="badge bg-${pri[r.priority]||'secondary'}">${r.priority}</span></td>
+            <td>${r.required_by_date || '—'}</td>
+            <td>
+              <div class="progress" style="height:6px;min-width:80px;">
+                <div class="progress-bar" style="width:${pct}%"></div>
+              </div>
+              <small>${r.done_ops}/${r.total_ops} ops</small>
+            </td>
+            <td><span class="badge bg-${sc[r.status]||'secondary'}">${r.status.replace('_',' ')}</span></td>
+            <td>
+              <button class="btn btn-xs btn-outline-secondary" onclick="viewRouteCard(${r.route_id})"><i class="bi bi-eye"></i></button>
+            </td>
+          </tr>`;
+      });
+      ATCA.pagination.render('rc-pagination', page, d.total, 50, loadRouteCards);
+    } catch {}
+  }
+
+  window.viewRouteCard = async (id) => {
+    const r = await ATCA.api.get(`/mod10/route-cards/${id}`);
+    alert(`Route Card: ${r.route_ref}\nPart: ${r.part_number}\nStatus: ${r.status}\nOps: ${r.operations.map(o => `${o.op_seq}. ${o.op_name} [${o.status}]`).join(', ')}`);
+  };
+
+  // ── Production Conditions ─────────────────────────────────────
+  async function loadProdConditions(page = 1) {
+    pcPage = page;
+    try {
+      const d = await ATCA.api.get(`/mod10/production-conditions?page=${page}`);
+      ATCA.table.render('tbody-pc', d.items, r => `
+        <tr>
+          <td><code>${r.condition_ref}</code></td>
+          <td>${r.process_type}</td>
+          <td><small>${r.process_spec}</small></td>
+          <td>${r.route_ref || '—'}</td>
+          <td>${new Date(r.check_date).toLocaleString()}</td>
+          <td>${r.checked_by_name}</td>
+          <td>${r.bath_temp_ok != null ? (r.bath_temp_ok ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-danger"></i>') : '—'}</td>
+          <td>${r.uv_intensity_ok != null ? (r.uv_intensity_ok ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-x-circle-fill text-danger"></i>') : '—'}</td>
+          <td>${r.overall_ok ? '<span class="badge bg-success">OK</span>' : '<span class="badge bg-danger">FAIL</span>'}</td>
+        </tr>`);
+      ATCA.pagination.render('pc-pagination', page, d.total, 50, loadProdConditions);
+    } catch {}
+  }
+
+  // ── Test Pieces ───────────────────────────────────────────────
+  async function loadTestPieces(page = 1) {
+    tpPage = page;
+    try {
+      const d = await ATCA.api.get(`/mod10/test-pieces?page=${page}`);
+      ATCA.table.render('tbody-tp', d.items, r => `
+        <tr>
+          <td><code>${r.test_piece_ref}</code></td>
+          <td>${r.test_piece_type}</td>
+          <td>${r.serial_number || '—'}</td>
+          <td>${r.route_ref || '—'}</td>
+          <td><small>${r.standard_ref || '—'}</small></td>
+          <td>${r.check_date ? new Date(r.check_date).toLocaleDateString() : '—'}</td>
+          <td>${r.checked_by_name}</td>
+          <td><span class="badge bg-${r.result==='PASS'?'success':r.result==='FAIL'?'danger':'secondary'}">${r.result}</span></td>
+        </tr>`);
+      ATCA.pagination.render('tp-pagination', page, d.total, 50, loadTestPieces);
+    } catch {}
+  }
+
+  // ── Shift Checklists ──────────────────────────────────────────
+  async function loadShiftChecklists(page = 1) {
+    scPage = page;
+    const status = document.getElementById('sc-status-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod10/shift-checklists?status=${status}&page=${page}`);
+      const sc = { DRAFT:'secondary', SUBMITTED:'warning', APPROVED:'success' };
+      ATCA.table.render('tbody-sc', d.items, r => `
+        <tr>
+          <td><code>${r.checklist_ref}</code></td>
+          <td>${r.shift_type}</td>
+          <td>${r.check_date}</td>
+          <td>${r.process_area}</td>
+          <td>${r.equipment_ready ? '✓' : '—'}</td>
+          <td>${r.chemicals_ok ? '✓' : '—'}</td>
+          <td>${r.ppe_available ? '✓' : '—'}</td>
+          <td>${r.uv_lamp_checked ? '✓' : '—'}</td>
+          <td>${r.checked_by_name}</td>
+          <td><span class="badge bg-${sc[r.status]||'secondary'}">${r.status}</span></td>
+          <td>
+            ${r.status==='SUBMITTED'?`<button class="btn btn-xs btn-success" onclick="approveChecklist(${r.checklist_id})"><i class="bi bi-check"></i> Approve</button>`:''}
+          </td>
+        </tr>`);
+      ATCA.pagination.render('sc-pagination', page, d.total, 50, loadShiftChecklists);
+    } catch {}
+  }
+
+  window.approveChecklist = async (id) => {
+    if (!confirm('Approve this shift checklist?')) return;
+    try {
+      await ATCA.api.patch(`/mod10/shift-checklists/${id}/approve`, { supervisor_sign: '' });
+      showToast('Checklist approved.');
+      loadShiftChecklists(scPage); loadKpis();
+    } catch { showToast('Error.', false); }
+  };
+
+  // ── Modal events ──────────────────────────────────────────────
+  document.getElementById('btn-new-rc').addEventListener('click', () => {
+    document.getElementById('rc-date').value = new Date().toISOString().slice(0,10);
+    new bootstrap.Modal(document.getElementById('modal-rc')).show();
+  });
+
+  document.getElementById('btn-save-rc').addEventListener('click', async () => {
+    const payload = {
+      part_number: document.getElementById('rc-part-number').value,
+      part_description: document.getElementById('rc-part-desc').value,
+      quantity: document.getElementById('rc-qty').value,
+      job_type: document.getElementById('rc-job-type').value,
+      priority: document.getElementById('rc-priority').value,
+      required_by_date: document.getElementById('rc-required-by').value || null,
+      po_number: document.getElementById('rc-po').value,
+      material_spec: document.getElementById('rc-mat-spec').value,
+    };
+    if (!payload.part_number) { showToast('Part number required.', false); return; }
+    try {
+      await ATCA.api.post('/mod10/route-cards', payload);
+      showToast('Route card created.');
+      bootstrap.Modal.getInstance(document.getElementById('modal-rc')).hide();
+      loadRouteCards(); loadKpis();
+    } catch { showToast('Error.', false); }
+  });
+
+  document.getElementById('btn-new-sc').addEventListener('click', () => {
+    document.getElementById('sc-date').value = new Date().toISOString().slice(0,10);
+    new bootstrap.Modal(document.getElementById('modal-sc')).show();
+  });
+
+  document.getElementById('btn-save-sc').addEventListener('click', async () => {
+    const payload = {
+      process_area: document.getElementById('sc-area').value,
+      shift_type: document.getElementById('sc-shift').value,
+      check_date: document.getElementById('sc-date').value,
+      checked_by: ATCA.user?.personnel_id || 1,
+      equipment_ready: document.getElementById('sc-equip').checked,
+      chemicals_ok: document.getElementById('sc-chem').checked,
+      ppe_available: document.getElementById('sc-ppe').checked,
+      lighting_ok: document.getElementById('sc-lighting').checked,
+      safety_station_ok: document.getElementById('sc-safety').checked,
+      housekeeping_ok: document.getElementById('sc-housekeeping').checked,
+      readings_recorded: document.getElementById('sc-readings').checked,
+      uv_lamp_checked: document.getElementById('sc-uv').checked,
+      penetrant_level_ok: document.getElementById('sc-penetrant').checked,
+      demagnetiser_ok: document.getElementById('sc-demag').checked,
+      prev_shift_issues: document.getElementById('sc-prev-issues').value,
+      checklist_notes: document.getElementById('sc-notes').value,
+    };
+    try {
+      await ATCA.api.post('/mod10/shift-checklists', payload);
+      showToast('Shift checklist submitted.');
+      bootstrap.Modal.getInstance(document.getElementById('modal-sc')).hide();
+      loadShiftChecklists(); loadKpis();
+    } catch { showToast('Error.', false); }
+  });
+
+  // ── Tab events ────────────────────────────────────────────────
+  document.querySelectorAll('#mod10-tabs .nav-link').forEach(tab => {
+    tab.addEventListener('shown.bs.tab', e => {
+      const t = e.target.getAttribute('href');
+      if (t === '#tab-route-cards')     loadRouteCards();
+      if (t === '#tab-prod-conditions') loadProdConditions();
+      if (t === '#tab-test-pieces')     loadTestPieces();
+      if (t === '#tab-shift-checklists') loadShiftChecklists();
+    });
+  });
+
+  document.getElementById('rc-status-filter').addEventListener('change', () => loadRouteCards(1));
+  document.getElementById('rc-priority-filter').addEventListener('change', () => loadRouteCards(1));
+  document.getElementById('sc-status-filter').addEventListener('change', () => loadShiftChecklists(1));
+
+  await Promise.all([loadKpis(), loadRouteCards()]);
+})();
+</script>
+</body>
+</html>

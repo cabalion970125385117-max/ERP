@@ -149,10 +149,11 @@ ATCA.api = {
     }
   },
 
-  get(endpoint)          { return this.request('GET',    endpoint); },
-  post(endpoint, body)   { return this.request('POST',   endpoint, body); },
-  put(endpoint, body)    { return this.request('PUT',    endpoint, body); },
-  patch(endpoint, body)  { return this.request('PATCH',  endpoint, body); },
+  get(endpoint)            { return this.request('GET',    endpoint); },
+  post(endpoint, body)     { return this.request('POST',   endpoint, body); },
+  put(endpoint, body)      { return this.request('PUT',    endpoint, body); },
+  patch(endpoint, body)    { return this.request('PATCH',  endpoint, body); },
+  delete(endpoint)         { return this.request('DELETE', endpoint); },
 };
 
 /* ============================================================
@@ -165,9 +166,8 @@ ATCA.session = {
   logoutTimeout: null,
 
   init() {
-    this.warningModal = new bootstrap.Modal(
-      document.getElementById('sessionTimeoutModal'), { backdrop: 'static' }
-    );
+    const _stEl = document.getElementById('sessionTimeoutModal');
+    if (_stEl) this.warningModal = new bootstrap.Modal(_stEl, { backdrop: 'static' });
     this.reset();
 
     document.getElementById('keep-session-btn')
@@ -228,6 +228,10 @@ ATCA.user = {
     return name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
   },
 
+  current() {
+    return ATCA.currentUser;
+  },
+
   hasRole(...roles) {
     return roles.includes(ATCA.currentUser?.role);
   },
@@ -283,6 +287,61 @@ ATCA.sidebar = {
     const btn = document.getElementById('sidebar-toggle');
     const sidebar = document.getElementById('sidebar');
     btn?.addEventListener('click', () => sidebar?.classList.toggle('open'));
+  },
+};
+
+/* ============================================================
+   HOME BUTTON — injected on every module page header.
+   Handles all three page layouts used across the app:
+     A) <header id="topbar">      (Phase 1 sidebar pages)
+     B) <div id="atca-topbar">    (Phase 2 sidebar-injected pages)
+     C) <nav class="navbar">      (Phase 5+ navbar pages)
+   Idempotent: never injects twice (.atca-home-btn guard).
+   ============================================================ */
+ATCA.nav = {
+  _makeBtn(extraClass) {
+    const a = document.createElement('a');
+    a.href = '/';
+    a.className = `btn btn-sm atca-home-btn ${extraClass}`;
+    a.title = 'Back to Home';
+    a.innerHTML = '<i class="bi bi-house"></i>';
+    return a;
+  },
+
+  init() {
+    const p = window.location.pathname;
+    if (p === '/' || p === '/index.html' || p.endsWith('login.html')) return;
+
+    // Layout B — injected sidebar pages
+    const atcaTop = document.getElementById('atca-topbar');
+    if (atcaTop) {
+      const left = atcaTop.querySelector('div:first-child') || atcaTop;
+      if (!left.querySelector('.atca-home-btn')) {
+        left.insertAdjacentElement('afterbegin', this._makeBtn('btn-outline-secondary me-3'));
+      }
+      return;
+    }
+
+    // Layout A — hardcoded sidebar pages
+    const topbar = document.getElementById('topbar');
+    if (topbar) {
+      if (!topbar.querySelector('.atca-home-btn')) {
+        const btn = this._makeBtn('btn-outline-secondary me-2');
+        const toggle = topbar.querySelector('#sidebar-toggle');
+        if (toggle) toggle.insertAdjacentElement('afterend', btn);
+        else topbar.insertAdjacentElement('afterbegin', btn);
+      }
+      return;
+    }
+
+    // Layout C — top navbar pages
+    const navbar = document.querySelector('nav.navbar');
+    if (navbar && !navbar.querySelector('.atca-home-btn')) {
+      const brand = navbar.querySelector('.navbar-brand');
+      const btn = this._makeBtn('btn-light me-2');
+      if (brand) brand.insertAdjacentElement('beforebegin', btn);
+      else navbar.insertAdjacentElement('afterbegin', btn);
+    }
   },
 };
 
@@ -355,6 +414,45 @@ ATCA.form = {
 };
 
 /* ============================================================
+   COMPLIANCE TOOLTIPS
+   Scan for [data-compliance] / [data-linked] / [data-action-desc]
+   attributes and attach Bootstrap popovers shown on hover.
+
+   Usage on any button/element:
+     data-compliance="NADCAP AC7114 §6.3 | AMS 2644"
+     data-linked="MOD-05 Equipment | MOD-04 Personnel"
+     data-action-desc="Records a bath sample and checks spec limits"
+
+   Call ATCA.tooltips.init() after rendering dynamic content.
+   ============================================================ */
+ATCA.tooltips = {
+  init() {
+    document.querySelectorAll('[data-compliance],[data-linked],[data-action-desc]').forEach(el => {
+      if (bootstrap.Popover.getInstance(el)) return; // already initialised
+      const compliance = el.getAttribute('data-compliance');
+      const linked     = el.getAttribute('data-linked');
+      const desc       = el.getAttribute('data-action-desc');
+
+      const lines = [];
+      if (desc)       lines.push(`<div class="mb-1 fw-semibold" style="font-size:.8rem">${desc}</div>`);
+      if (compliance) lines.push(`<div style="font-size:.75rem"><i class="bi bi-shield-check" style="color:#ffc107"></i>&nbsp;${compliance}</div>`);
+      if (linked)     lines.push(`<div style="font-size:.75rem"><i class="bi bi-diagram-3" style="color:#0dcaf0"></i>&nbsp;${linked}</div>`);
+
+      if (!lines.length) return;
+
+      new bootstrap.Popover(el, {
+        content:     lines.join(''),
+        html:        true,
+        trigger:     'hover focus',
+        placement:   'auto',
+        container:   'body',
+        customClass: 'atca-compliance-tip',
+      });
+    });
+  },
+};
+
+/* ============================================================
    TOAST CONTAINER — injected into body
    ============================================================ */
 (function injectToastContainer() {
@@ -366,12 +464,32 @@ ATCA.form = {
 })();
 
 /* ============================================================
-   INIT ON DOM READY
+   PAGE INIT — singleton promise so multiple callers all await
+   the same shared initialization, preventing duplicate timers.
+
+   Usage:  await ATCA.initPage()
+   The auto-init below seeds it on DOMContentLoaded so module
+   pages that don't call initPage() still get the shared setup.
    ============================================================ */
-document.addEventListener('DOMContentLoaded', async () => {
-  ATCA.clock.start();
-  ATCA.sidebar.init();
-  await ATCA.user.load();
-  ATCA.alerts.startPolling();
-  ATCA.session.init();
-});
+let _initPromise = null;
+
+ATCA.initPage = function() {
+  if (!_initPromise) {
+    _initPromise = (async () => {
+      ATCA.clock.start();
+      ATCA.sidebar.init();
+      ATCA.nav.init();
+      await ATCA.user.load();
+      ATCA.alerts.startPolling();
+      ATCA.session.init();
+      // Init tooltips for any static buttons already in the DOM
+      setTimeout(() => ATCA.tooltips.init(), 200);
+    })();
+  }
+  return _initPromise;
+};
+
+// Top-level toast shortcut — pages call ATCA.toast(...) directly
+ATCA.toast = (msg, type) => ATCA.utils.toast(msg, type);
+
+document.addEventListener('DOMContentLoaded', () => ATCA.initPage());

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOD-16 Finance — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+</head>
+<body>
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-16 · Finance & Accounting</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">AR Outstanding (SGD)</div><div id="kpi-ar" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-red"><div class="kpi-label">Overdue Invoices</div><div id="kpi-overdue" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">AP Outstanding (SGD)</div><div id="kpi-ap" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Pending Payroll Runs</div><div id="kpi-payroll" class="kpi-value">—</div></div></div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" href="#tab-ar" data-bs-toggle="tab">AR Invoices</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-ap" data-bs-toggle="tab">AP Invoices</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-journal" data-bs-toggle="tab">Journal Entries</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-accounts" data-bs-toggle="tab">Chart of Accounts</a></li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- AR Invoices -->
+    <div class="tab-pane fade show active" id="tab-ar">
+      <div class="d-flex justify-content-between mb-3">
+        <select id="filter-ar-status" class="form-select form-select-sm" style="width:160px">
+          <option value="">All Statuses</option><option>DRAFT</option><option>SENT</option><option>PAID</option><option>OVERDUE</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="openArModal()"
+          data-compliance="FRS §12" data-linked="MOD-16,MOD-12" data-action-desc="Create new AR invoice for customer">
+          <i class="bi bi-receipt me-1"></i>New AR Invoice
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr><th>Invoice #</th><th>Customer</th><th>Issue Date</th><th>Due Date</th><th>Amount (SGD)</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="ar-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- AP Invoices -->
+    <div class="tab-pane fade" id="tab-ap">
+      <div class="d-flex justify-content-between mb-3">
+        <select id="filter-ap-status" class="form-select form-select-sm" style="width:160px">
+          <option value="">All Statuses</option><option>PENDING</option><option>APPROVED</option><option>PAID</option>
+        </select>
+        <button class="btn btn-success btn-sm" onclick="openApModal()"
+          data-compliance="FRS §12" data-linked="MOD-16,MOD-12" data-action-desc="Record AP invoice from supplier">
+          <i class="bi bi-receipt-cutoff me-1"></i>Record AP Invoice
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr><th>Supplier</th><th>Supplier Inv #</th><th>Received</th><th>Due Date</th><th>Amount (SGD)</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="ap-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Journal Entries -->
+    <div class="tab-pane fade" id="tab-journal">
+      <div class="d-flex justify-content-between mb-3">
+        <select id="filter-je-status" class="form-select form-select-sm" style="width:160px">
+          <option value="">All Statuses</option><option>DRAFT</option><option>POSTED</option>
+        </select>
+        <button class="btn btn-outline-primary btn-sm" onclick="openJeModal()"
+          data-compliance="FRS §12" data-linked="MOD-16" data-action-desc="Create manual journal entry">
+          <i class="bi bi-journal-text me-1"></i>New Journal Entry
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr><th>JE #</th><th>Description</th><th>Entry Date</th><th>Total Debit</th><th>Total Credit</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="je-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Chart of Accounts -->
+    <div class="tab-pane fade" id="tab-accounts">
+      <div class="table-responsive mt-2">
+        <table class="table table-sm align-middle">
+          <thead class="table-dark"><tr><th>Account Code</th><th>Account Name</th><th>Type</th><th>Category</th><th>Currency</th></tr></thead>
+          <tbody id="accounts-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AR Invoice Modal -->
+<div class="modal fade" id="arModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">New AR Invoice</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Customer Name *</label><input id="ar-customer" class="form-control form-control-sm" /></div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label">Issue Date *</label><input id="ar-issue" type="date" class="form-control form-control-sm" /></div>
+        <div class="col"><label class="form-label">Due Date *</label><input id="ar-due" type="date" class="form-control form-control-sm" /></div>
+      </div>
+      <div class="mb-2"><label class="form-label">Amount (SGD) *</label><input id="ar-amount" type="number" step="0.01" class="form-control form-control-sm" /></div>
+      <div class="mb-2"><label class="form-label">Tax Amount (SGD)</label><input id="ar-tax" type="number" step="0.01" class="form-control form-control-sm" value="0" /></div>
+      <div class="mb-2"><label class="form-label">PO Reference</label><input id="ar-po-ref" class="form-control form-control-sm" /></div>
+      <div class="mb-2"><label class="form-label">Notes</label><textarea id="ar-notes" class="form-control form-control-sm" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveAr()"
+        data-compliance="FRS §12" data-linked="MOD-16" data-action-desc="Save AR invoice draft">Save Invoice</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- AP Invoice Modal -->
+<div class="modal fade" id="apModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Record AP Invoice</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="mb-2"><label class="form-label">Supplier ID *</label><input id="ap-supplier" type="number" class="form-control form-control-sm" placeholder="Supplier ID from MOD-12" /></div>
+      <div class="mb-2"><label class="form-label">Supplier Invoice # *</label><input id="ap-inv" class="form-control form-control-sm" /></div>
+      <div class="row g-2 mb-2">
+        <div class="col"><label class="form-label">Received Date *</label><input id="ap-received" type="date" class="form-control form-control-sm" /></div>
+        <div class="col"><label class="form-label">Due Date *</label><input id="ap-due" type="date" class="form-control form-control-sm" /></div>
+      </div>
+      <div class="mb-2"><label class="form-label">Amount (SGD) *</label><input id="ap-amount" type="number" step="0.01" class="form-control form-control-sm" /></div>
+      <div class="mb-2"><label class="form-label">Tax Amount (SGD)</label><input id="ap-tax" type="number" step="0.01" class="form-control form-control-sm" value="0" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-success btn-sm" onclick="saveAp()"
+        data-compliance="FRS §12" data-linked="MOD-16" data-action-desc="Record AP invoice from supplier">Record</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Journal Entry Modal -->
+<div class="modal fade" id="jeModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">New Journal Entry</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="row g-2 mb-2">
+        <div class="col-md-8"><label class="form-label">Description *</label><input id="je-desc" class="form-control form-control-sm" /></div>
+        <div class="col-md-4"><label class="form-label">Entry Date *</label><input id="je-date" type="date" class="form-control form-control-sm" /></div>
+      </div>
+      <div class="mb-2"><label class="form-label">Source Reference</label><input id="je-ref" class="form-control form-control-sm" placeholder="e.g. INV-2026-0001 or PR-2026-0001" /></div>
+      <p class="text-muted small">Lines are added in the full implementation. This creates the JE header record in DRAFT status.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveJe()"
+        data-compliance="FRS §12" data-linked="MOD-16" data-action-desc="Create journal entry draft">Create Draft</button>
+    </div>
+  </div></div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+const arModal = new bootstrap.Modal(document.getElementById('arModal'));
+const apModal = new bootstrap.Modal(document.getElementById('apModal'));
+const jeModal = new bootstrap.Modal(document.getElementById('jeModal'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadAr();
+  ATCA.tooltips.init();
+  document.querySelector('[href="#tab-ap"]').addEventListener('shown.bs.tab', loadAp);
+  document.querySelector('[href="#tab-journal"]').addEventListener('shown.bs.tab', loadJe);
+  document.querySelector('[href="#tab-accounts"]').addEventListener('shown.bs.tab', loadAccounts);
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod16/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-ar').textContent = d.ar_outstanding ? Number(d.ar_outstanding).toLocaleString('en-SG', {minimumFractionDigits:2}) : '—';
+  document.getElementById('kpi-overdue').textContent = d.overdue_invoices ?? '—';
+  document.getElementById('kpi-ap').textContent = d.ap_outstanding ? Number(d.ap_outstanding).toLocaleString('en-SG', {minimumFractionDigits:2}) : '—';
+  document.getElementById('kpi-payroll').textContent = d.pending_payroll_runs ?? '—';
+  if ((d.overdue_invoices || 0) > 0)
+    document.getElementById('nav-alerts').innerHTML = `<span class="badge bg-danger">${d.overdue_invoices} Overdue</span>`;
+}
+
+async function loadAr() {
+  const stat = document.getElementById('filter-ar-status').value;
+  const data = await ATCA.api.get('/mod16/ar-invoices' + (stat ? '?status=' + stat : ''));
+  const sc = { DRAFT: 'secondary', SENT: 'primary', PAID: 'success', OVERDUE: 'danger' };
+  ATCA.table.render('ar-tbody', data || [], r => `<tr>
+    <td><strong>${r.invoice_number}</strong></td>
+    <td>${r.customer_name}</td>
+    <td>${r.issue_date}</td>
+    <td class="${r.status === 'OVERDUE' ? 'text-danger fw-bold' : ''}">${r.due_date}</td>
+    <td>SGD ${Number(r.amount).toLocaleString('en-SG', {minimumFractionDigits:2})}</td>
+    <td><span class="badge bg-${sc[r.status] || 'secondary'}">${r.status}</span></td>
+    <td>
+      ${r.status !== 'PAID' ? `<button class="btn btn-outline-success btn-sm" onclick="markArPaid(${r.invoice_id})"
+        data-compliance="FRS §12" data-linked="MOD-16" data-action-desc="Mark AR invoice as paid"><i class="bi bi-check-lg"></i></button>` : '—'}
+    </td>
+  </tr>`);
+}
+
+async function loadAp() {
+  const stat = document.getElementById('filter-ap-status').value;
+  const data = await ATCA.api.get('/mod16/ap-invoices' + (stat ? '?status=' + stat : ''));
+  const sc = { PENDING: 'warning', APPROVED: 'primary', PAID: 'success' };
+  ATCA.table.render('ap-tbody', data || [], r => `<tr>
+    <td>${r.supplier_name}</td>
+    <td>${r.supplier_invoice_number}</td>
+    <td>${r.received_date}</td>
+    <td>${r.due_date}</td>
+    <td>SGD ${Number(r.amount).toLocaleString('en-SG', {minimumFractionDigits:2})}</td>
+    <td><span class="badge bg-${sc[r.status] || 'secondary'}">${r.status}</span></td>
+    <td>
+      ${r.status === 'PENDING' ? `<button class="btn btn-outline-primary btn-sm me-1" onclick="approveAp(${r.invoice_id})"
+        data-compliance="FRS §12" data-linked="MOD-16" data-action-desc="Approve AP invoice for payment">Approve</button>` : ''}
+    </td>
+  </tr>`);
+}
+
+async function loadJe() {
+  const stat = document.getElementById('filter-je-status').value;
+  const data = await ATCA.api.get('/mod16/journal-entries' + (stat ? '?status=' + stat : ''));
+  const sc = { DRAFT: 'secondary', POSTED: 'success' };
+  ATCA.table.render('je-tbody', data || [], j => `<tr>
+    <td><strong>${j.entry_number}</strong></td>
+    <td>${j.description}</td>
+    <td>${j.entry_date}</td>
+    <td>SGD ${Number(j.total_debit || 0).toFixed(2)}</td>
+    <td>SGD ${Number(j.total_credit || 0).toFixed(2)}</td>
+    <td><span class="badge bg-${sc[j.status] || 'secondary'}">${j.status}</span></td>
+    <td>
+      ${j.status === 'DRAFT' ? `<button class="btn btn-outline-success btn-sm" onclick="postJe(${j.entry_id})"
+        data-compliance="FRS §12" data-linked="MOD-16" data-action-desc="Post journal entry — cannot be reversed">Post</button>` : '—'}
+    </td>
+  </tr>`);
+}
+
+async function loadAccounts() {
+  const data = await ATCA.api.get('/mod16/accounts');
+  const typeColor = { ASSET: 'success', LIABILITY: 'danger', EQUITY: 'primary', REVENUE: 'info', EXPENSE: 'warning' };
+  ATCA.table.render('accounts-tbody', data || [], a => `<tr>
+    <td><strong>${a.account_code}</strong></td>
+    <td>${a.account_name}</td>
+    <td><span class="badge bg-${typeColor[a.account_type] || 'secondary'}">${a.account_type}</span></td>
+    <td>${a.category}</td>
+    <td>${a.currency}</td>
+  </tr>`);
+}
+
+function openArModal() { arModal.show(); }
+function openApModal() { apModal.show(); }
+function openJeModal() { jeModal.show(); }
+
+async function saveAr() {
+  const r = await ATCA.api.post('/mod16/ar-invoices', {
+    customer_name: document.getElementById('ar-customer').value.trim(),
+    issue_date: document.getElementById('ar-issue').value,
+    due_date: document.getElementById('ar-due').value,
+    amount: parseFloat(document.getElementById('ar-amount').value),
+    tax_amount: parseFloat(document.getElementById('ar-tax').value) || 0,
+    po_reference: document.getElementById('ar-po-ref').value.trim() || null,
+    notes: document.getElementById('ar-notes').value.trim() || null,
+  });
+  if (r) { arModal.hide(); ATCA.toast(`Invoice ${r.invoice_number} created`, 'success'); loadAr(); loadKpis(); }
+}
+
+async function saveAp() {
+  const r = await ATCA.api.post('/mod16/ap-invoices', {
+    supplier_id: parseInt(document.getElementById('ap-supplier').value),
+    supplier_invoice_number: document.getElementById('ap-inv').value.trim(),
+    received_date: document.getElementById('ap-received').value,
+    due_date: document.getElementById('ap-due').value,
+    amount: parseFloat(document.getElementById('ap-amount').value),
+    tax_amount: parseFloat(document.getElementById('ap-tax').value) || 0,
+  });
+  if (r) { apModal.hide(); ATCA.toast('AP invoice recorded', 'success'); loadAp(); loadKpis(); }
+}
+
+async function saveJe() {
+  const r = await ATCA.api.post('/mod16/journal-entries', {
+    description: document.getElementById('je-desc').value.trim(),
+    entry_date: document.getElementById('je-date').value,
+    source_reference: document.getElementById('je-ref').value.trim() || null,
+    lines: [],
+  });
+  if (r) { jeModal.hide(); ATCA.toast(`Journal entry ${r.entry_number} created`, 'success'); loadJe(); }
+}
+
+async function markArPaid(id) {
+  const r = await ATCA.api.patch(`/mod16/ar-invoices/${id}/mark-paid`, {});
+  if (r) { ATCA.toast('Invoice marked as paid', 'success'); loadAr(); loadKpis(); }
+}
+
+async function approveAp(id) {
+  const r = await ATCA.api.patch(`/mod16/ap-invoices/${id}/approve`, {});
+  if (r) { ATCA.toast('AP invoice approved', 'success'); loadAp(); loadKpis(); }
+}
+
+async function postJe(id) {
+  if (!confirm('Post this journal entry? This cannot be reversed.')) return;
+  const r = await ATCA.api.patch(`/mod16/journal-entries/${id}/post`, {});
+  if (r) { ATCA.toast('Journal entry posted', 'success'); loadJe(); }
+}
+
+document.getElementById('filter-ar-status').addEventListener('change', loadAr);
+document.getElementById('filter-ap-status').addEventListener('change', loadAp);
+document.getElementById('filter-je-status').addEventListener('change', loadJe);
+init();
+</script>
+</body>
+</html>

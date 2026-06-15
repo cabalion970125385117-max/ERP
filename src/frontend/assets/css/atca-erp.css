@@ -494,3 +494,22 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+/* ============================================================
+   COMPLIANCE TOOLTIPS (Bootstrap popover customisation)
+   ============================================================ */
+.atca-compliance-tip .popover-body {
+  font-size: .78rem;
+  padding: .5rem .75rem;
+  line-height: 1.5;
+  max-width: 280px;
+}
+.atca-compliance-tip.bs-popover-auto,
+.atca-compliance-tip.bs-popover-top,
+.atca-compliance-tip.bs-popover-bottom {
+  border: 1px solid rgba(255,193,7,.4);
+}
+.atca-compliance-tip .popover-arrow::after {
+  border-top-color: rgba(255,193,7,.4);
+}

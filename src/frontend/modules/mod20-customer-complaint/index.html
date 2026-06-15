@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-20: Customer Complaint & 8D Report
+  AS9100D §9.1.2 (Customer Satisfaction) | §10.2 (NCR & Corrective Action)
+  NADCAP AC7114 §10 | ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Customer Complaint &amp; 8D — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    .d-step { border-left: 3px solid var(--atca-border); padding-left: 1rem; margin-bottom: 1.25rem; }
+    .d-step.done { border-color: var(--bs-success); }
+    .d-step.active-step { border-color: var(--atca-accent); }
+    .d-label { font-weight: 600; font-size: .85rem; color: var(--atca-label); }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-document-control/"  class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"          class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"             class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <a href="/modules/mod20-customer-complaint/" class="nav-link active"><span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>Customer Complaint</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-ndt-personnel/"     class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment-calibration/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod09-sales-customer-service/" class="nav-link"><span class="nav-icon"><i class="bi bi-briefcase"></i></span>Sales &amp; Customer Service</a>
+  <a href="/modules/mod10-production-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Production Management</a>
+  <a href="/modules/mod13-traveler/"          class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"               class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">Laboratory</div>
+  <a href="/modules/mod19-extended-laboratory/" class="nav-link"><span class="nav-icon"><i class="bi bi-flask"></i></span>Extended Laboratory</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-user-management/"   class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-chat-left-dots me-1"></i>MOD-20 — Customer Complaint &amp; 8D Report</p>
+      <p class="topbar-subtitle mb-0">AS9100D §9.1.2 · §10.2 | NADCAP AC7114 §10 | 8D Corrective Action</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-20 Customer Complaint &amp; 8D</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-open-complaints">
+        <div class="kpi-label">Open Complaints</div>
+        <div class="kpi-value" id="val-open-complaints">—</div>
+        <div class="kpi-sub">AS9100D §9.1.2</div>
+      </div>
+      <div class="kpi-card" id="kpi-critical">
+        <div class="kpi-label">Critical Open</div>
+        <div class="kpi-value" id="val-critical">—</div>
+        <div class="kpi-sub">Severity: CRITICAL</div>
+      </div>
+      <div class="kpi-card" id="kpi-overdue">
+        <div class="kpi-label">Overdue</div>
+        <div class="kpi-value" id="val-overdue">—</div>
+        <div class="kpi-sub">Past target closure date</div>
+      </div>
+      <div class="kpi-card" id="kpi-open-8d">
+        <div class="kpi-label">Open 8D Reports</div>
+        <div class="kpi-value" id="val-open-8d">—</div>
+        <div class="kpi-sub">In-progress 8D investigations</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="mod20-tabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-complaints">Complaints</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-8d">8D Reports</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ── COMPLAINTS ── -->
+      <div class="tab-pane fade show active" id="tab-complaints">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="cc-status-filter" style="width:160px;">
+              <option value="">All Statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="8D_IN_PROGRESS">8D In Progress</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+            <select class="form-select form-select-sm" id="cc-severity-filter" style="width:130px;">
+              <option value="">All Severities</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-new-complaint"
+            data-compliance="AS9100D §9.1.2 · §10.2 · NADCAP AC7114 §10"
+            data-linked="MOD-07 NCR · MOD-20 8D Report · MOD-01 Management Review"
+            data-action-desc="Log a new customer complaint. CRITICAL severity complaints must have a 8D initiated within 24 hours.">
+            <i class="bi bi-plus-lg me-1"></i>Log Complaint
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr>
+                <th>Ref</th><th>Customer</th><th>Type</th><th>Severity</th>
+                <th>Subject</th><th>Received</th><th>Target Close</th>
+                <th>Owner</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-complaints"><tr><td colspan="10" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="complaints-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── 8D REPORTS ── -->
+      <div class="tab-pane fade" id="tab-8d">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <select class="form-select form-select-sm" id="d8-status-filter" style="width:180px;">
+            <option value="">All Statuses</option>
+            <option value="DRAFT">Draft</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="PENDING_APPROVAL">Pending Approval</option>
+            <option value="APPROVED">Approved</option>
+          </select>
+          <div></div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr>
+                <th>Ref</th><th>Complaint Ref</th><th>Customer</th><th>Subject</th><th>Severity</th>
+                <th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>D8</th>
+                <th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-8d"><tr><td colspan="15" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="d8-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ══ MODALS ════════════════════════════════════════════════════ -->
+
+<!-- New Complaint Modal -->
+<div class="modal fade" id="modal-complaint" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Log Customer Complaint — AS9100D §9.1.2</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="cc-customer-name" placeholder="Company name or individual">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Contact Name</label>
+            <input type="text" class="form-control form-control-sm" id="cc-contact-name">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Contact Email</label>
+            <input type="email" class="form-control form-control-sm" id="cc-contact-email">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Complaint Type</label>
+            <select class="form-select form-select-sm" id="cc-type">
+              <option value="QUALITY">Quality</option><option value="DELIVERY">Delivery</option>
+              <option value="SERVICE">Service</option><option value="DOCUMENTATION">Documentation</option>
+              <option value="SAFETY">Safety</option><option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Severity</label>
+            <select class="form-select form-select-sm" id="cc-severity">
+              <option value="LOW">Low</option><option value="MEDIUM" selected>Medium</option>
+              <option value="HIGH">High</option><option value="CRITICAL">Critical</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Subject <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="cc-subject">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Description <span class="text-danger">*</span></label>
+            <textarea class="form-control form-control-sm" id="cc-description" rows="4"></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Part Number</label>
+            <input type="text" class="form-control form-control-sm" id="cc-part-number">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Job Ref</label>
+            <input type="text" class="form-control form-control-sm" id="cc-job-ref">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Target Closure Date</label>
+            <input type="date" class="form-control form-control-sm" id="cc-target-date">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-complaint"
+          data-compliance="AS9100D §9.1.2 · §10.2"
+          data-linked="MOD-07 NCR · MOD-20 8D Report · MOD-01 Management Review"
+          data-action-desc="Submit complaint. CRITICAL complaints are escalated immediately to QA Manager.">
+          <i class="bi bi-floppy me-1"></i>Log Complaint
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8D Detail Modal -->
+<div class="modal fade" id="modal-8d" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-8d-title">8D Report</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modal-8d-body">
+        <p class="text-muted">Loading…</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-success btn-sm" id="btn-approve-8d" style="display:none;"
+          data-compliance="AS9100D §10.2.1"
+          data-linked="MOD-07 CAPA · MOD-01 Management Review"
+          data-action-desc="Approve and close 8D report. Linked complaint will be marked CLOSED.">
+          <i class="bi bi-check-circle me-1"></i>Approve &amp; Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast-msg" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+(async () => {
+  await ATCA.initPage();
+  ATCA.tooltips.init();
+
+  const toast = new bootstrap.Toast(document.getElementById('toast-msg'));
+  let ccPage = 1, d8Page = 1, current8dId = null;
+
+  function showToast(msg, ok = true) {
+    const el = document.getElementById('toast-msg');
+    el.className = `toast align-items-center text-bg-${ok ? 'success' : 'danger'} border-0`;
+    document.getElementById('toast-body').textContent = msg;
+    toast.show();
+  }
+
+  // ── KPIs ──────────────────────────────────────────────────────
+  async function loadKpis() {
+    try {
+      const a = await ATCA.api.get('/mod20/alerts/summary');
+      document.getElementById('val-open-complaints').textContent = a.open_complaints;
+      document.getElementById('val-critical').textContent        = a.critical_open;
+      document.getElementById('val-overdue').textContent         = a.overdue_complaints;
+      document.getElementById('val-open-8d').textContent         = a.open_8d;
+      document.getElementById('kpi-open-complaints').classList.toggle('rag-amber', a.open_complaints > 0);
+      document.getElementById('kpi-critical').classList.toggle('rag-red', a.critical_open > 0);
+      document.getElementById('kpi-overdue').classList.toggle('rag-red', a.overdue_complaints > 0);
+    } catch {}
+  }
+
+  // ── Complaints ────────────────────────────────────────────────
+  async function loadComplaints(page = 1) {
+    ccPage = page;
+    const status   = document.getElementById('cc-status-filter').value;
+    const severity = document.getElementById('cc-severity-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod20/complaints?status=${status}&severity=${severity}&page=${page}`);
+      const sc  = { OPEN:'warning', UNDER_REVIEW:'info', '8D_IN_PROGRESS':'primary', CLOSED:'success', WITHDRAWN:'dark' };
+      const sev = { CRITICAL:'danger', HIGH:'warning', MEDIUM:'info', LOW:'secondary' };
+      ATCA.table.render('tbody-complaints', d.items, r => `
+        <tr>
+          <td><code>${r.complaint_ref}</code></td>
+          <td>${r.customer_name || r.customer_company || '—'}</td>
+          <td>${r.complaint_type}</td>
+          <td><span class="badge bg-${sev[r.severity]||'secondary'}">${r.severity}</span></td>
+          <td>${r.subject}</td>
+          <td>${r.received_date}</td>
+          <td>${r.target_close_date || '—'}</td>
+          <td>${r.owned_by_name || '—'}</td>
+          <td><span class="badge bg-${sc[r.status]||'secondary'}">${r.status.replace('_',' ')}</span></td>
+          <td>
+            ${!r.has_8d && r.status !== 'CLOSED' ? `<button class="btn btn-xs btn-outline-primary" onclick="open8D(${r.complaint_id})"><i class="bi bi-journal-medical"></i> 8D</button>` : ''}
+            ${r.has_8d ? `<button class="btn btn-xs btn-outline-secondary" onclick="view8D(${r.complaint_id})"><i class="bi bi-eye"></i></button>` : ''}
+          </td>
+        </tr>`);
+      ATCA.pagination.render('complaints-pagination', page, d.total, 50, loadComplaints);
+    } catch {}
+  }
+
+  // ── 8D Reports ────────────────────────────────────────────────
+  async function load8D(page = 1) {
+    d8Page = page;
+    const status = document.getElementById('d8-status-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod20/8d-reports?status=${status}&page=${page}`);
+      const sc = { DRAFT:'secondary', IN_PROGRESS:'primary', PENDING_APPROVAL:'warning', APPROVED:'success', CLOSED:'dark' };
+      const tick = done => done ? '<i class="bi bi-check-circle-fill text-success"></i>' : '<i class="bi bi-circle text-muted"></i>';
+      const sev = { CRITICAL:'danger', HIGH:'warning', MEDIUM:'info', LOW:'secondary' };
+      ATCA.table.render('tbody-8d', d.items, r => `
+        <tr>
+          <td><code>${r.report_ref}</code></td>
+          <td><code>${r.complaint_ref}</code></td>
+          <td>${r.customer_name || '—'}</td>
+          <td>${r.subject}</td>
+          <td><span class="badge bg-${sev[r.severity]||'secondary'}">${r.severity}</span></td>
+          <td>${tick(r.d1_completed)}</td>
+          <td>${tick(r.d2_completed)}</td>
+          <td>${tick(r.d3_completed)}</td>
+          <td>${tick(r.d4_completed)}</td>
+          <td>${tick(r.d5_completed)}</td>
+          <td>${tick(r.d6_completed)}</td>
+          <td>${tick(r.d7_completed)}</td>
+          <td>${tick(r.d8_completed)}</td>
+          <td><span class="badge bg-${sc[r.overall_status]||'secondary'}">${r.overall_status.replace('_',' ')}</span></td>
+          <td>
+            <button class="btn btn-xs btn-outline-primary" onclick="viewReport(${r.report_id})"><i class="bi bi-pencil-square"></i></button>
+          </td>
+        </tr>`);
+      ATCA.pagination.render('d8-pagination', page, d.total, 50, load8D);
+    } catch {}
+  }
+
+  // ── Open new 8D ───────────────────────────────────────────────
+  window.open8D = async (complaintId) => {
+    const leader = prompt('D1: Team leader name:');
+    if (!leader) return;
+    try {
+      await ATCA.api.post('/mod20/8d-reports', { complaint_id: complaintId, d1_team_leader: leader });
+      showToast('8D Report opened.');
+      loadComplaints(ccPage);
+    } catch { showToast('Error opening 8D.', false); }
+  };
+
+  window.view8D = (complaintId) => {};
+  window.viewReport = async (reportId) => {
+    try {
+      const r = await ATCA.api.get(`/mod20/8d-reports/${reportId}`);
+      current8dId = reportId;
+      document.getElementById('modal-8d-title').textContent = `8D Report — ${r.report_ref} (${r.complaint_ref})`;
+      const steps = [
+        { n:1, label:'D1 — Team Formation', fields:[{id:'d1_team_leader',label:'Team Leader',val:r.d1_team_leader},{id:'d1_team_members',label:'Team Members',val:r.d1_team_members}], done:r.d1_completed },
+        { n:2, label:'D2 — Problem Description', fields:[{id:'d2_problem_stmt',label:'Problem Statement',val:r.d2_problem_stmt},{id:'d2_is_what',label:'IS (what, where, when)',val:r.d2_is_what},{id:'d2_is_not_what',label:'IS NOT (what, where, when)',val:r.d2_is_not_what}], done:r.d2_completed },
+        { n:3, label:'D3 — Interim Containment Action', fields:[{id:'d3_containment',label:'Containment Actions',val:r.d3_containment},{id:'d3_effectiveness',label:'Effectiveness Verification',val:r.d3_effectiveness}], done:r.d3_completed },
+        { n:4, label:'D4 — Root Cause Analysis', fields:[{id:'d4_root_cause',label:'Root Cause',val:r.d4_root_cause}], done:r.d4_completed },
+        { n:5, label:'D5 — Permanent Corrective Actions', fields:[{id:'d5_actions',label:'Corrective Actions',val:r.d5_actions},{id:'d5_responsible',label:'Responsible',val:r.d5_responsible}], done:r.d5_completed },
+        { n:6, label:'D6 — Implementation & Validation', fields:[{id:'d6_implementation',label:'Implementation Details',val:r.d6_implementation},{id:'d6_validation',label:'Validation Evidence',val:r.d6_validation}], done:r.d6_completed },
+        { n:7, label:'D7 — Prevent Recurrence', fields:[{id:'d7_systemic_actions',label:'Systemic Actions',val:r.d7_systemic_actions}], done:r.d7_completed },
+        { n:8, label:'D8 — Congratulate & Close', fields:[{id:'d8_lessons_learned',label:'Lessons Learned',val:r.d8_lessons_learned},{id:'d8_team_recognition',label:'Team Recognition',val:r.d8_team_recognition}], done:r.d8_completed },
+      ];
+      document.getElementById('modal-8d-body').innerHTML = steps.map(s => `
+        <div class="d-step ${s.done ? 'done' : ''}">
+          <div class="d-label mb-2">${s.done ? '<i class="bi bi-check-circle-fill text-success me-1"></i>' : ''} ${s.label}</div>
+          ${s.fields.map(f => `
+            <div class="mb-2">
+              <label class="form-label small">${f.label}</label>
+              <textarea class="form-control form-control-sm" id="8d-${reportId}-${f.id}" rows="2">${f.val||''}</textarea>
+            </div>`).join('')}
+          ${!s.done ? `<button class="btn btn-sm btn-outline-success mt-1" onclick="saveD(${reportId},${s.n})">Mark D${s.n} Complete</button>` : ''}
+        </div>`).join('');
+      const approveBtn = document.getElementById('btn-approve-8d');
+      approveBtn.style.display = r.overall_status === 'PENDING_APPROVAL' ? '' : 'none';
+      new bootstrap.Modal(document.getElementById('modal-8d')).show();
+    } catch { showToast('Error loading 8D.', false); }
+  };
+
+  window.saveD = async (reportId, step) => {
+    try {
+      const body = { completed: true };
+      const fieldsByStep = {
+        1:['d1_team_leader','d1_team_members'],
+        2:['d2_problem_stmt','d2_is_what','d2_is_not_what'],
+        3:['d3_containment','d3_effectiveness'],
+        4:['d4_root_cause'],
+        5:['d5_actions','d5_responsible'],
+        6:['d6_implementation','d6_validation'],
+        7:['d7_systemic_actions'],
+        8:['d8_lessons_learned','d8_team_recognition'],
+      };
+      for (const f of (fieldsByStep[step]||[])) {
+        const el = document.getElementById(`8d-${reportId}-${f}`);
+        if (el) body[f] = el.value;
+      }
+      await ATCA.api.patch(`/mod20/8d-reports/${reportId}/d/${step}`, body);
+      showToast(`D${step} completed.`);
+      viewReport(reportId);
+    } catch { showToast('Error.', false); }
+  };
+
+  document.getElementById('btn-approve-8d').addEventListener('click', async () => {
+    if (!current8dId || !confirm('Approve this 8D report and close the complaint?')) return;
+    try {
+      await ATCA.api.patch(`/mod20/8d-reports/${current8dId}/approve`);
+      showToast('8D approved. Complaint closed.');
+      bootstrap.Modal.getInstance(document.getElementById('modal-8d')).hide();
+      load8D(); loadComplaints(); loadKpis();
+    } catch { showToast('Error.', false); }
+  });
+
+  // ── New Complaint ─────────────────────────────────────────────
+  document.getElementById('btn-new-complaint').addEventListener('click', () => {
+    new bootstrap.Modal(document.getElementById('modal-complaint')).show();
+  });
+
+  document.getElementById('btn-save-complaint').addEventListener('click', async () => {
+    const payload = {
+      customer_name: document.getElementById('cc-customer-name').value,
+      contact_name: document.getElementById('cc-contact-name').value,
+      contact_email: document.getElementById('cc-contact-email').value,
+      complaint_type: document.getElementById('cc-type').value,
+      severity: document.getElementById('cc-severity').value,
+      subject: document.getElementById('cc-subject').value,
+      description: document.getElementById('cc-description').value,
+      part_number: document.getElementById('cc-part-number').value,
+      job_ref: document.getElementById('cc-job-ref').value,
+      target_close_date: document.getElementById('cc-target-date').value || null,
+    };
+    if (!payload.subject || !payload.description) { showToast('Subject and description required.', false); return; }
+    try {
+      await ATCA.api.post('/mod20/complaints', payload);
+      showToast('Complaint logged.');
+      bootstrap.Modal.getInstance(document.getElementById('modal-complaint')).hide();
+      loadComplaints(); loadKpis();
+    } catch { showToast('Error.', false); }
+  });
+
+  // ── Tab events ────────────────────────────────────────────────
+  document.querySelectorAll('#mod20-tabs .nav-link').forEach(tab => {
+    tab.addEventListener('shown.bs.tab', e => {
+      const t = e.target.getAttribute('href');
+      if (t === '#tab-complaints') loadComplaints();
+      if (t === '#tab-8d') load8D();
+    });
+  });
+
+  document.getElementById('cc-status-filter').addEventListener('change', () => loadComplaints(1));
+  document.getElementById('cc-severity-filter').addEventListener('change', () => loadComplaints(1));
+  document.getElementById('d8-status-filter').addEventListener('change', () => load8D(1));
+
+  await Promise.all([loadKpis(), loadComplaints()]);
+})();
+</script>
+</body>
+</html>

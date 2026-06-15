@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'">
+  <title>FPI Process Control — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <style>
+    .step-card { border-left: 4px solid #dee2e6; transition: border-color .2s; }
+    .step-card.signed  { border-left-color: #198754; }
+    .step-card.pending { border-left-color: #ffc107; }
+    .step-card.failed  { border-left-color: #dc3545; }
+    .traveler-header { background: #1A2520; color: #fff; }
+    .progress-step { width: 32px; height: 32px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:700; }
+  </style>
+</head>
+<body>
+
+<div id="atca-sidebar"></div>
+
+<div class="atca-main">
+
+  <!-- Top bar -->
+  <div id="atca-topbar" class="atca-topbar d-flex align-items-center justify-content-between px-4 py-2">
+    <div>
+      <span class="badge bg-secondary me-2">MOD-03</span>
+      <strong>FPI Process Control</strong>
+      <small class="text-muted ms-2">NADCAP AC7114 · ASTM E1417 · AMS 2644 · NAS410</small>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-sm btn-outline-secondary" onclick="loadJobs()"
+              data-action-desc="Refresh FPI job register from server"
+              data-compliance="NADCAP AC7114 · ASTM E1417 · NAS410"
+              data-linked="MOD-06 Bath Control · MOD-04 Personnel · MOD-05 Equipment">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+      <button class="btn btn-sm btn-success" id="btn-new-job" onclick="openNewJobModal()" style="display:none"
+              data-action-desc="Create a new FPI job — auto-generates all 8 ASTM E1417 inspection steps for sign-off"
+              data-compliance="NADCAP AC7114 · ASTM E1417 §7 · AMS 2644 · NAS410"
+              data-linked="MOD-06 Bath Control (penetrant bath) · MOD-04 Personnel (NAS410 cert) · MOD-13 Work Order">
+        <i class="bi bi-plus-circle"></i> New FPI Job
+      </button>
+      <div id="atca-user-chip"></div>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="px-4 pt-3">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="kpi-card" id="kpi-in-progress">
+          <div class="kpi-label">IN PROGRESS</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-sub">Active FPI jobs</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card" id="kpi-pending">
+          <div class="kpi-label">PENDING SIGN-OFF</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-sub">Steps awaiting sign-off</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card" id="kpi-rejected">
+          <div class="kpi-label">REJECTED</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-sub">Total rejected parts</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card rag-green" id="kpi-complete">
+          <div class="kpi-label">COMPLETED TODAY</div>
+          <div class="kpi-value">—</div>
+          <div class="kpi-sub">Jobs closed today</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job list -->
+  <div class="px-4">
+    <div class="card shadow-sm">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-clipboard-check me-2"></i>FPI Job Register</span>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" id="filter-status" onchange="loadJobs()" style="width:160px">
+            <option value="">All Status</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETE">Complete</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Job Ref</th>
+                <th>Part Number</th>
+                <th>Customer</th>
+                <th>Method</th>
+                <th>Penetrant</th>
+                <th>Qty</th>
+                <th>Steps</th>
+                <th>Status</th>
+                <th>Result</th>
+                <th>Created</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tbody-jobs">
+              <tr><td colspan="11" class="text-center text-muted py-4">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="d-flex align-items-center justify-content-between px-3 py-2 border-top">
+          <small class="text-muted" id="jobs-count"></small>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" id="btn-prev" onclick="changePage(-1)" disabled>
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="btn-next" onclick="changePage(1)" disabled>
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Traveler Panel -->
+  <div class="px-4 mt-4 d-none" id="panel-traveler">
+    <div class="card shadow-sm">
+      <div class="traveler-header p-3 d-flex align-items-center justify-content-between">
+        <div>
+          <span class="badge bg-light text-dark me-2">TRAVELER</span>
+          <strong id="traveler-title">FPI Job</strong>
+          <small class="ms-3 opacity-75">ASTM E1417 / AMS 2644 / NADCAP AC7114</small>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-sm btn-outline-light" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+          <button class="btn btn-sm btn-outline-light" onclick="closeTraveler()"><i class="bi bi-x-lg"></i></button>
+        </div>
+      </div>
+
+      <!-- Job info -->
+      <div class="card-body border-bottom" id="traveler-info"></div>
+
+      <!-- Step progress bar -->
+      <div class="card-body border-bottom">
+        <div class="d-flex gap-2 align-items-center" id="step-progress"></div>
+      </div>
+
+      <!-- Steps -->
+      <div class="card-body" id="traveler-steps"></div>
+
+      <!-- Final result -->
+      <div class="card-body border-top d-none" id="panel-final-result">
+        <h6 class="text-uppercase text-muted mb-3" style="font-size:.7rem;letter-spacing:.05em">Final Disposition</h6>
+        <div id="final-result-display"></div>
+        <div id="final-result-form" class="d-none">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Disposition <span class="text-danger">*</span></label>
+              <select class="form-select" id="r-disposition">
+                <option value="ACCEPT">ACCEPT — No indications</option>
+                <option value="REWORK">REWORK — Rework required</option>
+                <option value="REJECT">REJECT — Non-conforming</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Indication Found?</label>
+              <select class="form-select" id="r-indication">
+                <option value="0">No</option>
+                <option value="1">Yes</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold">Indication Description / Notes</label>
+              <textarea class="form-control" id="r-desc" rows="2" placeholder="Describe any indications found; required if REJECT"></textarea>
+            </div>
+            <div class="col-12">
+              <button class="btn btn-primary" onclick="submitResult()"
+                    data-action-desc="Record final ACCEPT/REJECT/REWORK. REJECT automatically links to NCR. Requires SUPERVISOR role or above."
+                    data-compliance="NADCAP AC7114 · ASTM E1417 §9 · AS9100D §8.6"
+                    data-linked="MOD-07 NCR &amp; CAPA (if REJECT) · MOD-24 CoC (if ACCEPT) · MOD-04 Personnel">
+              <i class="bi bi-check-circle me-1"></i>Record Final Result
+            </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pb-5"></div>
+</div>
+
+<!-- ── New Job Modal ───────────────────────────────────────────── -->
+<div class="modal fade" id="modal-new-job" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>New FPI Job</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-info py-2">
+          <small><i class="bi bi-info-circle me-1"></i>
+          Per <strong>ASTM E1417 / NADCAP AC7114</strong>. All 8 inspection steps will be auto-created.</small>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Part Number <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="j-part-number" maxlength="100">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Part Description</label>
+            <input type="text" class="form-control" id="j-part-desc" maxlength="200">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Material Spec</label>
+            <input type="text" class="form-control" id="j-material" placeholder="e.g. AMS 4045" maxlength="100">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Customer</label>
+            <input type="text" class="form-control" id="j-customer" maxlength="100">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Work Order Ref</label>
+            <input type="text" class="form-control" id="j-wo-ref" maxlength="30">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Quantity</label>
+            <input type="number" class="form-control" id="j-qty" value="1" min="1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Method <span class="text-danger">*</span></label>
+            <select class="form-select" id="j-method">
+              <option value="">— Select —</option>
+              <option value="METHOD_A">Method A — Water Washable</option>
+              <option value="METHOD_B">Method B — Post-Emulsifiable (Lipophilic)</option>
+              <option value="METHOD_C">Method C — Solvent Removable</option>
+              <option value="METHOD_D">Method D — Post-Emulsifiable (Hydrophilic)</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Penetrant Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="j-penetrant-type">
+              <option value="TYPE_I">Type I — Fluorescent</option>
+              <option value="TYPE_II">Type II — Visible Dye</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Sensitivity Level <span class="text-danger">*</span></label>
+            <select class="form-select" id="j-sensitivity">
+              <option value="1">Level 1 — Low</option>
+              <option value="2">Level 2 — Medium</option>
+              <option value="3">Level 3 — High</option>
+              <option value="4">Level 4 — Ultra-High</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label fw-semibold">Developer Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="j-developer">
+              <option value="DRY">Dry Powder (Form a)</option>
+              <option value="WET_AQUEOUS">Wet Aqueous (Form b)</option>
+              <option value="WET_NON_AQUEOUS">Wet Non-Aqueous (Form d)</option>
+              <option value="NONE">None</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Penetrant Bath (MOD-06 link)</label>
+            <select class="form-select" id="j-bath-id">
+              <option value="">— None / Not linked —</option>
+            </select>
+            <small class="text-muted">Links this job to the penetrant bath for traceability.</small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" onclick="createJob()"
+                data-action-desc="Create FPI job with 8 sign-off steps per ASTM E1417 §7. Inspector must hold valid NAS410 cert for the method."
+                data-compliance="NADCAP AC7114 · ASTM E1417 · AMS 2644 · NAS410 Level I/II"
+                data-linked="MOD-06 Bath Control (penetrant/emulsifier/developer) · MOD-04 Personnel · MOD-05 Equipment (UV lamp)">
+          <i class="bi bi-check-circle me-1"></i>Create Job
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Sign-off Step Modal ─────────────────────────────────────── -->
+<div class="modal fade" id="modal-signoff" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-pen me-2"></i>Sign Off — <span id="signoff-step-name"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Duration (min)</label>
+            <input type="number" class="form-control" id="so-duration" min="1">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Process Temp (°C)</label>
+            <input type="number" step="0.1" class="form-control" id="so-temp">
+          </div>
+          <div id="so-uv-group">
+            <div class="row g-2">
+              <div class="col-6">
+                <label class="form-label fw-semibold">UV Intensity (fc) <small class="text-muted">min 1000 fc</small></label>
+                <input type="number" class="form-control" id="so-uv">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">White Light (fc) <small class="text-muted">max 2 fc</small></label>
+                <input type="number" class="form-control" id="so-wl">
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Result <span class="text-danger">*</span></label>
+            <select class="form-select" id="so-result">
+              <option value="PASS">PASS</option>
+              <option value="FAIL">FAIL</option>
+              <option value="N/A">N/A — Not applicable</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Notes</label>
+            <textarea class="form-control" id="so-notes" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSignoff()"
+                data-action-desc="Inspector sign-off for this step. UV intensity ≥1000 fc and white light ≤2 fc required at Interpretation step per ASTM E1417."
+                data-compliance="NADCAP AC7114 · ASTM E1417 §7 · NAS410 (inspector must be Level II+)"
+                data-linked="MOD-04 Personnel (NAS410 cert check) · MOD-05 Equipment (UV lamp calibration)">
+          <i class="bi bi-pen me-1"></i>Sign Off
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+
+const ROLE_LEVELS = { READONLY:0, NDT_INSPECTOR:1, SUPERVISOR:2, ENGINEER:3, QA_MANAGER:4, ADMIN:5 };
+const STEP_LABELS = {
+  PRE_CLEAN:       'Pre-Cleaning',
+  PENETRANT_APPLY: 'Penetrant Application',
+  PENETRANT_DWELL: 'Penetrant Dwell',
+  RINSE:           'Rinse / Excess Removal',
+  DEVELOPER_APPLY: 'Developer Application',
+  DEVELOPER_DWELL: 'Development Dwell',
+  INTERPRET:       'Interpretation & Evaluation',
+  POST_CLEAN:      'Post-Cleaning',
+};
+
+let currentUser = null;
+let currentJobId = null;
+let currentSignoffSeq = null;
+let pagination = { offset: 0, limit: 20, total: 0 };
+let bathOptions = [];
+
+(async () => {
+  await ATCA.initPage();
+  currentUser = ATCA.user.current();
+  if (currentUser && ROLE_LEVELS[currentUser.role] >= ROLE_LEVELS['NDT_INSPECTOR']) {
+    document.getElementById('btn-new-job').style.display = '';
+  }
+  await loadAlerts();
+  await loadJobs();
+  await loadBathOptions();
+})();
+
+async function loadAlerts() {
+  const data = await ATCA.api.get('/mod03/alerts/summary');
+  if (!data) return;
+  setKpi('kpi-in-progress', data.in_progress, data.in_progress > 0 ? 'rag-amber' : 'rag-green');
+  setKpi('kpi-pending',     data.pending_signoff, data.pending_signoff > 0 ? 'rag-amber' : 'rag-green');
+  setKpi('kpi-rejected',    data.rejected, data.rejected > 0 ? 'rag-red' : 'rag-green');
+}
+
+function setKpi(id, value, ragClass) {
+  const el = document.getElementById(id);
+  el.querySelector('.kpi-value').textContent = value ?? '—';
+  el.className = `kpi-card ${ragClass}`;
+}
+
+async function loadBathOptions() {
+  const data = await ATCA.api.get('/mod06/baths');
+  if (!data) return;
+  bathOptions = (data.items || []).filter(b => b.bath_type === 'PENETRANT');
+  const sel = document.getElementById('j-bath-id');
+  bathOptions.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b.bath_id;
+    opt.textContent = `${b.bath_code} — ${b.bath_name} (${b.rag_status})`;
+    sel.appendChild(opt);
+  });
+}
+
+async function loadJobs() {
+  const status = document.getElementById('filter-status').value;
+  const params = new URLSearchParams({
+    limit: pagination.limit,
+    offset: pagination.offset,
+    ...(status ? { status } : {}),
+  });
+  const data = await ATCA.api.get(`/mod03/jobs?${params}`);
+  if (!data) return;
+
+  pagination.total = data.total;
+  document.getElementById('jobs-count').textContent =
+    `Showing ${pagination.offset + 1}–${Math.min(pagination.offset + data.items.length, data.total)} of ${data.total}`;
+  document.getElementById('btn-prev').disabled = pagination.offset === 0;
+  document.getElementById('btn-next').disabled = pagination.offset + pagination.limit >= data.total;
+
+  // Today's completed
+  const todayComplete = data.items.filter(j => {
+    if (j.status !== 'COMPLETE' || !j.final_signed_at) return false;
+    const d = new Date(j.final_signed_at);
+    const now = new Date();
+    return d.toDateString() === now.toDateString();
+  }).length;
+  document.querySelector('#kpi-complete .kpi-value').textContent = todayComplete;
+
+  const tbody = document.getElementById('tbody-jobs');
+  if (!data.items.length) {
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No FPI jobs found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.items.map(j => {
+    const statusBadge = j.status === 'IN_PROGRESS' ? 'warning text-dark' :
+                        j.status === 'COMPLETE'    ? 'success' : 'secondary';
+    const dispBadge   = j.disposition === 'ACCEPT' ? 'success' :
+                        j.disposition === 'REJECT' ? 'danger' :
+                        j.disposition === 'REWORK' ? 'warning text-dark' : '';
+    const stepsHtml   = j.total_steps
+      ? `<div class="progress" style="height:8px;width:80px">
+           <div class="progress-bar bg-success" style="width:${Math.round(j.completed_steps/j.total_steps*100)}%"></div>
+         </div>
+         <small>${j.completed_steps}/${j.total_steps}</small>`
+      : '—';
+    return `<tr style="cursor:pointer" onclick="openTraveler(${j.job_id})">
+      <td><code>${j.job_ref}</code></td>
+      <td><strong>${j.part_number}</strong><br><small class="text-muted">${j.part_description || ''}</small></td>
+      <td>${j.customer || '—'}</td>
+      <td><small>${j.method?.replace('_',' ') || '—'}</small></td>
+      <td><small>${j.penetrant_type?.replace('_',' ') || '—'}</small></td>
+      <td class="text-center">${j.quantity}</td>
+      <td>${stepsHtml}</td>
+      <td><span class="badge bg-${statusBadge}">${j.status?.replace('_',' ')}</span></td>
+      <td>${j.disposition ? `<span class="badge bg-${dispBadge}">${j.disposition}</span>` : '—'}</td>
+      <td><small>${new Date(j.created_at).toLocaleDateString()}</small></td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();openTraveler(${j.job_id})">
+          <i class="bi bi-clipboard-check"></i>
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function changePage(dir) {
+  pagination.offset = Math.max(0, pagination.offset + dir * pagination.limit);
+  loadJobs();
+}
+
+// ── New Job ────────────────────────────────────────────────────
+async function openNewJobModal() {
+  ['j-part-number','j-part-desc','j-material','j-customer','j-wo-ref'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('j-qty').value = '1';
+  document.getElementById('j-method').value = '';
+  document.getElementById('j-bath-id').value = '';
+  new bootstrap.Modal(document.getElementById('modal-new-job')).show();
+}
+
+async function createJob() {
+  const body = {
+    part_number:      document.getElementById('j-part-number').value.trim(),
+    part_description: document.getElementById('j-part-desc').value.trim(),
+    material_spec:    document.getElementById('j-material').value.trim(),
+    customer:         document.getElementById('j-customer').value.trim(),
+    work_order_ref:   document.getElementById('j-wo-ref').value.trim(),
+    quantity:         parseInt(document.getElementById('j-qty').value) || 1,
+    method:           document.getElementById('j-method').value,
+    penetrant_type:   document.getElementById('j-penetrant-type').value,
+    sensitivity_level: parseInt(document.getElementById('j-sensitivity').value),
+    developer_type:   document.getElementById('j-developer').value,
+    penetrant_bath_id: document.getElementById('j-bath-id').value || null,
+  };
+  if (!body.part_number || !body.method) {
+    return ATCA.toast('Part number and method are required.', 'danger');
+  }
+  const res = await ATCA.api.post('/mod03/jobs', body);
+  if (!res) return;
+  ATCA.toast(`FPI job ${res.job_ref} created with 8 steps.`, 'success');
+  bootstrap.Modal.getInstance(document.getElementById('modal-new-job')).hide();
+  await loadJobs();
+  await loadAlerts();
+  openTraveler(res.job_id);
+}
+
+// ── Traveler ──────────────────────────────────────────────────
+async function openTraveler(jobId) {
+  currentJobId = jobId;
+  const data = await ATCA.api.get(`/mod03/jobs/${jobId}`);
+  if (!data) return;
+
+  document.getElementById('traveler-title').textContent =
+    `${data.job_ref} — ${data.part_number}`;
+  document.getElementById('panel-traveler').classList.remove('d-none');
+  document.getElementById('panel-traveler').scrollIntoView({ behavior: 'smooth' });
+
+  // Job info
+  document.getElementById('traveler-info').innerHTML = `
+    <div class="row g-2">
+      <div class="col-md-2"><small class="text-muted d-block">Job Ref</small><strong>${data.job_ref}</strong></div>
+      <div class="col-md-2"><small class="text-muted d-block">Part No.</small><strong>${data.part_number}</strong></div>
+      <div class="col-md-2"><small class="text-muted d-block">Customer</small>${data.customer || '—'}</div>
+      <div class="col-md-2"><small class="text-muted d-block">Method</small>${data.method?.replace('_',' ')}</div>
+      <div class="col-md-2"><small class="text-muted d-block">Penetrant</small>${data.penetrant_type?.replace('_',' ')}</div>
+      <div class="col-md-2"><small class="text-muted d-block">Sensitivity</small>Level ${data.sensitivity_level}</div>
+      <div class="col-md-2"><small class="text-muted d-block">Developer</small>${data.developer_type?.replace('_',' ')}</div>
+      <div class="col-md-2"><small class="text-muted d-block">Bath</small>${data.penetrant_bath_code || '—'}</div>
+      <div class="col-md-2"><small class="text-muted d-block">Qty</small>${data.quantity}</div>
+      <div class="col-md-2"><small class="text-muted d-block">Created By</small>${data.created_by_name}</div>
+      <div class="col-md-2"><small class="text-muted d-block">Status</small>
+        <span class="badge bg-${data.status==='COMPLETE'?'success':data.status==='IN_PROGRESS'?'warning text-dark':'secondary'}">
+          ${data.status?.replace('_',' ')}
+        </span>
+      </div>
+    </div>`;
+
+  // Step progress dots
+  const progressEl = document.getElementById('step-progress');
+  progressEl.innerHTML = (data.steps || []).map(s => {
+    const cls = s.signed_off
+      ? (s.result === 'FAIL' ? 'bg-danger' : 'bg-success')
+      : 'bg-light border';
+    const icon = s.signed_off
+      ? (s.result === 'FAIL' ? '<i class="bi bi-x text-white"></i>' : '<i class="bi bi-check text-white"></i>')
+      : `<span style="color:#666">${s.step_seq}</span>`;
+    return `<div class="progress-step ${cls}" title="${STEP_LABELS[s.step_name]}">${icon}</div>
+            ${s.step_seq < 8 ? '<div style="flex:1;height:2px;background:#dee2e6;align-self:center"></div>' : ''}`;
+  }).join('');
+
+  // Step cards
+  const canSignoff = currentUser && ROLE_LEVELS[currentUser.role] >= ROLE_LEVELS['NDT_INSPECTOR'];
+  const canResult  = currentUser && ROLE_LEVELS[currentUser.role] >= ROLE_LEVELS['SUPERVISOR'];
+  const stepsEl = document.getElementById('traveler-steps');
+  stepsEl.innerHTML = (data.steps || []).map(s => {
+    const cls = s.signed_off ? (s.result === 'FAIL' ? 'failed' : 'signed') : 'pending';
+    const statusBadge = s.signed_off
+      ? `<span class="badge bg-${s.result==='FAIL'?'danger':s.result==='PASS'?'success':'secondary'}">${s.result}</span>`
+      : `<span class="badge bg-warning text-dark">Pending</span>`;
+    const details = s.signed_off ? `
+      <div class="mt-2 row g-2">
+        ${s.performed_by_name ? `<div class="col-auto"><small class="text-muted">By:</small> ${s.performed_by_name}</small></div>` : ''}
+        ${s.duration_min ? `<div class="col-auto"><small class="text-muted">Duration:</small> ${s.duration_min} min</div>` : ''}
+        ${s.uv_intensity_fc ? `<div class="col-auto"><small class="text-muted">UV:</small> ${s.uv_intensity_fc} fc</div>` : ''}
+        ${s.white_light_fc  ? `<div class="col-auto"><small class="text-muted">White Light:</small> ${s.white_light_fc} fc</div>` : ''}
+        ${s.temp_c ? `<div class="col-auto"><small class="text-muted">Temp:</small> ${s.temp_c}°C</div>` : ''}
+        ${s.notes ? `<div class="col-12"><small class="text-muted">Notes:</small> ${s.notes}</div>` : ''}
+        ${s.performed_at ? `<div class="col-auto"><small class="text-muted">${new Date(s.performed_at).toLocaleString()}</small></div>` : ''}
+      </div>` : '';
+    const signBtn = (!s.signed_off && data.status === 'IN_PROGRESS' && canSignoff)
+      ? `<button class="btn btn-sm btn-outline-primary" onclick="openSignoffModal(${s.step_seq}, '${s.step_name}')">
+           <i class="bi bi-pen me-1"></i>Sign Off
+         </button>` : '';
+    return `<div class="step-card ${cls} p-3 mb-2 rounded d-flex align-items-start justify-content-between">
+      <div>
+        <span class="badge bg-secondary me-2">Step ${s.step_seq}</span>
+        <strong>${STEP_LABELS[s.step_name]}</strong>
+        <span class="ms-2">${statusBadge}</span>
+        ${details}
+      </div>
+      <div>${signBtn}</div>
+    </div>`;
+  }).join('');
+
+  // Final result section
+  const allSigned = data.steps && data.steps.every(s => s.signed_off);
+  const panelFinal = document.getElementById('panel-final-result');
+  panelFinal.classList.remove('d-none');
+
+  if (data.final_result) {
+    const fr = data.final_result;
+    const dispCls = fr.disposition === 'ACCEPT' ? 'success' : fr.disposition === 'REJECT' ? 'danger' : 'warning';
+    document.getElementById('final-result-display').innerHTML = `
+      <div class="alert alert-${dispCls}">
+        <strong>${fr.disposition}</strong>
+        ${fr.indication_found ? ' — Indication found' : ''}
+        ${fr.indication_desc ? `<br>${fr.indication_desc}` : ''}
+        <div class="mt-1"><small>Signed by ${fr.final_signed_by_name} · ${new Date(fr.final_signed_at).toLocaleString()}</small></div>
+      </div>`;
+    document.getElementById('final-result-form').classList.add('d-none');
+  } else if (allSigned && data.status === 'IN_PROGRESS' && canResult) {
+    document.getElementById('final-result-display').innerHTML = `
+      <p class="text-muted"><i class="bi bi-check-all me-1"></i>All steps signed off. Record final disposition below.</p>`;
+    document.getElementById('final-result-form').classList.remove('d-none');
+  } else if (!allSigned) {
+    document.getElementById('final-result-display').innerHTML = `
+      <p class="text-muted"><i class="bi bi-hourglass me-1"></i>Complete all inspection steps before recording final disposition.</p>`;
+    document.getElementById('final-result-form').classList.add('d-none');
+  }
+}
+
+function closeTraveler() {
+  document.getElementById('panel-traveler').classList.add('d-none');
+  currentJobId = null;
+}
+
+// ── Sign-off ──────────────────────────────────────────────────
+function openSignoffModal(seq, stepName) {
+  currentSignoffSeq = seq;
+  document.getElementById('signoff-step-name').textContent = STEP_LABELS[stepName] || stepName;
+  ['so-duration','so-temp','so-uv','so-wl','so-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('so-result').value = 'PASS';
+  // Show UV/white light fields only for INTERPRET step
+  document.getElementById('so-uv-group').style.display = (seq === 7) ? '' : 'none';
+  new bootstrap.Modal(document.getElementById('modal-signoff')).show();
+}
+
+async function submitSignoff() {
+  const body = {
+    duration_min:    document.getElementById('so-duration').value || null,
+    temp_c:          document.getElementById('so-temp').value || null,
+    uv_intensity_fc: document.getElementById('so-uv').value || null,
+    white_light_fc:  document.getElementById('so-wl').value || null,
+    notes:           document.getElementById('so-notes').value.trim() || null,
+    result:          document.getElementById('so-result').value,
+  };
+  const res = await ATCA.api.post(`/mod03/jobs/${currentJobId}/steps/${currentSignoffSeq}/signoff`, body);
+  if (!res) return;
+  ATCA.toast(`Step ${currentSignoffSeq} signed off.`, 'success');
+  bootstrap.Modal.getInstance(document.getElementById('modal-signoff')).hide();
+  await openTraveler(currentJobId);
+  await loadAlerts();
+}
+
+// ── Final Result ──────────────────────────────────────────────
+async function submitResult() {
+  const body = {
+    disposition:      document.getElementById('r-disposition').value,
+    indication_found: document.getElementById('r-indication').value === '1',
+    indication_desc:  document.getElementById('r-desc').value.trim() || null,
+  };
+  const res = await ATCA.api.post(`/mod03/jobs/${currentJobId}/result`, body);
+  if (!res) return;
+  ATCA.toast(`Job ${body.disposition}. Job closed.`, body.disposition === 'ACCEPT' ? 'success' : 'warning');
+  await openTraveler(currentJobId);
+  await loadJobs();
+  await loadAlerts();
+}
+</script>
+</body>
+</html>

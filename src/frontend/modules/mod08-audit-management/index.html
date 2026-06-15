@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MOD-08 Audit Management — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-core.css">
+</head>
+<body class="atca-body">
+
+<nav class="navbar navbar-dark atca-navbar px-3">
+  <a class="navbar-brand fw-bold" href="/"><i class="bi bi-shield-check me-2"></i>ATCA-ERP</a>
+  <span class="text-white-50 small">MOD-08 · Audit Management · AS9100D §9.2</span>
+  <div class="ms-auto d-flex align-items-center gap-3">
+    <span class="badge bg-warning text-dark" id="badge-open-findings">—</span>
+    <a href="/" class="btn btn-outline-light btn-sm"><i class="bi bi-grid me-1"></i>Dashboard</a>
+  </div>
+</nav>
+
+<div class="container-fluid py-3">
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4" id="kpi-row">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-planned">
+        <div class="kpi-label">Planned / Active Audits</div>
+        <div class="kpi-value" id="kv-planned">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-red" id="kpi-open">
+        <div class="kpi-label">Open Findings</div>
+        <div class="kpi-value" id="kv-open">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-red" id="kpi-overdue">
+        <div class="kpi-label">Overdue Findings</div>
+        <div class="kpi-value" id="kv-overdue">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card kpi-amber" id="kpi-pending">
+        <div class="kpi-label">Pending Verification</div>
+        <div class="kpi-value" id="kv-pending">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="mainTabs">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-plans">Audit Plans</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-findings">Findings Register</a></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ── Audit Plans ── -->
+    <div class="tab-pane fade show active" id="tab-plans">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm w-auto" id="filter-plan-status" onchange="loadPlans()">
+            <option value="">All Statuses</option>
+            <option value="PLANNED">Planned</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETE">Complete</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+          <select class="form-select form-select-sm w-auto" id="filter-plan-type" onchange="loadPlans()">
+            <option value="">All Types</option>
+            <option value="INTERNAL">Internal</option>
+            <option value="NADCAP">NADCAP</option>
+            <option value="CUSTOMER">Customer</option>
+            <option value="SUPPLIER">Supplier</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm"
+          data-compliance="AS9100D §9.2 — Internal audit programme must be planned and conducted"
+          data-linked="MOD-07 NCR/CAPA, MOD-08 Findings"
+          data-action-desc="Create a new audit plan entry with scope, type and lead auditor"
+          onclick="showNewPlanModal()">
+          <i class="bi bi-plus-circle me-1"></i>New Audit Plan
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm atca-table">
+          <thead>
+            <tr>
+              <th>Audit No.</th><th>Title</th><th>Type</th><th>Auditee Dept</th>
+              <th>Planned Date</th><th>Lead Auditor</th><th>Findings</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-plans"></tbody>
+        </table>
+      </div>
+      <div id="pagination-plans"></div>
+    </div>
+
+    <!-- ── Findings Register ── -->
+    <div class="tab-pane fade" id="tab-findings">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm w-auto" id="filter-finding-status" onchange="loadFindings()">
+            <option value="">All Statuses</option>
+            <option value="OPEN">Open</option>
+            <option value="RESPONSE_SUBMITTED">Response Submitted</option>
+            <option value="VERIFIED">Verified</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+          <select class="form-select form-select-sm w-auto" id="filter-finding-type" onchange="loadFindings()">
+            <option value="">All Types</option>
+            <option value="OBSERVATION">Observation</option>
+            <option value="MINOR_NC">Minor NC</option>
+            <option value="MAJOR_NC">Major NC</option>
+            <option value="OPPORTUNITY">Opportunity</option>
+          </select>
+        </div>
+        <button class="btn btn-warning btn-sm"
+          data-compliance="AS9100D §9.2.2 — Audit findings must be documented with objective evidence"
+          data-linked="MOD-08 Audit Plans, MOD-07 NCR/CAPA"
+          data-action-desc="Raise a new audit finding with clause reference and objective evidence"
+          onclick="showNewFindingModal()">
+          <i class="bi bi-exclamation-triangle me-1"></i>Raise Finding
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm atca-table">
+          <thead>
+            <tr>
+              <th>Finding No.</th><th>Audit</th><th>Type</th><th>Clause Ref</th>
+              <th>Description</th><th>Assigned To</th><th>Due Date</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-findings"></tbody>
+        </table>
+      </div>
+      <div id="pagination-findings"></div>
+    </div>
+
+  </div><!-- /tab-content -->
+</div>
+
+<!-- New Audit Plan Modal -->
+<div class="modal fade" id="modalNewPlan" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-clipboard-check me-2"></i>New Audit Plan</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label">Audit Title <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="np-title" placeholder="e.g. Annual Internal FPI Process Audit">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Audit Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="np-type">
+              <option value="INTERNAL">Internal</option>
+              <option value="NADCAP">NADCAP</option>
+              <option value="CUSTOMER">Customer</option>
+              <option value="SUPPLIER">Supplier</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Planned Date <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="np-date">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Auditee Department <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="np-dept" placeholder="e.g. NDT Operations">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Lead Auditor Name</label>
+            <input type="text" class="form-control" id="np-auditor" placeholder="Auditor full name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Standard / Clause Reference</label>
+            <input type="text" class="form-control" id="np-std" placeholder="e.g. AS9100D §9.2, AC7114 Rev F">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Audit Scope <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="np-scope" rows="3" placeholder="Describe the scope, processes and areas to be audited"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary"
+          data-compliance="AS9100D §9.2.1 — Audit programme considers process importance and previous audit results"
+          data-linked="MOD-08 Findings, MOD-07 NCR/CAPA"
+          data-action-desc="Save audit plan and generate audit number"
+          onclick="savePlan()">
+          <i class="bi bi-save me-1"></i>Save Audit Plan
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Finding Modal -->
+<div class="modal fade" id="modalNewFinding" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Raise Audit Finding</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Audit Plan <span class="text-danger">*</span></label>
+            <select class="form-select" id="nf-plan"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Finding Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="nf-type">
+              <option value="OBSERVATION">Observation</option>
+              <option value="MINOR_NC">Minor Nonconformance</option>
+              <option value="MAJOR_NC">Major Nonconformance</option>
+              <option value="OPPORTUNITY">Opportunity for Improvement</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Clause Reference</label>
+            <input type="text" class="form-control" id="nf-clause" placeholder="e.g. AS9100D §8.5.1">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-control" id="nf-due">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Assigned To (name)</label>
+            <input type="text" class="form-control" id="nf-assignee" placeholder="Responsible person">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Finding Description <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="nf-desc" rows="3" placeholder="Describe the finding clearly"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Objective Evidence</label>
+            <textarea class="form-control" id="nf-evidence" rows="2" placeholder="Records, observations, measurements reviewed"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-warning"
+          data-compliance="AS9100D §9.2.2 — Findings must include clause reference and objective evidence"
+          data-linked="MOD-08 Audit Plans, MOD-07 NCR/CAPA"
+          data-action-desc="Save finding and notify assigned person"
+          onclick="saveFinding()">
+          <i class="bi bi-save me-1"></i>Raise Finding
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View/Update Finding Response Modal -->
+<div class="modal fade" id="modalFindingDetail" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="finding-detail-title">Finding Detail</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="finding-detail-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-success" id="btn-submit-response"
+          data-compliance="AS9100D §10.1 — Root cause analysis and corrective action required for nonconformances"
+          data-linked="MOD-08 Findings, MOD-07 CAPA"
+          data-action-desc="Submit root cause analysis and corrective action plan"
+          onclick="submitResponse()">
+          <i class="bi bi-send me-1"></i>Submit Response
+        </button>
+        <button class="btn btn-primary" id="btn-verify-finding"
+          data-compliance="AS9100D §9.2.2 — Effectiveness of corrective actions must be verified"
+          data-linked="MOD-08 Findings"
+          data-action-desc="Mark finding as verified after confirming corrective action effectiveness"
+          onclick="verifyFinding()">
+          <i class="bi bi-check-circle me-1"></i>Mark Verified
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+let currentFindingId = null;
+const planModal    = new bootstrap.Modal(document.getElementById('modalNewPlan'));
+const findingModal = new bootstrap.Modal(document.getElementById('modalNewFinding'));
+const detailModal  = new bootstrap.Modal(document.getElementById('modalFindingDetail'));
+
+async function init() {
+  await ATCA.initPage();
+  await loadKpis();
+  loadPlans();
+  ATCA.tooltips.init();
+  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(t =>
+    t.addEventListener('shown.bs.tab', e => {
+      if (e.target.getAttribute('href') === '#tab-findings') loadFindings();
+    })
+  );
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod08/alerts/summary');
+  document.getElementById('kv-planned').textContent  = d.planned_audits ?? '—';
+  document.getElementById('kv-open').textContent     = d.open_findings ?? '—';
+  document.getElementById('kv-overdue').textContent  = d.overdue_findings ?? '—';
+  document.getElementById('kv-pending').textContent  = d.pending_verification ?? '—';
+  document.getElementById('badge-open-findings').textContent = `${d.open_findings ?? 0} Open`;
+  document.getElementById('kpi-open').className   = `kpi-card ${d.open_findings   > 0 ? 'kpi-red'   : 'kpi-green'}`;
+  document.getElementById('kpi-overdue').className = `kpi-card ${d.overdue_findings > 0 ? 'kpi-red' : 'kpi-green'}`;
+}
+
+async function loadPlans() {
+  const status = document.getElementById('filter-plan-status').value;
+  const type   = document.getElementById('filter-plan-type').value;
+  let url = '/mod08/audit-plans?limit=20';
+  if (status) url += `&status=${status}`;
+  if (type)   url += `&type=${type}`;
+  const rows = await ATCA.api.get(url);
+  ATCA.table.render('tbody-plans', rows, planRow);
+}
+
+function planRow(p) {
+  const statusClass = { PLANNED:'warning', IN_PROGRESS:'primary', COMPLETE:'success', CANCELLED:'secondary' }[p.status] || 'secondary';
+  const openBadge = p.open_findings > 0 ? `<span class="badge bg-danger">${p.open_findings} open</span>` : `<span class="badge bg-success">${p.total_findings} findings</span>`;
+  return `<tr>
+    <td><strong>${p.audit_number}</strong></td>
+    <td>${p.audit_title}</td>
+    <td><span class="badge bg-info text-dark">${p.audit_type}</span></td>
+    <td>${p.auditee_dept}</td>
+    <td>${p.planned_date ? p.planned_date.substring(0,10) : '—'}</td>
+    <td>${p.lead_auditor_full_name || p.lead_auditor_name || '—'}</td>
+    <td>${openBadge}</td>
+    <td><span class="badge bg-${statusClass}">${p.status}</span></td>
+    <td>
+      <button class="btn btn-outline-primary btn-xs me-1"
+        data-compliance="AS9100D §9.2 — Review audit status and checklist progress"
+        data-linked="MOD-08 Findings"
+        data-action-desc="Open audit plan detail and checklist"
+        onclick="viewPlan(${p.audit_plan_id})">
+        <i class="bi bi-eye"></i>
+      </button>
+      ${p.status !== 'COMPLETE' && p.status !== 'CANCELLED' ? `
+      <button class="btn btn-outline-success btn-xs"
+        data-compliance="AS9100D §9.2.2 — Record audit outcomes including dates and results"
+        data-linked="MOD-08 Audit Plans"
+        data-action-desc="Update audit status and record actual date and outcome"
+        onclick="updatePlanStatus(${p.audit_plan_id}, '${p.status}')">
+        <i class="bi bi-pencil"></i>
+      </button>` : ''}
+    </td>
+  </tr>`;
+}
+
+async function loadFindings() {
+  const status = document.getElementById('filter-finding-status').value;
+  const type   = document.getElementById('filter-finding-type').value;
+  let url = '/mod08/findings?limit=50';
+  if (status) url += `&status=${status}`;
+  if (type)   url += `&type=${type}`;
+  const rows = await ATCA.api.get(url);
+  ATCA.table.render('tbody-findings', rows, findingRow);
+}
+
+function findingRow(f) {
+  const typeColors = { OBSERVATION:'info', MINOR_NC:'warning', MAJOR_NC:'danger', OPPORTUNITY:'success' };
+  const statusColors = { OPEN:'danger', RESPONSE_SUBMITTED:'warning', VERIFIED:'success', CLOSED:'secondary' };
+  const isOverdue = f.due_date && new Date(f.due_date) < new Date() && f.status === 'OPEN';
+  return `<tr class="${isOverdue ? 'table-danger' : ''}">
+    <td><strong>${f.finding_number}</strong></td>
+    <td>${f.audit_number || '—'}</td>
+    <td><span class="badge bg-${typeColors[f.finding_type] || 'secondary'} text-dark">${f.finding_type}</span></td>
+    <td><small>${f.clause_reference || '—'}</small></td>
+    <td class="text-truncate" style="max-width:180px" title="${f.description}">${f.description}</td>
+    <td>${f.assigned_full_name || f.assigned_to_name || '—'}</td>
+    <td class="${isOverdue ? 'text-danger fw-bold' : ''}">${f.due_date ? f.due_date.substring(0,10) : '—'}</td>
+    <td><span class="badge bg-${statusColors[f.status] || 'secondary'}">${f.status}</span></td>
+    <td>
+      <button class="btn btn-outline-primary btn-xs"
+        data-compliance="AS9100D §9.2.2 — Corrective actions must be tracked to closure"
+        data-linked="MOD-08 Audit Plans, MOD-07 NCR/CAPA"
+        data-action-desc="View finding detail and submit or verify corrective action response"
+        onclick="viewFinding(${JSON.stringify(f).replace(/"/g,'&quot;')})">
+        <i class="bi bi-arrow-right-circle"></i>
+      </button>
+    </td>
+  </tr>`;
+}
+
+function showNewPlanModal() { planModal.show(); }
+
+async function savePlan() {
+  const title = document.getElementById('np-title').value.trim();
+  const scope = document.getElementById('np-scope').value.trim();
+  const dept  = document.getElementById('np-dept').value.trim();
+  const date  = document.getElementById('np-date').value;
+  if (!title || !scope || !dept || !date) { ATCA.toast('Please fill all required fields.', 'warning'); return; }
+  try {
+    const res = await ATCA.api.post('/mod08/audit-plans', {
+      audit_title: title,
+      audit_type: document.getElementById('np-type').value,
+      audit_scope: scope,
+      standard_ref: document.getElementById('np-std').value.trim(),
+      planned_date: date,
+      lead_auditor_name: document.getElementById('np-auditor').value.trim(),
+      auditee_dept: dept,
+    });
+    ATCA.toast(`Audit plan ${res.audit_number} created.`, 'success');
+    planModal.hide();
+    loadPlans(); loadKpis();
+    ['np-title','np-scope','np-dept','np-date','np-auditor','np-std'].forEach(id => document.getElementById(id).value = '');
+  } catch { ATCA.toast('Error creating audit plan.', 'danger'); }
+}
+
+async function updatePlanStatus(id, current) {
+  const statusMap = { PLANNED:'IN_PROGRESS', IN_PROGRESS:'COMPLETE' };
+  const next = statusMap[current];
+  if (!next) return;
+  const result = current === 'IN_PROGRESS' ? prompt('Overall result? (SATISFACTORY / MINOR_NC / MAJOR_NC)','SATISFACTORY') : null;
+  if (!confirm(`Change audit status to ${next}?`)) return;
+  try {
+    await ATCA.api.patch(`/mod08/audit-plans/${id}/status`, { status: next, overall_result: result });
+    ATCA.toast('Audit status updated.', 'success');
+    loadPlans(); loadKpis();
+  } catch { ATCA.toast('Error updating status.', 'danger'); }
+}
+
+async function viewPlan(id) {
+  const plan = await ATCA.api.get(`/mod08/audit-plans/${id}`);
+  alert(`Audit: ${plan.audit_number}\nScope: ${plan.audit_scope}\nFindings: ${plan.findings.length}\nStatus: ${plan.status}`);
+}
+
+async function showNewFindingModal() {
+  // Populate plan select
+  const plans = await ATCA.api.get('/mod08/audit-plans?limit=100');
+  const sel = document.getElementById('nf-plan');
+  sel.innerHTML = plans.map(p => `<option value="${p.audit_plan_id}">${p.audit_number} — ${p.audit_title}</option>`).join('');
+  findingModal.show();
+}
+
+async function saveFinding() {
+  const desc = document.getElementById('nf-desc').value.trim();
+  const planId = document.getElementById('nf-plan').value;
+  if (!desc || !planId) { ATCA.toast('Audit plan and description required.', 'warning'); return; }
+  try {
+    const res = await ATCA.api.post('/mod08/findings', {
+      audit_plan_id: parseInt(planId),
+      finding_type: document.getElementById('nf-type').value,
+      clause_reference: document.getElementById('nf-clause').value.trim(),
+      description: desc,
+      objective_evidence: document.getElementById('nf-evidence').value.trim(),
+      assigned_to_name: document.getElementById('nf-assignee').value.trim(),
+      due_date: document.getElementById('nf-due').value || null,
+    });
+    ATCA.toast(`Finding ${res.finding_number} raised.`, 'success');
+    findingModal.hide();
+    loadFindings(); loadKpis();
+    ['nf-clause','nf-due','nf-assignee','nf-desc','nf-evidence'].forEach(id => document.getElementById(id).value = '');
+  } catch { ATCA.toast('Error raising finding.', 'danger'); }
+}
+
+function viewFinding(f) {
+  currentFindingId = f.finding_id;
+  document.getElementById('finding-detail-title').textContent = `Finding: ${f.finding_number}`;
+  document.getElementById('finding-detail-body').innerHTML = `
+    <div class="row g-2 mb-3">
+      <div class="col-md-6"><strong>Type:</strong> ${f.finding_type}</div>
+      <div class="col-md-6"><strong>Clause:</strong> ${f.clause_reference || '—'}</div>
+      <div class="col-12"><strong>Description:</strong><br>${f.description}</div>
+      <div class="col-12"><strong>Objective Evidence:</strong><br>${f.objective_evidence || '—'}</div>
+    </div>
+    <hr>
+    <h6>Corrective Action Response</h6>
+    <div class="mb-2"><label class="form-label small">Root Cause</label>
+      <textarea class="form-control form-control-sm" id="resp-rc" rows="2">${f.root_cause || ''}</textarea></div>
+    <div class="mb-2"><label class="form-label small">Immediate Correction</label>
+      <textarea class="form-control form-control-sm" id="resp-cor" rows="2">${f.correction || ''}</textarea></div>
+    <div class="mb-2"><label class="form-label small">Corrective Action (systemic)</label>
+      <textarea class="form-control form-control-sm" id="resp-ca" rows="2">${f.corrective_action || ''}</textarea></div>
+    <div class="mb-2"><label class="form-label small">Target Date</label>
+      <input type="date" class="form-control form-control-sm" id="resp-td" value="${f.target_date ? f.target_date.substring(0,10) : ''}"></div>
+  `;
+  document.getElementById('btn-verify-finding').style.display = f.status === 'RESPONSE_SUBMITTED' ? '' : 'none';
+  detailModal.show();
+}
+
+async function submitResponse() {
+  try {
+    await ATCA.api.post(`/mod08/findings/${currentFindingId}/response`, {
+      root_cause: document.getElementById('resp-rc').value.trim(),
+      correction: document.getElementById('resp-cor').value.trim(),
+      corrective_action: document.getElementById('resp-ca').value.trim(),
+      target_date: document.getElementById('resp-td').value || null,
+    });
+    ATCA.toast('Response submitted.', 'success');
+    detailModal.hide();
+    loadFindings(); loadKpis();
+  } catch { ATCA.toast('Error submitting response.', 'danger'); }
+}
+
+async function verifyFinding() {
+  const evidence = prompt('Enter verification evidence:');
+  if (!evidence) return;
+  try {
+    await ATCA.api.patch(`/mod08/findings/${currentFindingId}/verify`, { verified: true, verification_evidence: evidence });
+    ATCA.toast('Finding verified and closed.', 'success');
+    detailModal.hide();
+    loadFindings(); loadKpis();
+  } catch { ATCA.toast('Error verifying finding.', 'danger'); }
+}
+
+init();
+</script>
+</body>
+</html>

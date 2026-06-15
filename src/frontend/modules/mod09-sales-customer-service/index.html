@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-09: Sales & Customer Service
+  AS9100D §8.2 (Customer Communication) | §8.2.3 (Contract Review) | §8.4.3 (GRN)
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sales &amp; Customer Service — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-document-control/"  class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"          class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"             class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <a href="/modules/mod20-customer-complaint/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>Customer Complaint</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod04-ndt-personnel/"     class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod05-equipment-calibration/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod09-sales-customer-service/" class="nav-link active"><span class="nav-icon"><i class="bi bi-briefcase"></i></span>Sales &amp; Customer Service</a>
+  <a href="/modules/mod10-production-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Production Management</a>
+  <a href="/modules/mod13-traveler/"          class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-coc/"               class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">Laboratory</div>
+  <a href="/modules/mod19-extended-laboratory/" class="nav-link"><span class="nav-icon"><i class="bi bi-flask"></i></span>Extended Laboratory</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod25-user-management/"   class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>User Management</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-briefcase me-1"></i>MOD-09 — Sales &amp; Customer Service</p>
+      <p class="topbar-subtitle mb-0">AS9100D §8.2 · §8.2.3 (Contract Review) · §8.4.3 (GRN Verification)</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-09 Sales &amp; Customer Service</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4" id="kpi-grid">
+      <div class="kpi-card" id="kpi-pending-reviews">
+        <div class="kpi-label">Pending Contract Reviews</div>
+        <div class="kpi-value" id="val-pending-reviews">—</div>
+        <div class="kpi-sub">AS9100D §8.2.3 — awaiting approval</div>
+      </div>
+      <div class="kpi-card" id="kpi-pending-grn">
+        <div class="kpi-label">GRN Pending Inspection</div>
+        <div class="kpi-value" id="val-pending-grn">—</div>
+        <div class="kpi-sub">§8.4.3 — incoming verification</div>
+      </div>
+      <div class="kpi-card" id="kpi-ready-ship">
+        <div class="kpi-label">Ready to Ship</div>
+        <div class="kpi-value" id="val-ready-ship">—</div>
+        <div class="kpi-sub">Delivery orders awaiting release</div>
+      </div>
+      <div class="kpi-card" id="kpi-expired-quotes">
+        <div class="kpi-label">Expired Quotations</div>
+        <div class="kpi-value" id="val-expired-quotes">—</div>
+        <div class="kpi-sub">Sent but validity lapsed</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="mod09-tabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-customers">Customers</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-parts">Part Master</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-quotations">Quotations</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-contract-reviews">Contract Reviews</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-grn">GRN</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-delivery-orders">Delivery Orders</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ── CUSTOMERS ── -->
+      <div class="tab-pane fade show active" id="tab-customers">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div class="d-flex gap-2">
+            <input type="text" class="form-control form-control-sm" id="cust-search" placeholder="Search customers…" style="width:220px;">
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-new-customer"
+            data-compliance="AS9100D §8.2.1 · §8.2.2"
+            data-linked="MOD-09 Quotation · MOD-09 Contract Review · MOD-20 Customer Complaint"
+            data-action-desc="Create a new customer record. Customer must be linked before quotations or contract reviews can be raised.">
+            <i class="bi bi-plus-lg me-1"></i>New Customer
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr>
+                <th>Code</th><th>Company</th><th>Type</th><th>Contact</th>
+                <th>Approved Vendor</th><th>Quotations</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-customers"><tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="customers-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── PART MASTER ── -->
+      <div class="tab-pane fade" id="tab-parts">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <input type="text" class="form-control form-control-sm" id="part-search" placeholder="Search parts…" style="width:220px;">
+          <button class="btn btn-primary btn-sm" id="btn-new-part"
+            data-compliance="AS9100D §8.3 · §7.5"
+            data-linked="MOD-09 Quotation · MOD-09 GRN · MOD-09 Delivery Order"
+            data-action-desc="Register a new part or service in the Part Master. Used across quotations, GRN, and delivery orders.">
+            <i class="bi bi-plus-lg me-1"></i>New Part
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Part No.</th><th>Description</th><th>Type</th><th>Process Area</th><th>UOM</th><th>Std Price</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="tbody-parts"><tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="parts-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── QUOTATIONS ── -->
+      <div class="tab-pane fade" id="tab-quotations">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <select class="form-select form-select-sm" id="quote-status-filter" style="width:160px;">
+            <option value="">All Statuses</option>
+            <option value="DRAFT">Draft</option><option value="SENT">Sent</option>
+            <option value="ACCEPTED">Accepted</option><option value="REJECTED">Rejected</option>
+            <option value="EXPIRED">Expired</option><option value="CONVERTED">Converted</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-new-quote"
+            data-compliance="AS9100D §8.2 · §8.2.2"
+            data-linked="MOD-09 Customer · MOD-09 Contract Review · MOD-09 Delivery Order"
+            data-action-desc="Create a new quotation. Quotations must be reviewed by SUPERVISOR before dispatch to customer.">
+            <i class="bi bi-plus-lg me-1"></i>New Quotation
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Customer</th><th>Date</th><th>Valid Until</th><th>Total (SGD)</th><th>Status</th><th>Prepared By</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="tbody-quotations"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="quotations-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── CONTRACT REVIEWS ── -->
+      <div class="tab-pane fade" id="tab-contract-reviews">
+        <div class="atca-info-banner mb-3">
+          <i class="bi bi-info-circle me-1"></i>
+          AS9100D §8.2.3 — All customer orders must be reviewed before acceptance. Verify specification, capability, delivery feasibility, regulatory requirements, and customer-specific flow-down.
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <select class="form-select form-select-sm" id="cr-status-filter" style="width:160px;">
+            <option value="">All Statuses</option>
+            <option value="PENDING">Pending</option><option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option><option value="ON_HOLD">On Hold</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-new-cr"
+            data-compliance="AS9100D §8.2.3"
+            data-linked="MOD-09 Quotation · MOD-09 Delivery Order · MOD-10 Route Card"
+            data-action-desc="Initiate a contract review for a customer order. Confirms spec, capability, delivery and regulatory requirements are met.">
+            <i class="bi bi-plus-lg me-1"></i>New Contract Review
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Customer</th><th>PO Number</th><th>Review Date</th><th>Reviewer</th><th>Spec</th><th>Capability</th><th>Delivery</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="tbody-cr"><tr><td colspan="10" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="cr-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── GRN ── -->
+      <div class="tab-pane fade" id="tab-grn">
+        <div class="atca-info-banner mb-3">
+          <i class="bi bi-info-circle me-1"></i>
+          AS9100D §8.4.3 — Verify that externally provided products meet specified requirements before acceptance.
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <select class="form-select form-select-sm" id="grn-status-filter" style="width:160px;">
+            <option value="">All Statuses</option>
+            <option value="PENDING">Pending</option><option value="ACCEPTED">Accepted</option>
+            <option value="REJECTED">Rejected</option><option value="QUARANTINE">Quarantine</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-new-grn"
+            data-compliance="AS9100D §8.4.3"
+            data-linked="MOD-09 Part Master · MOD-19 Chemical Inventory · MOD-07 NCR"
+            data-action-desc="Create a Goods Receiving Note for incoming materials or services. Triggers inspection workflow as required.">
+            <i class="bi bi-plus-lg me-1"></i>New GRN
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Supplier / Customer</th><th>Delivery Note</th><th>Received Date</th><th>Inspection Reqd</th><th>Result</th><th>Status</th><th>Received By</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="tbody-grn"><tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="grn-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+      <!-- ── DELIVERY ORDERS ── -->
+      <div class="tab-pane fade" id="tab-delivery-orders">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <select class="form-select form-select-sm" id="do-status-filter" style="width:160px;">
+            <option value="">All Statuses</option>
+            <option value="PENDING">Pending</option><option value="READY">Ready</option>
+            <option value="SHIPPED">Shipped</option><option value="DELIVERED">Delivered</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-new-do"
+            data-compliance="AS9100D §8.5.4 (Preservation) · §8.6 (Release)"
+            data-linked="MOD-09 Contract Review · MOD-24 Certificate of Conformance · MOD-03 FPI"
+            data-action-desc="Create a Delivery Order for releasing and shipping customer products.">
+            <i class="bi bi-plus-lg me-1"></i>New Delivery Order
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead>
+              <tr><th>Ref</th><th>Customer</th><th>Delivery Date</th><th>Shipped Date</th><th>Tracking</th><th>Status</th><th>Prepared By</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="tbody-do"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="do-pagination" class="d-flex gap-2 mt-2"></div>
+      </div>
+
+    </div><!-- /.tab-content -->
+  </main>
+</div><!-- /#main-content -->
+
+<!-- ══ MODALS ════════════════════════════════════════════════════ -->
+
+<!-- Customer Modal -->
+<div class="modal fade" id="modal-customer" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-customer-title">New Customer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="cust-id">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Company Name <span class="text-danger">*</span></label>
+            <input type="text" class="form-control form-control-sm" id="cust-company-name">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Type</label>
+            <select class="form-select form-select-sm" id="cust-type">
+              <option value="REGULAR">Regular</option><option value="OEM">OEM</option>
+              <option value="TIER1">Tier-1</option><option value="GOVERNMENT">Government</option>
+              <option value="INTERNAL">Internal</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Industry</label>
+            <input type="text" class="form-control form-control-sm" id="cust-industry" placeholder="Aerospace, MRO…">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Contact Person</label>
+            <input type="text" class="form-control form-control-sm" id="cust-contact">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control form-control-sm" id="cust-email">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Phone</label>
+            <input type="text" class="form-control form-control-sm" id="cust-phone">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Address</label>
+            <textarea class="form-control form-control-sm" id="cust-address" rows="2"></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Credit Limit (SGD)</label>
+            <input type="number" class="form-control form-control-sm" id="cust-credit-limit" step="0.01">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Credit Terms (days)</label>
+            <input type="number" class="form-control form-control-sm" id="cust-credit-terms" value="30">
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="cust-approved-vendor">
+              <label class="form-check-label" for="cust-approved-vendor">Approved Vendor</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control form-control-sm" id="cust-notes" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-customer"
+          data-compliance="AS9100D §8.2.1"
+          data-linked="MOD-09 Quotation · MOD-09 Contract Review"
+          data-action-desc="Save customer record. New records are audited and timestamped.">
+          <i class="bi bi-floppy me-1"></i>Save Customer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Contract Review Modal -->
+<div class="modal fade" id="modal-cr" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Contract Review — AS9100D §8.2.3</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Customer <span class="text-danger">*</span></label>
+            <select class="form-select form-select-sm" id="cr-customer-id"></select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">PO Number</label>
+            <input type="text" class="form-control form-control-sm" id="cr-po-number">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">PO Date</label>
+            <input type="date" class="form-control form-control-sm" id="cr-po-date">
+          </div>
+          <div class="col-12">
+            <p class="fw-semibold mb-2">Review Checklist</p>
+            <div class="row g-2">
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="cr-spec"><label class="form-check-label" for="cr-spec">Technical specifications reviewed</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="cr-capability"><label class="form-check-label" for="cr-capability">Capability confirmed</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="cr-delivery"><label class="form-check-label" for="cr-delivery">Delivery feasible</label></div></div>
+              <div class="col-md-6"><div class="form-check"><input class="form-check-input" type="checkbox" id="cr-regulatory"><label class="form-check-label" for="cr-regulatory">Regulatory requirements met</label></div></div>
+              <div class="col-12"><div class="form-check"><input class="form-check-input" type="checkbox" id="cr-flow"><label class="form-check-label" for="cr-flow">Customer-specific flow-down requirements addressed</label></div></div>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Review Notes</label>
+            <textarea class="form-control form-control-sm" id="cr-notes" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-cr"
+          data-compliance="AS9100D §8.2.3"
+          data-linked="MOD-09 Customer · MOD-09 Delivery Order · MOD-10 Route Card"
+          data-action-desc="Submit contract review. QA Manager approval required before order is accepted.">
+          <i class="bi bi-floppy me-1"></i>Submit Review
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GRN Modal -->
+<div class="modal fade" id="modal-grn" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Goods Receiving Note — AS9100D §8.4.3</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Supplier Name</label>
+            <input type="text" class="form-control form-control-sm" id="grn-supplier">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Delivery Note No.</label>
+            <input type="text" class="form-control form-control-sm" id="grn-dn">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Received Date</label>
+            <input type="date" class="form-control form-control-sm" id="grn-date">
+          </div>
+          <div class="col-md-6 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="grn-inspection-reqd" checked>
+              <label class="form-check-label" for="grn-inspection-reqd">Inspection Required</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control form-control-sm" id="grn-notes" rows="2"></textarea>
+          </div>
+          <div class="col-12">
+            <p class="fw-semibold mb-2">Line Items</p>
+            <div id="grn-lines-container"></div>
+            <button class="btn btn-outline-secondary btn-sm mt-2" id="btn-add-grn-line"><i class="bi bi-plus"></i> Add Line</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="btn-save-grn"
+          data-compliance="AS9100D §8.4.3"
+          data-linked="MOD-09 Part Master · MOD-07 NCR · MOD-19 Chemical Inventory"
+          data-action-desc="Record goods receipt. Triggers inspection queue if inspection is required.">
+          <i class="bi bi-floppy me-1"></i>Save GRN
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast-msg" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+(async () => {
+  await ATCA.initPage();
+  ATCA.tooltips.init();
+
+  const toast = new bootstrap.Toast(document.getElementById('toast-msg'));
+  let customers = [];
+  let custPage = 1, partPage = 1, quotePage = 1, crPage = 1, grnPage = 1, doPage = 1;
+
+  function showToast(msg, ok = true) {
+    const el = document.getElementById('toast-msg');
+    el.className = `toast align-items-center text-bg-${ok ? 'success' : 'danger'} border-0`;
+    document.getElementById('toast-body').textContent = msg;
+    toast.show();
+  }
+
+  function ragClass(val) { return val > 0 ? 'rag-red' : 'rag-green'; }
+
+  // ── KPIs ──────────────────────────────────────────────────────
+  async function loadKpis() {
+    try {
+      const a = await ATCA.api.get('/mod09/alerts/summary');
+      document.getElementById('val-pending-reviews').textContent = a.pending_reviews;
+      document.getElementById('val-pending-grn').textContent     = a.pending_grn_inspection;
+      document.getElementById('val-ready-ship').textContent      = a.ready_to_ship;
+      document.getElementById('val-expired-quotes').textContent  = a.expired_quotations;
+      document.getElementById('kpi-pending-reviews').classList.toggle('rag-amber', a.pending_reviews > 0);
+      document.getElementById('kpi-pending-grn').classList.toggle('rag-amber', a.pending_grn_inspection > 0);
+      document.getElementById('kpi-ready-ship').classList.toggle('rag-green', a.ready_to_ship > 0);
+      document.getElementById('kpi-expired-quotes').classList.toggle('rag-red', a.expired_quotations > 0);
+    } catch {}
+  }
+
+  // ── Customers ─────────────────────────────────────────────────
+  async function loadCustomers(page = 1) {
+    custPage = page;
+    const search = document.getElementById('cust-search').value;
+    try {
+      const d = await ATCA.api.get(`/mod09/customers?search=${encodeURIComponent(search)}&page=${page}`);
+      customers = d.items;
+      ATCA.table.render('tbody-customers', d.items, r => `
+        <tr>
+          <td><code>${r.customer_code}</code></td>
+          <td>${r.company_name}</td>
+          <td><span class="badge bg-secondary">${r.customer_type}</span></td>
+          <td>${r.contact_person || '—'}</td>
+          <td>${r.approved_vendor ? '<i class="bi bi-check-circle-fill text-success"></i>' : '—'}</td>
+          <td>${r.quotation_count}</td>
+          <td>
+            <button class="btn btn-xs btn-outline-primary" onclick="openEditCustomer(${r.customer_id})"><i class="bi bi-pencil"></i></button>
+          </td>
+        </tr>`);
+      ATCA.pagination.render('customers-pagination', page, d.total, 50, loadCustomers);
+    } catch { document.querySelector('#tbody-customers').innerHTML = '<tr><td colspan="7" class="text-danger">Error loading customers.</td></tr>'; }
+  }
+
+  // ── Quotations ────────────────────────────────────────────────
+  async function loadQuotations(page = 1) {
+    quotePage = page;
+    const status = document.getElementById('quote-status-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod09/quotations?status=${status}&page=${page}`);
+      const statusClass = { DRAFT:'secondary', SENT:'info', ACCEPTED:'success', REJECTED:'danger', EXPIRED:'dark', CONVERTED:'primary' };
+      ATCA.table.render('tbody-quotations', d.items, r => `
+        <tr>
+          <td><code>${r.quotation_ref}</code></td>
+          <td>${r.customer_name}</td>
+          <td>${r.quotation_date}</td>
+          <td>${r.valid_until || '—'}</td>
+          <td>SGD ${Number(r.total_amount).toFixed(2)}</td>
+          <td><span class="badge bg-${statusClass[r.status]||'secondary'}">${r.status}</span></td>
+          <td>${r.prepared_by_name}</td>
+          <td>
+            <button class="btn btn-xs btn-outline-secondary" onclick="viewQuotation(${r.quotation_id})"><i class="bi bi-eye"></i></button>
+          </td>
+        </tr>`);
+      ATCA.pagination.render('quotations-pagination', page, d.total, 50, loadQuotations);
+    } catch {}
+  }
+
+  // ── Contract Reviews ──────────────────────────────────────────
+  async function loadContractReviews(page = 1) {
+    crPage = page;
+    const status = document.getElementById('cr-status-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod09/contract-reviews?status=${status}&page=${page}`);
+      const sc = { PENDING:'warning', APPROVED:'success', REJECTED:'danger', ON_HOLD:'secondary' };
+      ATCA.table.render('tbody-cr', d.items, r => `
+        <tr>
+          <td><code>${r.review_ref}</code></td>
+          <td>${r.customer_name}</td>
+          <td>${r.po_number || '—'}</td>
+          <td>${r.review_date}</td>
+          <td>${r.reviewer_name}</td>
+          <td>${r.spec_reviewed ? '✓':'—'}</td>
+          <td>${r.capability_ok ? '✓':'—'}</td>
+          <td>${r.delivery_ok ? '✓':'—'}</td>
+          <td><span class="badge bg-${sc[r.status]||'secondary'}">${r.status}</span></td>
+          <td>
+            ${r.status==='PENDING'?`<button class="btn btn-xs btn-success" onclick="approveReview(${r.review_id},'APPROVED')"><i class="bi bi-check"></i> Approve</button>`:''}
+          </td>
+        </tr>`);
+      ATCA.pagination.render('cr-pagination', page, d.total, 50, loadContractReviews);
+    } catch {}
+  }
+
+  // ── GRN ───────────────────────────────────────────────────────
+  async function loadGrn(page = 1) {
+    grnPage = page;
+    const status = document.getElementById('grn-status-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod09/grn?status=${status}&page=${page}`);
+      const sc = { PENDING:'warning', ACCEPTED:'success', REJECTED:'danger', QUARANTINE:'secondary' };
+      ATCA.table.render('tbody-grn', d.items, r => `
+        <tr>
+          <td><code>${r.grn_ref}</code></td>
+          <td>${r.supplier_name || r.customer_name || '—'}</td>
+          <td>${r.delivery_note_no || '—'}</td>
+          <td>${r.received_date}</td>
+          <td>${r.inspection_reqd ? '<i class="bi bi-check"></i>' : '—'}</td>
+          <td>${r.inspect_result ? `<span class="badge bg-${r.inspect_result==='ACCEPT'?'success':'danger'}">${r.inspect_result}</span>` : '—'}</td>
+          <td><span class="badge bg-${sc[r.status]||'secondary'}">${r.status}</span></td>
+          <td>${r.received_by_name}</td>
+          <td>
+            ${r.status==='PENDING'&&r.inspection_reqd&&!r.inspection_done?`<button class="btn btn-xs btn-warning" onclick="inspectGrn(${r.grn_id})"><i class="bi bi-search"></i> Inspect</button>`:''}
+          </td>
+        </tr>`);
+      ATCA.pagination.render('grn-pagination', page, d.total, 50, loadGrn);
+    } catch {}
+  }
+
+  // ── Delivery Orders ───────────────────────────────────────────
+  async function loadDeliveryOrders(page = 1) {
+    doPage = page;
+    const status = document.getElementById('do-status-filter').value;
+    try {
+      const d = await ATCA.api.get(`/mod09/delivery-orders?status=${status}&page=${page}`);
+      const sc = { PENDING:'secondary', READY:'info', SHIPPED:'primary', DELIVERED:'success', CANCELLED:'dark' };
+      ATCA.table.render('tbody-do', d.items, r => `
+        <tr>
+          <td><code>${r.do_ref}</code></td>
+          <td>${r.customer_name}</td>
+          <td>${r.delivery_date || '—'}</td>
+          <td>${r.shipped_date ? r.shipped_date.substring(0,10) : '—'}</td>
+          <td>${r.tracking_number || '—'}</td>
+          <td><span class="badge bg-${sc[r.status]||'secondary'}">${r.status}</span></td>
+          <td>${r.prepared_by_name}</td>
+          <td>
+            ${r.status==='READY'?`<button class="btn btn-xs btn-primary" onclick="shipDO(${r.do_id})"><i class="bi bi-truck"></i> Ship</button>`:''}
+          </td>
+        </tr>`);
+      ATCA.pagination.render('do-pagination', page, d.total, 50, loadDeliveryOrders);
+    } catch {}
+  }
+
+  // ── Load customer select options ──────────────────────────────
+  async function loadCustomerOptions(selectId) {
+    const d = await ATCA.api.get('/mod09/customers?limit=200');
+    const sel = document.getElementById(selectId);
+    sel.innerHTML = '<option value="">— Select Customer —</option>';
+    for (const c of d.items) sel.innerHTML += `<option value="${c.customer_id}">${c.company_name}</option>`;
+  }
+
+  // ── Approve contract review ───────────────────────────────────
+  window.approveReview = async (id) => {
+    if (!confirm('Approve this contract review?')) return;
+    try {
+      await ATCA.api.patch(`/mod09/contract-reviews/${id}/approve`, { status: 'APPROVED' });
+      showToast('Contract review approved.');
+      loadContractReviews(crPage);
+    } catch { showToast('Error approving.', false); }
+  };
+
+  // ── Inspect GRN ───────────────────────────────────────────────
+  window.inspectGrn = async (id) => {
+    const result = prompt('Inspection result (ACCEPT / REJECT / CONDITIONAL):');
+    if (!result) return;
+    try {
+      await ATCA.api.patch(`/mod09/grn/${id}/inspect`, { inspect_result: result.toUpperCase() });
+      showToast('Inspection recorded.');
+      loadGrn(grnPage);
+    } catch { showToast('Error.', false); }
+  };
+
+  // ── Ship DO ───────────────────────────────────────────────────
+  window.shipDO = async (id) => {
+    const tracking = prompt('Tracking number (optional):') || '';
+    try {
+      await ATCA.api.patch(`/mod09/delivery-orders/${id}/ship`, { tracking_number: tracking });
+      showToast('Delivery order marked SHIPPED.');
+      loadDeliveryOrders(doPage);
+    } catch { showToast('Error.', false); }
+  };
+
+  // ── Edit customer ─────────────────────────────────────────────
+  window.openEditCustomer = async (id) => {
+    const r = customers.find(c => c.customer_id === id);
+    if (!r) return;
+    document.getElementById('cust-id').value = r.customer_id;
+    document.getElementById('cust-company-name').value = r.company_name;
+    document.getElementById('cust-contact').value = r.contact_person || '';
+    document.getElementById('cust-email').value = r.email || '';
+    document.getElementById('cust-phone').value = r.phone || '';
+    document.getElementById('cust-type').value = r.customer_type;
+    document.getElementById('modal-customer-title').textContent = 'Edit Customer';
+    new bootstrap.Modal(document.getElementById('modal-customer')).show();
+  };
+
+  // ── New customer modal ────────────────────────────────────────
+  document.getElementById('btn-new-customer').addEventListener('click', () => {
+    document.getElementById('cust-id').value = '';
+    document.getElementById('modal-customer-title').textContent = 'New Customer';
+    ['cust-company-name','cust-contact','cust-email','cust-phone','cust-address','cust-industry','cust-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('cust-credit-terms').value = 30;
+    document.getElementById('cust-credit-limit').value = '';
+    document.getElementById('cust-approved-vendor').checked = false;
+    new bootstrap.Modal(document.getElementById('modal-customer')).show();
+  });
+
+  document.getElementById('btn-save-customer').addEventListener('click', async () => {
+    const id = document.getElementById('cust-id').value;
+    const payload = {
+      company_name: document.getElementById('cust-company-name').value,
+      contact_person: document.getElementById('cust-contact').value,
+      email: document.getElementById('cust-email').value,
+      phone: document.getElementById('cust-phone').value,
+      address: document.getElementById('cust-address').value,
+      customer_type: document.getElementById('cust-type').value,
+      industry: document.getElementById('cust-industry').value,
+      approved_vendor: document.getElementById('cust-approved-vendor').checked,
+      credit_limit: document.getElementById('cust-credit-limit').value || null,
+      credit_terms_days: document.getElementById('cust-credit-terms').value || 30,
+      notes: document.getElementById('cust-notes').value,
+    };
+    if (!payload.company_name) { showToast('Company name required.', false); return; }
+    try {
+      if (id) { await ATCA.api.put(`/mod09/customers/${id}`, payload); showToast('Customer updated.'); }
+      else { await ATCA.api.post('/mod09/customers', payload); showToast('Customer created.'); }
+      bootstrap.Modal.getInstance(document.getElementById('modal-customer')).hide();
+      loadCustomers(); loadKpis();
+    } catch { showToast('Error saving.', false); }
+  });
+
+  // ── New contract review ───────────────────────────────────────
+  document.getElementById('btn-new-cr').addEventListener('click', async () => {
+    await loadCustomerOptions('cr-customer-id');
+    new bootstrap.Modal(document.getElementById('modal-cr')).show();
+  });
+
+  document.getElementById('btn-save-cr').addEventListener('click', async () => {
+    const payload = {
+      customer_id: document.getElementById('cr-customer-id').value,
+      po_number: document.getElementById('cr-po-number').value,
+      po_date: document.getElementById('cr-po-date').value,
+      spec_reviewed: document.getElementById('cr-spec').checked,
+      capability_ok: document.getElementById('cr-capability').checked,
+      delivery_ok: document.getElementById('cr-delivery').checked,
+      regulatory_ok: document.getElementById('cr-regulatory').checked,
+      customer_flow_ok: document.getElementById('cr-flow').checked,
+      review_notes: document.getElementById('cr-notes').value,
+    };
+    if (!payload.customer_id) { showToast('Select a customer.', false); return; }
+    try {
+      await ATCA.api.post('/mod09/contract-reviews', payload);
+      showToast('Contract review submitted.');
+      bootstrap.Modal.getInstance(document.getElementById('modal-cr')).hide();
+      loadContractReviews(); loadKpis();
+    } catch { showToast('Error.', false); }
+  });
+
+  // ── GRN Lines ─────────────────────────────────────────────────
+  let grnLines = [];
+  function renderGrnLines() {
+    const container = document.getElementById('grn-lines-container');
+    if (!grnLines.length) { container.innerHTML = '<p class="text-muted small">No lines yet.</p>'; return; }
+    container.innerHTML = grnLines.map((l, i) => `
+      <div class="row g-2 mb-2 align-items-center">
+        <div class="col-md-5"><input type="text" class="form-control form-control-sm" placeholder="Description" value="${l.description||''}" oninput="grnLines[${i}].description=this.value"></div>
+        <div class="col-md-2"><input type="number" class="form-control form-control-sm" placeholder="Qty Received" value="${l.qty_received||''}" oninput="grnLines[${i}].qty_received=+this.value"></div>
+        <div class="col-md-2"><input type="number" class="form-control form-control-sm" placeholder="Qty Accepted" value="${l.qty_accepted||''}" oninput="grnLines[${i}].qty_accepted=+this.value"></div>
+        <div class="col-md-2"><input type="text" class="form-control form-control-sm" placeholder="Lot #" value="${l.batch_lot_no||''}" oninput="grnLines[${i}].batch_lot_no=this.value"></div>
+        <div class="col-md-1"><button class="btn btn-xs btn-outline-danger" onclick="grnLines.splice(${i},1);renderGrnLines()"><i class="bi bi-trash"></i></button></div>
+      </div>`).join('');
+  }
+  document.getElementById('btn-add-grn-line').addEventListener('click', () => { grnLines.push({ description:'', qty_received:0, qty_accepted:0 }); renderGrnLines(); });
+
+  document.getElementById('btn-new-grn').addEventListener('click', () => {
+    grnLines = [];
+    renderGrnLines();
+    document.getElementById('grn-date').value = new Date().toISOString().slice(0,10);
+    new bootstrap.Modal(document.getElementById('modal-grn')).show();
+  });
+
+  document.getElementById('btn-save-grn').addEventListener('click', async () => {
+    const payload = {
+      supplier_name: document.getElementById('grn-supplier').value,
+      delivery_note_no: document.getElementById('grn-dn').value,
+      received_date: document.getElementById('grn-date').value,
+      inspection_reqd: document.getElementById('grn-inspection-reqd').checked,
+      grn_notes: document.getElementById('grn-notes').value,
+      lines: grnLines,
+    };
+    try {
+      await ATCA.api.post('/mod09/grn', payload);
+      showToast('GRN created.');
+      bootstrap.Modal.getInstance(document.getElementById('modal-grn')).hide();
+      loadGrn(); loadKpis();
+    } catch { showToast('Error.', false); }
+  });
+
+  // ── Tab activation ────────────────────────────────────────────
+  document.querySelectorAll('#mod09-tabs .nav-link').forEach(tab => {
+    tab.addEventListener('shown.bs.tab', e => {
+      const target = e.target.getAttribute('href');
+      if (target === '#tab-customers')       loadCustomers();
+      if (target === '#tab-parts')           loadParts();
+      if (target === '#tab-quotations')      loadQuotations();
+      if (target === '#tab-contract-reviews') loadContractReviews();
+      if (target === '#tab-grn')             loadGrn();
+      if (target === '#tab-delivery-orders') loadDeliveryOrders();
+    });
+  });
+
+  // Parts stub
+  async function loadParts(page = 1) {
+    try {
+      const search = document.getElementById('part-search').value;
+      const d = await ATCA.api.get(`/mod09/parts?search=${encodeURIComponent(search)}&page=${page}`);
+      ATCA.table.render('tbody-parts', d.items, r => `
+        <tr>
+          <td><code>${r.part_number}</code></td>
+          <td>${r.part_description}</td>
+          <td>${r.part_type}</td>
+          <td>${r.process_area || '—'}</td>
+          <td>${r.unit_of_measure}</td>
+          <td>${r.standard_price ? 'SGD '+Number(r.standard_price).toFixed(2) : '—'}</td>
+          <td></td>
+        </tr>`);
+      ATCA.pagination.render('parts-pagination', page, d.total, 50, loadParts);
+    } catch {}
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  await Promise.all([loadKpis(), loadCustomers()]);
+
+  document.getElementById('cust-search').addEventListener('input', () => loadCustomers(1));
+  document.getElementById('quote-status-filter').addEventListener('change', () => loadQuotations(1));
+  document.getElementById('cr-status-filter').addEventListener('change', () => loadContractReviews(1));
+  document.getElementById('grn-status-filter').addEventListener('change', () => loadGrn(1));
+  document.getElementById('do-status-filter').addEventListener('change', () => loadDeliveryOrders(1));
+})();
+</script>
+</body>
+</html>

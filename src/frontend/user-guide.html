@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:;">
+  <title>User Guide — ATCA ERP</title>
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/bootstrap-icons.css">
+  <link rel="stylesheet" href="assets/css/atca-erp.css">
+  <style>
+    body { background: var(--atca-bg-dark); color: var(--atca-text); }
+    .ug-sidebar {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      background: var(--atca-surface); border-right: 1px solid var(--atca-border);
+      padding: 1rem 0;
+    }
+    .ug-sidebar .nav-link { color: var(--atca-text-muted); font-size: .85rem; padding: .3rem 1rem; }
+    .ug-sidebar .nav-link:hover, .ug-sidebar .nav-link.active { color: var(--atca-accent); background: rgba(255,196,0,.06); }
+    .ug-sidebar .nav-section { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--atca-text-muted); padding: .75rem 1rem .2rem; }
+    .ug-main { padding: 2rem; max-width: 900px; }
+    .ug-section { margin-bottom: 3rem; }
+    .ug-section h2 { font-size: 1.4rem; font-weight: 600; border-bottom: 1px solid var(--atca-border); padding-bottom: .5rem; margin-bottom: 1.25rem; color: var(--atca-accent); }
+    .ug-section h3 { font-size: 1.05rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: .5rem; }
+    .ug-section h4 { font-size: .9rem; font-weight: 600; color: var(--atca-text-muted); margin-top: 1rem; margin-bottom: .3rem; }
+    .compliance-tag { display: inline-block; font-size: .7rem; background: rgba(255,196,0,.15); color: #ffc400; border: 1px solid rgba(255,196,0,.3); border-radius: 4px; padding: .1rem .45rem; margin: .1rem .1rem; }
+    .role-badge { font-size: .7rem; border-radius: 4px; padding: .1rem .4rem; }
+    .step-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--atca-accent); color: #000; border-radius: 50%; font-size: .72rem; font-weight: 700; margin-right: .4rem; flex-shrink: 0; }
+    .step-row { display: flex; align-items: flex-start; margin-bottom: .5rem; }
+    .ug-note { background: rgba(13,202,240,.08); border-left: 3px solid #0dcaf0; padding: .6rem .9rem; border-radius: 0 4px 4px 0; font-size: .85rem; margin: .75rem 0; }
+    .ug-warn { background: rgba(255,193,7,.08); border-left: 3px solid #ffc107; padding: .6rem .9rem; border-radius: 0 4px 4px 0; font-size: .85rem; margin: .75rem 0; }
+    .ug-table th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; background: var(--atca-surface-alt); }
+    .ug-table td { font-size: .83rem; vertical-align: middle; }
+    .ug-hero { background: linear-gradient(135deg, var(--atca-surface) 0%, rgba(255,196,0,.06) 100%); border: 1px solid var(--atca-border); border-radius: 8px; padding: 2rem; margin-bottom: 2rem; }
+    .ug-hero h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
+    .ug-hero .subtitle { color: var(--atca-text-muted); margin-top: .3rem; font-size: .9rem; }
+    .module-card { background: var(--atca-surface); border: 1px solid var(--atca-border); border-radius: 6px; padding: 1rem; margin-bottom: .75rem; }
+    .module-card h5 { font-size: .9rem; font-weight: 600; margin-bottom: .3rem; }
+    .rag-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  </style>
+</head>
+<body>
+<div class="d-flex">
+
+  <!-- Sidebar TOC -->
+  <nav class="ug-sidebar" style="width:220px; min-width:220px;">
+    <div class="px-3 mb-2">
+      <a href="index.html" class="d-flex align-items-center text-decoration-none mb-3">
+        <i class="bi bi-arrow-left me-2" style="color:var(--atca-accent);"></i>
+        <span style="font-size:.8rem; color:var(--atca-text-muted);">Back to Dashboard</span>
+      </a>
+      <div style="font-size:.85rem; font-weight:700; color:var(--atca-accent);">User Guide</div>
+      <div style="font-size:.72rem; color:var(--atca-text-muted);">ATCA ERP v1.0</div>
+    </div>
+
+    <div class="nav-section">Getting Started</div>
+    <a class="nav-link" href="#overview">System Overview</a>
+    <a class="nav-link" href="#login">Login &amp; Session</a>
+    <a class="nav-link" href="#roles">User Roles</a>
+    <a class="nav-link" href="#navigation">Navigation</a>
+    <a class="nav-link" href="#tooltips">Compliance Tooltips</a>
+
+    <div class="nav-section">Core Modules</div>
+    <a class="nav-link" href="#mod01">MOD-01 QMS Core</a>
+    <a class="nav-link" href="#mod02">MOD-02 Document Control</a>
+    <a class="nav-link" href="#mod03">MOD-03 FPI Process</a>
+    <a class="nav-link" href="#mod04">MOD-04 Personnel</a>
+    <a class="nav-link" href="#mod05">MOD-05 Equipment</a>
+    <a class="nav-link" href="#mod06">MOD-06 Bath Control</a>
+    <a class="nav-link" href="#mod07">MOD-07 NCR &amp; CAPA</a>
+    <a class="nav-link" href="#mod08">MOD-08 Audit Mgmt</a>
+    <a class="nav-link" href="#mod09">MOD-09 Sales &amp; CRM</a>
+    <a class="nav-link" href="#mod10">MOD-10 Production</a>
+    <a class="nav-link" href="#mod11">MOD-11 Maintenance</a>
+    <a class="nav-link" href="#mod12">MOD-12 Purchasing</a>
+    <a class="nav-link" href="#mod13">MOD-13 Work Order</a>
+    <a class="nav-link" href="#mod14">MOD-14 Inventory</a>
+    <a class="nav-link" href="#mod16">MOD-16 Finance</a>
+    <a class="nav-link" href="#mod17">MOD-17 MPT Process</a>
+    <a class="nav-link" href="#mod18">MOD-18 HR Mgmt</a>
+    <a class="nav-link" href="#mod19">MOD-19 Laboratory</a>
+    <a class="nav-link" href="#mod20">MOD-20 Complaints &amp; 8D</a>
+    <a class="nav-link" href="#mod21">MOD-21 Communications</a>
+    <a class="nav-link" href="#mod22">MOD-22 Leave</a>
+    <a class="nav-link" href="#mod23">MOD-23 Payroll</a>
+    <a class="nav-link" href="#mod24">MOD-24 CoC</a>
+    <a class="nav-link" href="#mod25">MOD-25 Users &amp; Roles</a>
+
+    <div class="nav-section">New Features</div>
+    <a class="nav-link" href="#signature">Signature Upload</a>
+    <a class="nav-link" href="#chat">Internal Chat</a>
+    <a class="nav-link" href="#changelog">Change Log</a>
+    <a class="nav-link" href="#bugreport">Bug Reports</a>
+
+    <div class="nav-section">Compliance</div>
+    <a class="nav-link" href="#compliance-matrix">Standards Matrix</a>
+    <a class="nav-link" href="#as9100d">AS9100D</a>
+    <a class="nav-link" href="#nadcap">NADCAP AC7108/10/14</a>
+    <a class="nav-link" href="#nas410">NAS410</a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="ug-main flex-grow-1">
+
+    <!-- Hero -->
+    <div class="ug-hero">
+      <h1><i class="bi bi-journal-text me-2" style="color:var(--atca-accent);"></i>ATCA ERP — User Guide</h1>
+      <p class="subtitle">ATC Aviation Pte Ltd · Quality Management System · Version 1.8 · June 2026</p>
+      <div class="mt-2">
+        <span class="compliance-tag">AS9100D</span>
+        <span class="compliance-tag">NADCAP AC7108</span>
+        <span class="compliance-tag">NADCAP AC7110</span>
+        <span class="compliance-tag">NADCAP AC7114</span>
+        <span class="compliance-tag">NAS410</span>
+      </div>
+    </div>
+
+    <!-- ===== OVERVIEW ===== -->
+    <section class="ug-section" id="overview">
+      <h2><i class="bi bi-info-circle me-2"></i>System Overview</h2>
+      <p>ATCA ERP is a LAN-based Quality Management System designed for aerospace NDT and special processes. It manages personnel qualifications, equipment calibration, chemical bath control, FPI process records, non-conformances, and corrective actions — all traceable to AS9100D and NADCAP audit requirements.</p>
+      <p>The system runs entirely on the local network (<code>192.168.1.x</code>). No internet connection is required or used. All audit trails are immutable and timestamped.</p>
+      <div class="ug-note"><i class="bi bi-info-circle me-1"></i> This system is <strong>audit-ready</strong> — every write operation records the user, timestamp, IP address, and changed values in a permanent audit log.</div>
+
+      <h3>Built Modules</h3>
+      <div class="row g-2">
+        <div class="col-md-6"><div class="module-card"><h5><span class="badge bg-success me-1" style="font-size:.65rem;">LIVE</span> MOD-02 Document Control</h5><small class="text-muted">Controlled document register, revision tracking, AS9100D §7.5</small></div></div>
+        <div class="col-md-6"><div class="module-card"><h5><span class="badge bg-success me-1" style="font-size:.65rem;">LIVE</span> MOD-03 FPI Process Control</h5><small class="text-muted">8-step traveler, ASTM E1417, NADCAP AC7114</small></div></div>
+        <div class="col-md-6"><div class="module-card"><h5><span class="badge bg-success me-1" style="font-size:.65rem;">LIVE</span> MOD-04 Personnel Qualifications</h5><small class="text-muted">NDT certs, eye exams, NAS410 compliance</small></div></div>
+        <div class="col-md-6"><div class="module-card"><h5><span class="badge bg-success me-1" style="font-size:.65rem;">LIVE</span> MOD-05 Equipment Calibration</h5><small class="text-muted">Calibration records, due alerts, AS9100D §7.1.5</small></div></div>
+        <div class="col-md-6"><div class="module-card"><h5><span class="badge bg-success me-1" style="font-size:.65rem;">LIVE</span> MOD-06 Bath Control</h5><small class="text-muted">Chemical bath sampling, RAG status, AC7108/AC7110</small></div></div>
+        <div class="col-md-6"><div class="module-card"><h5><span class="badge bg-success me-1" style="font-size:.65rem;">LIVE</span> MOD-07 NCR &amp; CAPA</h5><small class="text-muted">Non-conformance reports, root cause, AS9100D §10.2</small></div></div>
+        <div class="col-md-6"><div class="module-card"><h5><span class="badge bg-success me-1" style="font-size:.65rem;">LIVE</span> MOD-25 User Management</h5><small class="text-muted">RBAC user accounts, role assignment</small></div></div>
+        <div class="col-md-6"><div class="module-card"><h5><span class="badge bg-warning text-dark me-1" style="font-size:.65rem;">PLANNED</span> MOD-08 Audit Management</h5><small class="text-muted">Internal/external audit scheduling and findings</small></div></div>
+      </div>
+    </section>
+
+    <!-- ===== LOGIN ===== -->
+    <section class="ug-section" id="login">
+      <h2><i class="bi bi-shield-lock me-2"></i>Login &amp; Session</h2>
+      <p>Access the system at <code>http://192.168.1.x:3000</code> from any device on the office LAN. Use your assigned username and password.</p>
+      <div class="step-row"><span class="step-num">1</span><span>Open a browser and navigate to the server address.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Enter your <strong>Username</strong> and <strong>Password</strong> and click <em>Sign In</em>.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>After login, you are redirected to the <strong>Dashboard</strong>. Your name and role are shown in the top bar.</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>Sessions expire after inactivity. The system will redirect you to the login page automatically.</span></div>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> Do not share login credentials. Each user must have their own account for audit traceability.</div>
+    </section>
+
+    <!-- ===== ROLES ===== -->
+    <section class="ug-section" id="roles">
+      <h2><i class="bi bi-people me-2"></i>User Roles &amp; Permissions</h2>
+      <p>The system uses a six-level role hierarchy. Higher roles inherit all permissions of lower roles.</p>
+      <table class="table table-dark table-sm ug-table">
+        <thead><tr><th>Role</th><th>Level</th><th>Key Permissions</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge bg-secondary role-badge">READONLY</span></td><td>1</td><td>View all records and reports. No write access.</td></tr>
+          <tr><td><span class="badge bg-info text-dark role-badge">NDT_INSPECTOR</span></td><td>2</td><td>Sign off FPI steps, record bath samples, log eye exam results.</td></tr>
+          <tr><td><span class="badge bg-primary role-badge">SUPERVISOR</span></td><td>3</td><td>Create FPI jobs, raise NCRs, register equipment. Approve bath corrective actions.</td></tr>
+          <tr><td><span class="badge bg-warning text-dark role-badge">ENGINEER</span></td><td>4</td><td>Create/approve CAPAs, register documents, update personnel qualifications.</td></tr>
+          <tr><td><span class="badge bg-success role-badge">QA_MANAGER</span></td><td>5</td><td>Close CAPAs, approve final FPI dispositions, manage all module records.</td></tr>
+          <tr><td><span class="badge bg-danger role-badge">ADMIN</span></td><td>6</td><td>User management, system configuration, all data access. Full unrestricted.</td></tr>
+        </tbody>
+      </table>
+      <div class="ug-note"><i class="bi bi-info-circle me-1"></i> If you attempt an action that requires a higher role, the system will display an "Insufficient privileges" error. Contact your ADMIN to have your role updated.</div>
+    </section>
+
+    <!-- ===== NAVIGATION ===== -->
+    <section class="ug-section" id="navigation">
+      <h2><i class="bi bi-layout-sidebar me-2"></i>Navigation</h2>
+      <p>The left sidebar is always visible. Click a module name to open it. The <strong>Dashboard</strong> (home icon) shows system-wide KPI cards and alert counts that update every 60 seconds.</p>
+      <h3>Dashboard KPI Cards</h3>
+      <p>Each card on the dashboard uses a RAG (Red/Amber/Green) colour system:</p>
+      <table class="table table-dark table-sm ug-table">
+        <thead><tr><th>Colour</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><span class="rag-dot" style="background:#28a745;"></span> Green</td><td>All within limits, no action needed.</td></tr>
+          <tr><td><span class="rag-dot" style="background:#ffc107;"></span> Amber</td><td>Approaching a limit or requires attention soon.</td></tr>
+          <tr><td><span class="rag-dot" style="background:#dc3545;"></span> Red</td><td>Overdue, out of spec, or failed — immediate action required.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ===== TOOLTIPS ===== -->
+    <section class="ug-section" id="tooltips">
+      <h2><i class="bi bi-shield-check me-2"></i>Compliance Tooltips</h2>
+      <p>Every action button in the system shows a compliance tooltip when you hover over it. The tooltip displays:</p>
+      <ul>
+        <li><strong>Action description</strong> — what the button does and any prerequisites.</li>
+        <li><i class="bi bi-shield-check" style="color:#ffc107;"></i> <strong>Compliance standards</strong> — which AS9100D clause, NADCAP checklist item, or NAS410 section this action satisfies.</li>
+        <li><i class="bi bi-diagram-3" style="color:#0dcaf0;"></i> <strong>Linked modules</strong> — other modules that are affected by or related to this action.</li>
+      </ul>
+      <div class="ug-note">Hover or tab to any button to see its compliance context. This helps staff understand <em>why</em> a step is required, not just what to click.</div>
+    </section>
+
+    <!-- ===== MOD-02 ===== -->
+    <section class="ug-section" id="mod02">
+      <h2><i class="bi bi-file-earmark-text me-2"></i>MOD-02 — Document Control</h2>
+      <div class="mb-2"><span class="compliance-tag">AS9100D §7.5</span></div>
+      <p>Manages the register of controlled quality documents — procedures, work instructions, forms, and specifications.</p>
+
+      <h3>Registering a New Document</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Click <strong>New Document</strong> in the top bar.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Fill in: Document Number, Title, Type, Revision, Revision Date, Owner, and Retention period.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Click <strong>Register Document</strong>. The record is saved with status <em>DRAFT</em>.</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>A QA_MANAGER must approve the document to change status to <em>APPROVED</em>.</span></div>
+
+      <h3>Document Status Lifecycle</h3>
+      <p><code>DRAFT</code> → <code>APPROVED</code> → <code>OBSOLETE</code></p>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> Only approved documents may be referenced in FPI travelers or bath sampling records. Referencing an obsolete document is a NADCAP finding.</div>
+
+      <h3>Retention</h3>
+      <p>Minimum retention is 10 years for most QMS records per AS9100D §7.5.3. Regulatory or customer requirements may extend this — enter the applicable period when registering.</p>
+    </section>
+
+    <!-- ===== MOD-03 ===== -->
+    <section class="ug-section" id="mod03">
+      <h2><i class="bi bi-layers me-2"></i>MOD-03 — FPI Process Control</h2>
+      <div class="mb-2">
+        <span class="compliance-tag">NADCAP AC7114</span>
+        <span class="compliance-tag">ASTM E1417</span>
+        <span class="compliance-tag">AS9100D §8.5.1</span>
+      </div>
+      <p>Records and controls the full Fluorescent Penetrant Inspection (FPI) process. Every inspection uses an 8-step traveler based on ASTM E1417 §7.</p>
+
+      <h3>Creating a New FPI Job</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Click <strong>New FPI Job</strong>. A minimum role of <em>SUPERVISOR</em> is required.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Enter: Work Order Ref, Customer, Part Number, Part Description, Material Spec, Quantity.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Select: Penetrant Type (Type I / Type II), Developer Type, Method (A/B/C/D), Sensitivity Level (1–4).</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>Select the <strong>Penetrant Bath</strong> from MOD-06. Only active baths with GREEN or AMBER status are shown.</span></div>
+      <div class="step-row"><span class="step-num">5</span><span>Click <strong>Create Job</strong>. All 8 traveler steps are auto-created with status <em>Pending</em>.</span></div>
+
+      <h3>The 8-Step FPI Traveler</h3>
+      <table class="table table-dark table-sm ug-table">
+        <thead><tr><th>#</th><th>Step</th><th>Key Requirement</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Pre-Clean</td><td>Surface must be clean and dry. Method and duration recorded.</td></tr>
+          <tr><td>2</td><td>Penetrant Apply</td><td>Application method recorded. Bath ID required.</td></tr>
+          <tr><td>3</td><td>Penetrant Dwell</td><td>Dwell time ≥ minimum per spec. Temperature recorded.</td></tr>
+          <tr><td>4</td><td>Rinse</td><td>Rinse method and duration recorded.</td></tr>
+          <tr><td>5</td><td>Developer Apply</td><td>Developer type and application method recorded.</td></tr>
+          <tr><td>6</td><td>Developer Dwell</td><td>Development time recorded. Minimum per ASTM E1417.</td></tr>
+          <tr><td>7</td><td>Interpret</td><td><strong>UV intensity (fc) and white light (fc) are mandatory.</strong> Recorded at time of interpretation.</td></tr>
+          <tr><td>8</td><td>Post-Clean</td><td>Part cleaned and dried after inspection is complete.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Signing Off a Step</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Open the job traveler by clicking the job reference.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Click <strong>Sign Off</strong> on the current step.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Enter duration, temperature, result (PASS / FAIL / N/A), and any notes.</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>For Step 7 (Interpret), also enter UV intensity and white light readings.</span></div>
+      <div class="step-row"><span class="step-num">5</span><span>Click <strong>Confirm Sign-Off</strong>. Your name and timestamp are recorded permanently.</span></div>
+
+      <h3>Recording Final Disposition</h3>
+      <p>All 8 steps must be signed off before the <strong>Record Final Result</strong> panel becomes available. Only SUPERVISOR or above may record disposition.</p>
+      <ul>
+        <li><strong>ACCEPT</strong> — part passes inspection, released for next operation.</li>
+        <li><strong>REJECT</strong> — part fails, raise an NCR in MOD-07.</li>
+        <li><strong>REWORK</strong> — part requires re-work and re-inspection.</li>
+      </ul>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> A REJECT disposition automatically links to an NCR. The NCR reference is required before the job can be closed.</div>
+    </section>
+
+    <!-- ===== MOD-04 ===== -->
+    <section class="ug-section" id="mod04">
+      <h2><i class="bi bi-person-badge me-2"></i>MOD-04 — Personnel Qualifications</h2>
+      <div class="mb-2">
+        <span class="compliance-tag">NAS410</span>
+        <span class="compliance-tag">AS9100D §7.2</span>
+        <span class="compliance-tag">NADCAP AC7114</span>
+      </div>
+      <p>Tracks NDT personnel certifications, qualifications, and eye examination records per NAS410.</p>
+
+      <h3>Adding a Personnel Record</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Click <strong>Add Personnel</strong>. Requires ENGINEER role or above.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Enter full name, employee ID, NDT method(s), and qualification level (Level I / II / III).</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Save. The record is created with no certifications attached yet.</span></div>
+
+      <h3>Recording a Certification</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Select the personnel record and click <strong>Record Certification</strong>.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Enter: NDT method, level, certification body, certificate number, issue date, and expiry date.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>The dashboard KPI will turn AMBER 30 days before expiry and RED on the expiry date.</span></div>
+
+      <h3>Eye Examination Records</h3>
+      <p>Per NAS410 §9.3, all NDT inspectors must have their vision checked annually. Record results under <strong>Record Eye Exam</strong>. The system tracks near-vision acuity and colour vision test results.</p>
+      <div class="ug-note">Expired certifications or eye exams will block that inspector from signing off FPI steps in MOD-03.</div>
+    </section>
+
+    <!-- ===== MOD-05 ===== -->
+    <section class="ug-section" id="mod05">
+      <h2><i class="bi bi-tools me-2"></i>MOD-05 — Equipment &amp; Calibration</h2>
+      <div class="mb-2">
+        <span class="compliance-tag">AS9100D §7.1.5</span>
+        <span class="compliance-tag">NADCAP AC7114</span>
+        <span class="compliance-tag">AC7110</span>
+      </div>
+      <p>Manages the equipment register and calibration records for all measurement and process equipment.</p>
+
+      <h3>Registering Equipment</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Click <strong>Register Equipment</strong>. Requires SUPERVISOR role.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Enter: Equipment ID, description, manufacturer, model, serial number, location, calibration interval (days).</span></div>
+
+      <h3>Recording Calibration</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Select the equipment and click <strong>Record Calibration</strong>.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Enter: calibration date, performed by, calibration body, certificate number, result (PASS/FAIL), and next due date.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>A FAIL result automatically raises an alert and equipment is marked OUT OF SERVICE.</span></div>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> Equipment with expired or failed calibration cannot be used for inspection measurements. FPI step sign-off will reject the selected equipment ID.</div>
+    </section>
+
+    <!-- ===== MOD-06 ===== -->
+    <section class="ug-section" id="mod06">
+      <h2><i class="bi bi-droplet-half me-2"></i>MOD-06 — Chemical Bath Control</h2>
+      <div class="mb-2">
+        <span class="compliance-tag">NADCAP AC7108</span>
+        <span class="compliance-tag">NADCAP AC7110</span>
+        <span class="compliance-tag">NADCAP AC7114</span>
+        <span class="compliance-tag">AS9100D §8.5.1</span>
+      </div>
+      <p>Controls chemical bath chemistry for FPI penetrant/developer baths, anodize tanks, plating baths, and other special process chemical systems.</p>
+
+      <h3>Bath Status (RAG)</h3>
+      <table class="table table-dark table-sm ug-table">
+        <thead><tr><th>Status</th><th>Meaning</th><th>Action Required</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge bg-success">GREEN</span></td><td>Last sample PASS and within sampling interval.</td><td>None.</td></tr>
+          <tr><td><span class="badge bg-warning text-dark">AMBER</span></td><td>Sample due within 1 day.</td><td>Schedule sampling immediately.</td></tr>
+          <tr><td><span class="badge bg-danger">RED</span></td><td>Sample overdue, last result FAIL, or never sampled.</td><td>Take sample before bath may be used.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Taking a Bath Sample</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Select the bath from the register and click <strong>Take Sample</strong>. Requires NDT_INSPECTOR or above.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>A sample reference (BS-YYYY-NNNN) is auto-generated.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Enter a measured value for each parameter. The system checks each value against the spec limits and marks it IN SPEC or OUT OF SPEC.</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>If any parameter is OUT OF SPEC, a <strong>Corrective Action</strong> field becomes mandatory.</span></div>
+      <div class="step-row"><span class="step-num">5</span><span>Click <strong>Submit Sample</strong>. Bath status updates immediately.</span></div>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> A RED bath must not be used in an FPI process. The MOD-03 new job form will warn if the selected bath is RED.</div>
+
+      <h3>Bath Parameters</h3>
+      <p>Each bath type has its own parameter set configured in the database. Parameters include limits (min/max) and test method. Contact your ADMIN or QA Manager to adjust parameter limits — changes are audited.</p>
+    </section>
+
+    <!-- ===== MOD-07 ===== -->
+    <section class="ug-section" id="mod07">
+      <h2><i class="bi bi-exclamation-triangle me-2"></i>MOD-07 — NCR &amp; CAPA</h2>
+      <div class="mb-2">
+        <span class="compliance-tag">AS9100D §10.2</span>
+        <span class="compliance-tag">NADCAP AC7114 §9</span>
+        <span class="compliance-tag">AC7108 · AC7110</span>
+      </div>
+      <p>Manages Non-Conformance Reports (NCRs) and Corrective/Preventive Action records (CAPAs).</p>
+
+      <h3>Raising an NCR</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Click <strong>Raise NCR</strong>. Requires SUPERVISOR role or above.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Enter: NCR type (Product / Process / System / Supplier), source, description of nonconformance, and affected part/process.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>If CAPA is required, tick the checkbox. A linked CAPA record must be created to close the NCR.</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>Click <strong>Raise NCR</strong>. The NCR is immutable after raising; amend via the NCR Detail view only.</span></div>
+
+      <h3>Creating a CAPA</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Click <strong>New CAPA</strong>. Requires ENGINEER role or above.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Enter: CAPA reference, type (Corrective / Preventive), and link to the parent NCR if applicable.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Select root cause analysis method (5 Why, Fishbone, FMEA, Fault Tree).</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>Fill in root cause description, corrective action, and preventive action.</span></div>
+      <div class="step-row"><span class="step-num">5</span><span>Set target completion date and effectiveness review date.</span></div>
+      <div class="step-row"><span class="step-num">6</span><span>A QA_MANAGER must verify effectiveness and approve closure.</span></div>
+
+      <h3>CAPA Lifecycle</h3>
+      <p><code>OPEN</code> → <code>ROOT_CAUSE_IDENTIFIED</code> → <code>ACTION_IMPLEMENTED</code> → <code>EFFECTIVENESS_VERIFIED</code> → <code>CLOSED</code></p>
+    </section>
+
+    <!-- ===== MOD-25 ===== -->
+    <section class="ug-section" id="mod25">
+      <h2><i class="bi bi-person-gear me-2"></i>MOD-25 — User Management</h2>
+      <div class="mb-2"><span class="compliance-tag">AS9100D §7.2 (competence)</span></div>
+      <p>ADMIN-only module. Manages user accounts and role assignments.</p>
+      <div class="step-row"><span class="step-num">1</span><span>Navigate to <strong>User Management</strong> in the sidebar.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Click <strong>New User</strong> to create an account. Assign a role appropriate to their responsibilities.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>To change a role, click <strong>Edit</strong> on the user record. Changes are audit-logged.</span></div>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> Do not assign ADMIN role except to IT system administrators. QA oversight accounts should use QA_MANAGER.</div>
+    </section>
+
+    <!-- ===== COMPLIANCE MATRIX ===== -->
+    <section class="ug-section" id="compliance-matrix">
+      <h2><i class="bi bi-grid me-2"></i>Compliance Standards Matrix</h2>
+      <table class="table table-dark table-sm ug-table">
+        <thead>
+          <tr>
+            <th>Module</th>
+            <th>AS9100D</th>
+            <th>AC7108</th>
+            <th>AC7110</th>
+            <th>AC7114</th>
+            <th>NAS410</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>MOD-02 Doc Control</td><td>§7.5</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+          <tr><td>MOD-03 FPI Process</td><td>§8.5.1</td><td>—</td><td>—</td><td>Primary</td><td>§4</td></tr>
+          <tr><td>MOD-04 Personnel</td><td>§7.2</td><td>—</td><td>—</td><td>§3</td><td>Primary</td></tr>
+          <tr><td>MOD-05 Equipment</td><td>§7.1.5</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+          <tr><td>MOD-06 Bath Control</td><td>§8.5.1</td><td>Primary</td><td>Primary</td><td>§6</td><td>—</td></tr>
+          <tr><td>MOD-07 NCR/CAPA</td><td>§10.2</td><td>✓</td><td>✓</td><td>§9</td><td>—</td></tr>
+          <tr><td>MOD-08 Audit Mgmt</td><td>§9.2</td><td>✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+          <tr><td>MOD-25 Users</td><td>§7.2</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ===== AS9100D ===== -->
+    <section class="ug-section" id="as9100d">
+      <h2><i class="bi bi-award me-2"></i>AS9100D — Key Clauses</h2>
+      <table class="table table-dark table-sm ug-table">
+        <thead><tr><th>Clause</th><th>Topic</th><th>System Coverage</th></tr></thead>
+        <tbody>
+          <tr><td>§7.1.5</td><td>Monitoring &amp; Measuring Resources</td><td>MOD-05 calibration records</td></tr>
+          <tr><td>§7.2</td><td>Competence</td><td>MOD-04 certifications, MOD-25 role assignment</td></tr>
+          <tr><td>§7.5</td><td>Documented Information</td><td>MOD-02 document control</td></tr>
+          <tr><td>§8.5.1</td><td>Control of Production</td><td>MOD-03 FPI traveler, MOD-06 bath chemistry</td></tr>
+          <tr><td>§9.2</td><td>Internal Audit</td><td>MOD-08 (planned)</td></tr>
+          <tr><td>§10.2</td><td>Nonconformity &amp; Corrective Action</td><td>MOD-07 NCR/CAPA</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ===== NADCAP ===== -->
+    <section class="ug-section" id="nadcap">
+      <h2><i class="bi bi-patch-check me-2"></i>NADCAP Checklists</h2>
+
+      <h3>AC7108 — Coatings</h3>
+      <p>Covers chemical processing for coating operations (anodize, plating, conversion coatings). Key system coverage:</p>
+      <ul>
+        <li>Bath chemistry monitoring and sampling — MOD-06</li>
+        <li>Corrective actions for out-of-spec chemistry — MOD-06 + MOD-07</li>
+        <li>Equipment calibration for process tanks — MOD-05</li>
+        <li>Document control for process specifications — MOD-02</li>
+      </ul>
+
+      <h3>AC7110 — Chemical Processing</h3>
+      <p>Covers chemical etching, cleaning, and stripping processes. Key system coverage:</p>
+      <ul>
+        <li>Bath parameter control and sampling history — MOD-06</li>
+        <li>Personnel qualifications for chemical process operators — MOD-04</li>
+        <li>Process documentation and work instructions — MOD-02</li>
+      </ul>
+
+      <h3>AC7114 — FPI (Fluorescent Penetrant Inspection)</h3>
+      <p>Covers the entire FPI process from bath control to final disposition. Key system coverage:</p>
+      <ul>
+        <li>Full 8-step traveler per ASTM E1417 — MOD-03</li>
+        <li>Penetrant and developer bath chemistry — MOD-06</li>
+        <li>Inspector qualifications and eye exams — MOD-04</li>
+        <li>UV/white light intensity at interpretation — MOD-03 Step 7</li>
+        <li>Nonconformance and CAPA — MOD-07</li>
+      </ul>
+    </section>
+
+    <!-- ===== MOD-01 ===== -->
+    <section class="ug-section" id="mod01">
+      <h2><i class="bi bi-award me-2"></i>MOD-01 — QMS Core</h2>
+      <span class="compliance-tag">AS9100D §4–6</span>
+      <p class="mt-2">Manages the Quality Management System foundation: policy documents, measurable objectives, management review minutes, and risk register entries.</p>
+      <h3>Key Tabs</h3>
+      <ul>
+        <li><strong>Quality Policy</strong> — View and update the current QMS policy statement. ADMIN or QA_MANAGER required to edit.</li>
+        <li><strong>Objectives</strong> — Create, track and close quality objectives with target dates and responsible owners.</li>
+        <li><strong>Management Review</strong> — Record management review agenda items, attendees, and action items with closure dates.</li>
+        <li><strong>Risk Register</strong> — Log risks and opportunities (AS9100D §6.1): severity, likelihood, mitigation actions, and residual risk rating.</li>
+      </ul>
+    </section>
+
+    <!-- ===== MOD-08 ===== -->
+    <section class="ug-section" id="mod08">
+      <h2><i class="bi bi-clipboard-check me-2"></i>MOD-08 — Audit Management</h2>
+      <span class="compliance-tag">AS9100D §9.2</span>
+      <p class="mt-2">Plans and tracks internal and external quality audits, records findings, and manages response/verification workflow.</p>
+      <h3>Workflow</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Create Audit Plan (AP-YYYY-NNNN auto-numbered) with scope, type and lead auditor.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Raise Findings (AF-YYYY-NNNN) against the plan — grade each as Major, Minor, or Observation.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Responsible party responds with corrective action and target closure date.</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>QA Manager verifies effectiveness and closes the finding.</span></div>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> Overdue findings appear red in the KPI bar. NADCAP auditors review all open findings at surveillance.</div>
+    </section>
+
+    <!-- ===== MOD-09 ===== -->
+    <section class="ug-section" id="mod09">
+      <h2><i class="bi bi-bag-check me-2"></i>MOD-09 — Sales &amp; Customer Service</h2>
+      <span class="compliance-tag">AS9100D §8.2</span>
+      <p class="mt-2">Covers the full order-to-delivery cycle: customers, parts, quotations, contract reviews, goods receipt, and delivery orders.</p>
+      <ul>
+        <li><strong>Customers &amp; Parts</strong> — Maintain the approved customer list and part number registry.</li>
+        <li><strong>Quotations</strong> — Issue quotations with line items, validity dates, and special requirements.</li>
+        <li><strong>Contract Review</strong> — Record contract review outcomes (flowdown requirements, right of access).</li>
+        <li><strong>GRN</strong> — Goods Receipt Note records incoming material with supplier and purchase order reference.</li>
+        <li><strong>Delivery Orders</strong> — Issue DO against completed work orders.</li>
+      </ul>
+    </section>
+
+    <!-- ===== MOD-10 ===== -->
+    <section class="ug-section" id="mod10">
+      <h2><i class="bi bi-diagram-3 me-2"></i>MOD-10 — Production Management</h2>
+      <span class="compliance-tag">AS9100D §8.5</span>
+      <p class="mt-2">Manages the shop-floor production lifecycle: route cards, process conditions, test pieces, and shift checklists.</p>
+      <ul>
+        <li><strong>Route Cards</strong> — Define process steps, work instructions, and tooling requirements per part number.</li>
+        <li><strong>Production Conditions</strong> — Record temperature, humidity, and controlled environment readings during processing.</li>
+        <li><strong>Test Pieces</strong> — Log process effectiveness specimens with pass/fail results.</li>
+        <li><strong>Shift Checklists</strong> — Daily shift start/end checks required before production begins.</li>
+      </ul>
+    </section>
+
+    <!-- ===== MOD-11 ===== -->
+    <section class="ug-section" id="mod11">
+      <h2><i class="bi bi-tools me-2"></i>MOD-11 — Maintenance Management</h2>
+      <span class="compliance-tag">AS9100D §7.1.3</span>
+      <p class="mt-2">Manages plant and equipment maintenance: asset register, preventive maintenance schedules, work permits, and breakdown tracking.</p>
+      <h3>Key Features</h3>
+      <ul>
+        <li><strong>Asset Register</strong> — All maintained assets with category, location, and criticality rating. RAG status based on next PM due date.</li>
+        <li><strong>PM Schedule</strong> — Preventive maintenance tasks with frequency, last and next due dates. Red = overdue, Amber = due within 7 days.</li>
+        <li><strong>Work Permits</strong> — Raise hot/cold work permits (WP- numbered) with hazard identification and safety precautions. Two-step: Activate → Close.</li>
+      </ul>
+      <div class="ug-note">KPI cards show overdue PM count and open work permits at a glance. Resolve all red items before NADCAP assessment.</div>
+    </section>
+
+    <!-- ===== MOD-12 ===== -->
+    <section class="ug-section" id="mod12">
+      <h2><i class="bi bi-cart-check me-2"></i>MOD-12 — Purchasing &amp; Supplier Management</h2>
+      <span class="compliance-tag">AS9100D §8.4</span>
+      <p class="mt-2">Controls the supplier Approved Vendor List (AVL), purchase requisitions, and purchase orders with full flowdown of customer requirements.</p>
+      <h3>AVL Gate</h3>
+      <p>Purchase orders can only be raised against suppliers with <strong>APPROVED</strong> status on the AVL. Pending, suspended, or disqualified suppliers are blocked at the API level.</p>
+      <h3>PO Flowdown</h3>
+      <p>Each PO records: flowdown requirements, right-of-access clause, and customer-directed source selection. These fields are mandatory for NADCAP AC7108/AC7110 compliance.</p>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> Accreditation expiry dates turn amber 90 days before expiry. Renew before the NADCAP audit window.</div>
+    </section>
+
+    <!-- ===== MOD-13 ===== -->
+    <section class="ug-section" id="mod13">
+      <h2><i class="bi bi-file-earmark-ruled me-2"></i>MOD-13 — Work Order / Job Traveler</h2>
+      <span class="compliance-tag">AS9100D §8.5</span>
+      <p class="mt-2">Creates and tracks work orders (WO-YYYY-NNNN) from receipt to CoC issue. Each WO has a step-by-step job traveler with sign-off at each stage.</p>
+      <div class="step-row"><span class="step-num">1</span><span>Create WO linked to customer part and process type (FPI / MPT / Chem Bath).</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Process steps auto-populated from route card template.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Inspector signs off each step — sequential; prior step must be complete.</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>QA Manager issues CoC to close the WO (MOD-24).</span></div>
+      <div class="ug-note">Priority badges: <span class="badge bg-danger me-1">URGENT</span><span class="badge bg-warning text-dark me-1">HIGH</span><span class="badge bg-secondary">NORMAL</span></div>
+    </section>
+
+    <!-- ===== MOD-14 ===== -->
+    <section class="ug-section" id="mod14">
+      <h2><i class="bi bi-boxes me-2"></i>MOD-14 — Inventory Management</h2>
+      <span class="compliance-tag">AS9100D §7.1.5</span>
+      <p class="mt-2">Tracks stock levels for chemicals, consumables, and spare parts. RAG status is computed from reorder points and expiry dates.</p>
+      <ul>
+        <li><strong>Inventory Register</strong> — Kanban cards with RAG status: Red = out of stock, Amber = at or below reorder point, Green = adequate.</li>
+        <li><strong>Stock Movements</strong> — All receipts, issues, and adjustments are logged with quantity, unit, and reason.</li>
+        <li><strong>Quick Receipt</strong> — Fast receive button to record inbound material without full PO linkage.</li>
+      </ul>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> Chemicals with expiry dates turn red when expired. Expired chemicals must not be used in NADCAP processes.</div>
+    </section>
+
+    <!-- ===== MOD-16 ===== -->
+    <section class="ug-section" id="mod16">
+      <h2><i class="bi bi-cash-stack me-2"></i>MOD-16 — Finance</h2>
+      <span class="compliance-tag">AS9100D §7.1.1</span>
+      <p class="mt-2">Covers the financial management cycle: accounts receivable, accounts payable, journal entries, chart of accounts, and budget tracking.</p>
+      <h3>Key Rules</h3>
+      <ul>
+        <li><strong>Journal Entry Balance</strong> — Every journal entry must balance (total debit = total credit ±0.005). Unbalanced entries are rejected at the API level.</li>
+        <li><strong>AR Invoices</strong> (INV-YYYY-NNNN) — Raise against customers; mark paid with payment reference and date.</li>
+        <li><strong>AP Invoices</strong> — Record supplier invoices; QA Manager approves before payment.</li>
+        <li><strong>Chart of Accounts</strong> — 13 seeded accounts covering Assets, Liabilities, Equity, Revenue, Expenses.</li>
+      </ul>
+      <div class="ug-note">ENGINEER+ can create journal entries; QA_MANAGER posts them to the ledger.</div>
+    </section>
+
+    <!-- ===== MOD-17 ===== -->
+    <section class="ug-section" id="mod17">
+      <h2><i class="bi bi-magnet me-2"></i>MOD-17 — MPT Process Control</h2>
+      <span class="compliance-tag">NADCAP AC7114</span>
+      <p class="mt-2">Controls Magnetic Particle Testing (MPT) jobs in full compliance with AC7114 and ASTM E1444. Each job auto-generates 6 process steps.</p>
+      <table class="table table-dark table-sm ug-table mt-2">
+        <thead><tr><th>#</th><th>Step</th><th>Key Data Captured</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Pre-clean</td><td>Method, solvent, inspector sign-off</td></tr>
+          <tr><td>2</td><td>Magnetisation</td><td>Technique (PROD/COIL/HEAD/YOKE), current (A), field strength (kA/m)</td></tr>
+          <tr><td>3</td><td>Particle Application</td><td>Type (WET/DRY/FLUOR), concentration, bath check</td></tr>
+          <tr><td>4</td><td>Interpretation</td><td>Indications found, UV intensity, background luminance</td></tr>
+          <tr><td>5</td><td>Post-clean &amp; Demagnetise</td><td>Residual field (≤0.3 mT), method</td></tr>
+          <tr><td>6</td><td>Final Review</td><td>Disposition (ACCEPT/REJECT/REWORK), QA sign-off</td></tr>
+        </tbody>
+      </table>
+      <div class="ug-warn">Signer must hold an active MT (Magnetic Testing) NAS410 certification. Expired certifications are blocked by the system.</div>
+    </section>
+
+    <!-- ===== MOD-18 ===== -->
+    <section class="ug-section" id="mod18">
+      <h2><i class="bi bi-people me-2"></i>MOD-18 — HR &amp; Organisation Management</h2>
+      <span class="compliance-tag">AS9100D §7.1.2</span>
+      <p class="mt-2">Maintains the staff register (EMP-NNNN), organisation chart, onboarding status, and conflict-of-interest declarations.</p>
+      <ul>
+        <li><strong>Staff Register</strong> — All employees with role, department, reporting line, and onboarding status.</li>
+        <li><strong>Org Structure</strong> — Visual org chart with department grouping.</li>
+        <li><strong>Onboarding</strong> — Mark staff as onboarded (ADMIN only); triggers competency readiness flag.</li>
+        <li><strong>COI Declarations</strong> — Track conflict-of-interest declaration status per staff member.</li>
+      </ul>
+    </section>
+
+    <!-- ===== MOD-19 ===== -->
+    <section class="ug-section" id="mod19">
+      <h2><i class="bi bi-flask me-2"></i>MOD-19 — Extended Laboratory</h2>
+      <span class="compliance-tag">NADCAP AC7108 §5.4</span>
+      <p class="mt-2">Manages laboratory analysis schedules, chemical inventory, lab validations (process effectiveness specimens), and external laboratory jobs.</p>
+      <ul>
+        <li><strong>Analysis Schedules</strong> — Periodic lab analysis tasks with RAG status based on due dates.</li>
+        <li><strong>Chemical Inventory</strong> — Track chemical stock with concentration limits and expiry.</li>
+        <li><strong>Lab Validations</strong> — Record panel/specimen test results against acceptance criteria.</li>
+        <li><strong>External Labs</strong> — Manage accredited external laboratory records and job submissions.</li>
+      </ul>
+    </section>
+
+    <!-- ===== MOD-20 ===== -->
+    <section class="ug-section" id="mod20">
+      <h2><i class="bi bi-person-exclamation me-2"></i>MOD-20 — Customer Complaints &amp; 8D Report</h2>
+      <span class="compliance-tag">AS9100D §9.1.2</span>
+      <p class="mt-2">Captures customer complaints and manages the full 8-Disciplines structured problem-solving process (D1–D8).</p>
+      <table class="table table-dark table-sm ug-table mt-2">
+        <thead><tr><th>Step</th><th>Discipline</th></tr></thead>
+        <tbody>
+          <tr><td>D1</td><td>Team formation</td></tr>
+          <tr><td>D2</td><td>Problem description</td></tr>
+          <tr><td>D3</td><td>Interim containment actions</td></tr>
+          <tr><td>D4</td><td>Root cause analysis</td></tr>
+          <tr><td>D5</td><td>Permanent corrective actions</td></tr>
+          <tr><td>D6</td><td>Implementation and validation</td></tr>
+          <tr><td>D7</td><td>Preventive action to avoid recurrence</td></tr>
+          <tr><td>D8</td><td>Team recognition and closure</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ===== MOD-21 ===== -->
+    <section class="ug-section" id="mod21">
+      <h2><i class="bi bi-megaphone me-2"></i>MOD-21 — Communications &amp; Announcements</h2>
+      <span class="compliance-tag">AS9100D §7.4</span>
+      <p class="mt-2">Broadcasts quality and operational announcements to all staff. Urgent announcements appear at the top and require explicit acknowledgement.</p>
+      <ul>
+        <li>Priority levels: <span class="badge bg-danger me-1">URGENT</span><span class="badge bg-warning text-dark me-1">IMPORTANT</span><span class="badge bg-secondary">NORMAL</span></li>
+        <li>Each staff member's acknowledgement is tracked individually.</li>
+        <li>Expired announcements are hidden automatically.</li>
+      </ul>
+    </section>
+
+    <!-- ===== MOD-22 ===== -->
+    <section class="ug-section" id="mod22">
+      <h2><i class="bi bi-calendar-check me-2"></i>MOD-22 — Leave &amp; Attendance</h2>
+      <p class="mt-2">Manages staff leave requests, approvals, and leave type balances. Supervisors approve or reject PENDING requests.</p>
+      <ul>
+        <li>Leave types configurable: Annual Leave, Medical Leave, Unpaid Leave, etc.</li>
+        <li>Status flow: PENDING → APPROVED or REJECTED.</li>
+        <li>KPI shows: on-leave today, pending requests, absent today.</li>
+      </ul>
+    </section>
+
+    <!-- ===== MOD-23 ===== -->
+    <section class="ug-section" id="mod23">
+      <h2><i class="bi bi-cash me-2"></i>MOD-23 — Payroll Processing</h2>
+      <p class="mt-2">Manages payroll runs with CPF calculations, approval, and disbursement. Each run is reviewed by QA Manager and disbursed by Admin.</p>
+      <ul>
+        <li>Create payroll run for a period — system generates PayrollLines per employee.</li>
+        <li>QA Manager approves the run (marks as APPROVED).</li>
+        <li>Admin disburses — requires confirmation; action is irreversible.</li>
+        <li>CPF columns: employee contribution, employer contribution, gross, net.</li>
+      </ul>
+      <div class="ug-warn"><i class="bi bi-exclamation-triangle me-1"></i> Disbursement is permanent and audited. Ensure all PayrollLines are correct before disbursing.</div>
+    </section>
+
+    <!-- ===== MOD-24 ===== -->
+    <section class="ug-section" id="mod24">
+      <h2><i class="bi bi-file-earmark-check me-2"></i>MOD-24 — Certificate of Conformance</h2>
+      <span class="compliance-tag">AS9100D §8.6</span>
+      <p class="mt-2">Issues Certificates of Conformance (COC-YYYY-NNNN) linked to completed work orders. Status flow: DRAFT → ISSUED (→ VOID if needed).</p>
+      <h3>Rules</h3>
+      <ul>
+        <li>Only QA Manager or Admin can issue a CoC.</li>
+        <li>ISSUED and VOIDED CoCs cannot be re-issued — create a new CoC instead.</li>
+        <li>Issuing a CoC automatically sets the linked Work Order as <code>coc_issued = 1</code>.</li>
+        <li>Process flags (FPI/MPT/Chem Bath) are shown on the CoC print view.</li>
+      </ul>
+      <div class="ug-note">Print button generates a print-ready A4 CoC layout. Use your browser's Print function (Ctrl+P) to generate PDF.</div>
+    </section>
+
+    <!-- ===== SIGNATURE ===== -->
+    <section class="ug-section" id="signature">
+      <h2><i class="bi bi-pen me-2"></i>Signature Photo Upload</h2>
+      <p>Each system user can have a handwritten signature image on file. Signatures are used for visual identification on sign-off records and can serve as an electronic signature reference.</p>
+      <h3>Who Can Upload</h3>
+      <ul>
+        <li><strong>Users</strong> — Upload their own signature via the My Profile section (coming) or via MOD-25.</li>
+        <li><strong>Admin</strong> — Upload signatures on behalf of any user in MOD-25 User Management.</li>
+      </ul>
+      <h3>How to Upload (Admin — MOD-25)</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Go to <strong>MOD-25 User Management</strong> → System Users table.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Click the <i class="bi bi-pen"></i> (pen) icon in the Actions column for the target user.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>In the Signature modal, click <strong>Choose File</strong> and select a JPEG, PNG, or GIF image (max 500 KB).</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>Review the preview and click <strong>Save Signature</strong>.</span></div>
+      <div class="ug-note"><i class="bi bi-lightbulb me-1"></i> Best results: scan or photograph the signature on a white background. Avoid shadows or background patterns.</div>
+    </section>
+
+    <!-- ===== CHAT ===== -->
+    <section class="ug-section" id="chat">
+      <h2><i class="bi bi-chat-dots me-2"></i>Internal Chat</h2>
+      <p>The Internal Chat feature provides WhatsApp-style direct messaging and group chats between ATCA-ERP users — entirely on the LAN with no external services.</p>
+      <h3>Starting a Conversation</h3>
+      <div class="step-row"><span class="step-num">1</span><span>Open <strong>Internal Chat</strong> from the dashboard or navigation sidebar.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Click the <i class="bi bi-pencil-square"></i> icon at the top of the sidebar to start a new Direct Message or Group Chat.</span></div>
+      <div class="step-row"><span class="step-num">3</span><span>Select one or more users and click <strong>Start Chat</strong>.</span></div>
+      <div class="step-row"><span class="step-num">4</span><span>Type your message in the input bar and press <strong>Send</strong> or hit Enter.</span></div>
+      <h3>Features</h3>
+      <ul>
+        <li><strong>Direct Messages</strong> — 1-to-1 private conversations between any two users.</li>
+        <li><strong>Group Chats</strong> — Named group rooms with multiple participants (e.g., "QA Team").</li>
+        <li><strong>Auto-refresh</strong> — New messages appear automatically every 3 seconds.</li>
+        <li><strong>Delete</strong> — Users can soft-delete their own messages (shown as "This message was deleted").</li>
+      </ul>
+      <div class="ug-note"><i class="bi bi-lock me-1"></i> All messages are stored on the LAN server only. No data leaves the building. Chat is subject to the same audit controls as all system records.</div>
+    </section>
+
+    <!-- ===== CHANGE LOG ===== -->
+    <section class="ug-section" id="changelog">
+      <h2><i class="bi bi-journal-text me-2"></i>System Change Log</h2>
+      <p>The Change Log records every version change to the ATCA-ERP system: new features, bug fixes, migrations, configuration changes, and security updates.</p>
+      <ul>
+        <li>Engineers and above can add change log entries (category, version, description, affected modules).</li>
+        <li>Category badges: <span class="badge bg-primary me-1">FEATURE</span><span class="badge bg-danger me-1">BUGFIX</span><span class="badge bg-warning text-dark me-1">MIGRATION</span><span class="badge bg-secondary">CONFIG</span></li>
+        <li>Filter by category to focus on security fixes or feature additions.</li>
+      </ul>
+    </section>
+
+    <!-- ===== BUG REPORT ===== -->
+    <section class="ug-section" id="bugreport">
+      <h2><i class="bi bi-bug me-2"></i>Bug Report / Issue Tracker</h2>
+      <p>Any authenticated user can report a system bug. Supervisors and above can resolve bugs with notes.</p>
+      <h3>Severity Levels</h3>
+      <ul>
+        <li><span class="badge bg-danger me-1">CRITICAL</span> — System unusable; data integrity at risk. Escalate to Admin immediately.</li>
+        <li><span class="badge bg-warning text-dark me-1">HIGH</span> — Major feature broken; workflow blocked.</li>
+        <li><span class="badge bg-primary me-1">MEDIUM</span> — Feature partially broken; workaround exists.</li>
+        <li><span class="badge bg-secondary me-1">LOW</span> — Minor cosmetic or non-blocking issue.</li>
+      </ul>
+      <div class="step-row"><span class="step-num">1</span><span>Click <strong>Report Bug</strong>, fill in title, description, module, severity, and reproduction steps.</span></div>
+      <div class="step-row"><span class="step-num">2</span><span>Supervisor+ can click <strong>Resolve</strong>, enter resolution notes, and mark as resolved.</span></div>
+    </section>
+
+    <!-- ===== NAS410 ===== -->
+    <section class="ug-section" id="nas410">
+      <h2><i class="bi bi-person-check me-2"></i>NAS410 — NDT Personnel Qualification</h2>
+      <p>NAS410 defines the requirements for qualification and certification of NDT personnel in the aerospace industry.</p>
+      <table class="table table-dark table-sm ug-table">
+        <thead><tr><th>Section</th><th>Requirement</th><th>System Coverage</th></tr></thead>
+        <tbody>
+          <tr><td>§4</td><td>General qualification requirements</td><td>MOD-04 personnel register</td></tr>
+          <tr><td>§5</td><td>Training and experience</td><td>MOD-04 certification records</td></tr>
+          <tr><td>§6</td><td>Examination and certification</td><td>MOD-04 cert body, cert number, expiry</td></tr>
+          <tr><td>§9.3</td><td>Visual acuity (eye exam)</td><td>MOD-04 eye exam records (annual)</td></tr>
+        </tbody>
+      </table>
+      <div class="ug-note">NAS410 Level II or III qualification is required to interpret FPI results and record final disposition in MOD-03.</div>
+    </section>
+
+    <footer class="mt-4 pt-3 border-top" style="border-color:var(--atca-border)!important; font-size:.78rem; color:var(--atca-text-muted);">
+      ATCA ERP User Guide · ATC Aviation Pte Ltd · Version 1.8 · June 2026 · For internal use only.
+    </footer>
+
+  </main>
+</div>
+
+<script src="assets/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/atca-core.js?v=4"></script>
+<script>
+  // Highlight active TOC link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.ug-sidebar .nav-link[href^="#"]');
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.ug-sidebar .nav-link[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
