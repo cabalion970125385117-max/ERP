@@ -1,0 +1,3201 @@
+/* ATCA-ERP v1.0 - Demo / offline sample data
+   Used by atca-core.js as a fallback when the LAN backend is unreachable
+   (e.g. the static Vercel deployment). Keys are API endpoints (no /api/v1
+   prefix, query string stripped). Generated from preview_server.py STUBS. */
+window.ATCA_DEMO = {
+  "/auth/me": {
+    "user_id": 1,
+    "username": "admin",
+    "role": "ADMIN",
+    "full_name": "James Tan Wei Liang",
+    "employee_id": "ATCA-001",
+    "personnel_id": 1
+  },
+  "/alerts/summary": {
+    "total": 3
+  },
+  "/mod04/alerts/summary": {
+    "certs_expiring_90d": 2,
+    "expired_certs": 1,
+    "eye_expiring_60d": 1,
+    "expired_eye_exams": 0
+  },
+  "/mod05/alerts/summary": {
+    "cal_overdue": 1,
+    "cal_due_30d": 3,
+    "never_calibrated": 0,
+    "total": 4
+  },
+  "/mod07/alerts/summary": {
+    "open_ncr": 3,
+    "overdue_capa": 1,
+    "pending_verify": 1,
+    "ncr_open_only": 3,
+    "total": 5
+  },
+  "/mod01/policy/current": {
+    "policy_id": 1,
+    "revision": "Rev 4",
+    "status": "APPROVED",
+    "effective_date": "2025-01-01",
+    "title": "Quality Policy"
+  },
+  "/mod01/objectives": {
+    "items": [
+      {
+        "objective_id": 1,
+        "objective_ref": "QO-2025-01",
+        "title": "Achieve NADCAP accreditation renewal",
+        "status": "ON_TRACK",
+        "target_date": "2025-12-31"
+      },
+      {
+        "objective_id": 2,
+        "objective_ref": "QO-2025-02",
+        "title": "Reduce NCR turnaround to <5 days",
+        "status": "AT_RISK",
+        "target_date": "2025-09-30"
+      },
+      {
+        "objective_id": 3,
+        "objective_ref": "QO-2025-03",
+        "title": "100% personnel NAS410 recertification",
+        "status": "ON_TRACK",
+        "target_date": "2025-10-15"
+      }
+    ],
+    "total": 3
+  },
+  "/mod01/risks": {
+    "items": [
+      {
+        "risk_id": 1,
+        "risk_ref": "RSK-001",
+        "description": "Chemical bath out-of-spec during NADCAP audit",
+        "risk_score_pre": 15,
+        "status": "OPEN"
+      },
+      {
+        "risk_id": 2,
+        "risk_ref": "RSK-002",
+        "description": "Inspector certification lapse before renewal",
+        "risk_score_pre": 12,
+        "status": "OPEN"
+      }
+    ],
+    "total": 2
+  },
+  "/mod01/reviews": {
+    "items": [
+      {
+        "review_id": 1,
+        "review_ref": "MR-2025-01",
+        "review_type": "QUARTERLY",
+        "review_date": "2025-07-15",
+        "chaired_by_name": "Gary Tan Beng Huat",
+        "status": "PLANNED",
+        "open_actions": 0
+      },
+      {
+        "review_id": 2,
+        "review_ref": "MR-2025-02",
+        "review_type": "ANNUAL",
+        "review_date": "2025-03-10",
+        "chaired_by_name": "Gary Tan Beng Huat",
+        "status": "CLOSED",
+        "open_actions": 2
+      }
+    ],
+    "total": 2
+  },
+  "/mod02/alerts/summary": {
+    "pending_approval": 0,
+    "review_overdue": 1,
+    "review_due_soon": 1
+  },
+  "/mod02/documents": {
+    "items": [
+      {
+        "doc_id": 1,
+        "doc_number": "ATCA-QP-001",
+        "title": "Quality Manual",
+        "category": "Quality Procedure",
+        "process_area": "All",
+        "current_revision": "Rev 4",
+        "status": "APPROVED",
+        "effective_date": "2025-01-01",
+        "review_due_date": "2026-01-01",
+        "owner_name": "Gary Tan Beng Huat"
+      },
+      {
+        "doc_id": 2,
+        "doc_number": "ATCA-WI-FPI-001",
+        "title": "FPI Process Instruction",
+        "category": "Work Instruction",
+        "process_area": "FPI",
+        "current_revision": "Rev 2",
+        "status": "APPROVED",
+        "effective_date": "2024-06-01",
+        "review_due_date": "2025-06-01",
+        "owner_name": "James Tan Wei Liang"
+      }
+    ],
+    "total": 2
+  },
+  "/mod02/categories": [
+    {
+      "category_id": 1,
+      "name": "Quality Procedure"
+    },
+    {
+      "category_id": 2,
+      "name": "Work Instruction"
+    },
+    {
+      "category_id": 3,
+      "name": "Form"
+    }
+  ],
+  "/mod04/personnel": {
+    "items": [
+      {
+        "personnel_id": 1,
+        "employee_id": "ATCA-001",
+        "full_name": "James Tan Wei Liang",
+        "designation": "LEVEL_2",
+        "employment_type": "PERMANENT",
+        "active_certs": 3,
+        "latest_exam_date": "2024-11-01",
+        "latest_exam_expiry": "2025-11-01",
+        "exam_days_left": 160
+      },
+      {
+        "personnel_id": 2,
+        "employee_id": "ATCA-002",
+        "full_name": "Hendrich Lim Jun Wei",
+        "designation": "LEVEL_2",
+        "employment_type": "PERMANENT",
+        "active_certs": 2,
+        "latest_exam_date": "2024-09-15",
+        "latest_exam_expiry": "2025-09-15",
+        "exam_days_left": 113
+      },
+      {
+        "personnel_id": 3,
+        "employee_id": "ATCA-003",
+        "full_name": "Cabal Lo Wen Xin",
+        "designation": "LEVEL_2",
+        "employment_type": "CONTRACT",
+        "active_certs": 2,
+        "latest_exam_date": "2024-07-01",
+        "latest_exam_expiry": "2025-07-01",
+        "exam_days_left": 37
+      },
+      {
+        "personnel_id": 5,
+        "employee_id": "ATCA-005",
+        "full_name": "Azman Bin Ayub",
+        "designation": "LEVEL_2",
+        "employment_type": "PERMANENT",
+        "active_certs": 1,
+        "latest_exam_date": "2023-12-01",
+        "latest_exam_expiry": "2024-12-01",
+        "exam_days_left": -175
+      }
+    ],
+    "total": 4
+  },
+  "/mod04/certifications": {
+    "items": [
+      {
+        "cert_id": 1,
+        "personnel_id": 1,
+        "full_name": "James Tan Wei Liang",
+        "employee_id": "ATCA-001",
+        "method": "PT",
+        "ndt_level": "II",
+        "cert_scheme": "NAS410",
+        "cert_number": "ATCA-PT-001",
+        "issuing_authority": "CAAS Singapore",
+        "issue_date": "2022-01-10",
+        "expiry_date": "2027-01-10",
+        "days_left": 600,
+        "status": "ACTIVE"
+      },
+      {
+        "cert_id": 2,
+        "personnel_id": 2,
+        "full_name": "Hendrich Lim Jun Wei",
+        "employee_id": "ATCA-002",
+        "method": "MT",
+        "ndt_level": "II",
+        "cert_scheme": "NAS410",
+        "cert_number": "ATCA-MT-002",
+        "issuing_authority": "CAAS Singapore",
+        "issue_date": "2020-06-01",
+        "expiry_date": "2025-06-01",
+        "days_left": -10,
+        "status": "EXPIRED"
+      }
+    ],
+    "total": 2
+  },
+  "/mod05/equipment": {
+    "items": [
+      {
+        "equipment_id": 1,
+        "equip_code": "UV-001",
+        "description": "UV-A Lamp — Magnaflux ZB-100F",
+        "equip_type": "UV_LAMP",
+        "process_area": "FPI",
+        "make_model": "Magnaflux ZB-100F",
+        "serial_number": "MF-ZB-2021-0042",
+        "last_cal_date": "2025-02-14",
+        "cal_due_date": "2026-02-14",
+        "cal_days_left": 265,
+        "cal_rag_status": "CURRENT"
+      },
+      {
+        "equipment_id": 2,
+        "equip_code": "TH-001",
+        "description": "Digital Thermometer — Fluke 52 II",
+        "equip_type": "THERMOMETER",
+        "process_area": "FPI",
+        "make_model": "Fluke 52 II",
+        "serial_number": "FL-52-2019-0118",
+        "last_cal_date": "2024-12-01",
+        "cal_due_date": "2025-06-01",
+        "cal_days_left": -10,
+        "cal_rag_status": "OVERDUE"
+      },
+      {
+        "equipment_id": 3,
+        "equip_code": "PG-001",
+        "description": "Pressure Gauge 0–60 psi",
+        "equip_type": "PRESSURE_GAUGE",
+        "process_area": "MPT",
+        "make_model": "Ashcroft 1009SW",
+        "serial_number": "AC-1009-2022-0007",
+        "last_cal_date": "2025-04-01",
+        "cal_due_date": "2025-10-01",
+        "cal_days_left": 28,
+        "cal_rag_status": "DUE_SOON"
+      }
+    ],
+    "total": 3
+  },
+  "/mod05/calibrations": {
+    "items": [
+      {
+        "cal_id": 1,
+        "cal_ref": "CAL-2025-001",
+        "equipment_id": 1,
+        "equip_code": "UV-001",
+        "description": "UV-A Lamp",
+        "cal_date": "2025-02-14",
+        "cal_due_date": "2026-02-14",
+        "vendor": "SATS Engineering",
+        "cert_number": "SATS-CAL-2025-0042",
+        "measured_value": "≥1000 µW/cm²",
+        "out_of_tolerance": false,
+        "result": "PASS",
+        "recorded_by_name": "James Tan Wei Liang"
+      }
+    ],
+    "total": 1
+  },
+  "/mod07/ncr": {
+    "items": [
+      {
+        "ncr_id": 1,
+        "ncr_ref": "NCR-2025-001",
+        "ncr_type": "PROCESS",
+        "process_area": "FPI",
+        "description": "Bath concentration found out of spec during periodic check",
+        "detected_date": "2025-05-10",
+        "severity": "MJ",
+        "source": "INTERNAL_AUDIT",
+        "status": "OPEN",
+        "raised_by_name": "James Tan Wei Liang",
+        "raised_date": "2025-05-10",
+        "target_close_date": "2025-06-10",
+        "days_open": 15,
+        "disposition": null,
+        "open_capa_count": 0,
+        "capa_required": true
+      },
+      {
+        "ncr_id": 2,
+        "ncr_ref": "NCR-2025-002",
+        "ncr_type": "PROCESS",
+        "process_area": "FPI",
+        "description": "UV lamp intensity reading below 1000 µW/cm² minimum requirement",
+        "detected_date": "2025-04-20",
+        "severity": "MN",
+        "source": "PROCESS_CHECK",
+        "status": "CAPA_IN_PROGRESS",
+        "raised_by_name": "Hendrich Lim Jun Wei",
+        "raised_date": "2025-04-20",
+        "target_close_date": "2025-05-20",
+        "days_open": 35,
+        "disposition": "REWORK",
+        "open_capa_count": 1,
+        "capa_required": true
+      },
+      {
+        "ncr_id": 3,
+        "ncr_ref": "NCR-2026-003",
+        "ncr_type": "PROCESS",
+        "process_area": "ANODIZE",
+        "description": "Black Anodize bath (ANO-BK-001) dye concentration below minimum 5% — measured at 3.5%. Job ROUTER-12681 (WO-2026-0005) placed on hold.",
+        "detected_date": "2026-06-11",
+        "severity": "MJ",
+        "source": "PROCESS_CHECK",
+        "status": "OPEN",
+        "raised_by_name": "James Tan Wei Liang",
+        "raised_date": "2026-06-11",
+        "target_close_date": "2026-06-14",
+        "days_open": 3,
+        "disposition": null,
+        "open_capa_count": 0,
+        "capa_required": true
+      }
+    ],
+    "total": 3
+  },
+  "/mod07/capa": {
+    "items": [
+      {
+        "capa_id": 1,
+        "capa_ref": "CAPA-2025-001",
+        "capa_type": "CORRECTIVE",
+        "ncr_id": 2,
+        "ncr_ref": "NCR-2025-002",
+        "root_cause_method": "5WHY",
+        "root_cause_description": "UV lamp bulb past service interval; no PM schedule in place",
+        "corrective_action": "Replace bulb; add PM schedule",
+        "preventive_action": "Add UV lamp to monthly PM checklist",
+        "status": "IN_PROGRESS",
+        "owner_name": "Hendrich Lim Jun Wei",
+        "assigned_to_name": "Hendrich Lim Jun Wei",
+        "target_completion_date": "2025-05-20",
+        "target_date": "2025-05-20",
+        "effectiveness_result": null,
+        "verified_by_name": null,
+        "closed_date": null,
+        "days_overdue": 5
+      }
+    ],
+    "total": 1
+  },
+  "/mod25/alerts/summary": {
+    "total_users": 6,
+    "active_users": 5,
+    "inactive_users": 1,
+    "elevated_roles": 2
+  },
+  "/mod25/users": {
+    "items": [
+      {
+        "user_id": 1,
+        "username": "james.tan",
+        "full_name": "James Tan Wei Liang",
+        "role": "QA_MANAGER",
+        "employee_id": "ATCA-001",
+        "personnel_id": 1,
+        "active": true,
+        "created_date": "2025-01-01",
+        "last_login": "2025-05-26T08:30:00"
+      },
+      {
+        "user_id": 2,
+        "username": "gary.tan",
+        "full_name": "Gary Tan Beng Huat",
+        "role": "ADMIN",
+        "employee_id": "ATCA-004",
+        "personnel_id": 4,
+        "active": true,
+        "created_date": "2025-01-01",
+        "last_login": "2025-05-25T14:15:00"
+      },
+      {
+        "user_id": 3,
+        "username": "hendrich.lim",
+        "full_name": "Hendrich Lim Jun Wei",
+        "role": "NDT_INSPECTOR",
+        "employee_id": "ATCA-002",
+        "personnel_id": 2,
+        "active": true,
+        "created_date": "2025-01-15",
+        "last_login": "2025-05-25T07:45:00"
+      },
+      {
+        "user_id": 4,
+        "username": "cabal.lo",
+        "full_name": "Cabal Lo Wen Xin",
+        "role": "NDT_INSPECTOR",
+        "employee_id": "ATCA-003",
+        "personnel_id": 3,
+        "active": true,
+        "created_date": "2025-02-01",
+        "last_login": "2025-05-24T09:00:00"
+      },
+      {
+        "user_id": 5,
+        "username": "azman.ayub",
+        "full_name": "Azman Bin Ayub",
+        "role": "SUPERVISOR",
+        "employee_id": "ATCA-005",
+        "personnel_id": 5,
+        "active": false,
+        "created_date": "2025-02-10",
+        "last_login": "2025-04-10T16:00:00"
+      },
+      {
+        "user_id": 6,
+        "username": "hariharan.raju",
+        "full_name": "Hariharan s/o Raju",
+        "role": "NDT_INSPECTOR",
+        "employee_id": "ATCA-006",
+        "personnel_id": 6,
+        "active": true,
+        "created_date": "2025-03-01",
+        "last_login": "2025-05-23T08:00:00"
+      }
+    ],
+    "total": 6
+  },
+  "/mod27/alerts/summary": {
+    "active_jobs": 8,
+    "grn_pending": 2,
+    "coc_pending": 3,
+    "shipped_today": 4,
+    "total": 8
+  },
+  "/mod27/active-grns": {
+    "items": [
+      {
+        "grn_ref": "GRN-2026-0042",
+        "customer_name": "Rolls-Royce Singapore",
+        "received_date": "2026-06-10",
+        "status": "ACCEPTED"
+      },
+      {
+        "grn_ref": "GRN-2026-0041",
+        "customer_name": "ST Engineering",
+        "received_date": "2026-06-08",
+        "status": "ACCEPTED"
+      },
+      {
+        "grn_ref": "GRN-2026-0040",
+        "customer_name": "SIA Engineering",
+        "received_date": "2026-06-05",
+        "status": "PENDING"
+      }
+    ]
+  },
+  "/mod26/alerts/summary": {
+    "db_used_pct": 24,
+    "active_sessions": 3,
+    "failed_logins_24h": 2,
+    "days_since_backup": 0
+  },
+  "/admin/maintenance-status": {
+    "enabled": false,
+    "message": "System is undergoing scheduled maintenance. Please try again shortly.",
+    "since": null,
+    "by": null
+  },
+  "/admin/storage": {
+    "db_name": "ATCA_ERP_DB",
+    "db_used_mb": 2412.5,
+    "db_alloc_mb": 4096,
+    "db_max_mb": 10240,
+    "log_used_mb": 318.7,
+    "disk_free_gb": 214.6,
+    "disk_total_gb": 512.0,
+    "tables": [
+      {
+        "name": "AuditLog",
+        "rows": 184213,
+        "size_mb": 612.4
+      },
+      {
+        "name": "ChatMessage",
+        "rows": 8421,
+        "size_mb": 41.8
+      },
+      {
+        "name": "FpiInspectionStep",
+        "rows": 12640,
+        "size_mb": 38.2
+      },
+      {
+        "name": "BathSample",
+        "rows": 9877,
+        "size_mb": 27.1
+      },
+      {
+        "name": "Document",
+        "rows": 1342,
+        "size_mb": 486.9
+      },
+      {
+        "name": "MptInspectionStep",
+        "rows": 7110,
+        "size_mb": 19.4
+      },
+      {
+        "name": "WorkOrder",
+        "rows": 3201,
+        "size_mb": 14.7
+      },
+      {
+        "name": "CalibrationRecord",
+        "rows": 2056,
+        "size_mb": 9.2
+      }
+    ],
+    "files": {
+      "signatures_mb": 12.3,
+      "documents_mb": 486.9,
+      "backups_mb": 1840.0,
+      "attachments_mb": 203.4
+    }
+  },
+  "/admin/activity": {
+    "items": [
+      {
+        "log_id": 184213,
+        "ts": "2026-06-15T13:42:08",
+        "username": "admin",
+        "role": "ADMIN",
+        "action": "LOGIN",
+        "module": "AUTH",
+        "table_name": "Users",
+        "record_id": 1,
+        "lan_ip": "192.168.1.31",
+        "detail": "Successful login"
+      },
+      {
+        "log_id": 184212,
+        "ts": "2026-06-15T13:38:51",
+        "username": "james.tan",
+        "role": "QA_MANAGER",
+        "action": "ISSUE",
+        "module": "MOD-24",
+        "table_name": "CertificateOfConformance",
+        "record_id": 17,
+        "lan_ip": "192.168.1.22",
+        "detail": "CoC COC-2026-0017 issued"
+      },
+      {
+        "log_id": 184211,
+        "ts": "2026-06-15T13:21:04",
+        "username": "hendrich.lim",
+        "role": "NDT_INSPECTOR",
+        "action": "SIGNOFF",
+        "module": "MOD-03",
+        "table_name": "FpiInspectionStep",
+        "record_id": 12640,
+        "lan_ip": "192.168.1.18",
+        "detail": "FPI-2026-0002 step 7 signed off"
+      },
+      {
+        "log_id": 184210,
+        "ts": "2026-06-15T12:55:32",
+        "username": "cabal.lo",
+        "role": "NDT_INSPECTOR",
+        "action": "CREATE",
+        "module": "MOD-06",
+        "table_name": "BathSample",
+        "record_id": 9877,
+        "lan_ip": "192.168.1.19",
+        "detail": "Bath ANO-BK-001 sample recorded — OUT_OF_SPEC"
+      },
+      {
+        "log_id": 184209,
+        "ts": "2026-06-15T11:47:11",
+        "username": "UNKNOWN",
+        "role": "-",
+        "action": "LOGIN_FAIL",
+        "module": "AUTH",
+        "table_name": "Users",
+        "record_id": null,
+        "lan_ip": "192.168.1.77",
+        "detail": "Failed login — bad password (attempt 2/5)"
+      },
+      {
+        "log_id": 184208,
+        "ts": "2026-06-15T10:30:45",
+        "username": "admin",
+        "role": "ADMIN",
+        "action": "ROLE_CHANGE",
+        "module": "MOD-25",
+        "table_name": "Users",
+        "record_id": 5,
+        "lan_ip": "192.168.1.31",
+        "detail": "azman.ayub deactivated"
+      },
+      {
+        "log_id": 184207,
+        "ts": "2026-06-15T09:12:20",
+        "username": "james.tan",
+        "role": "QA_MANAGER",
+        "action": "VERIFY",
+        "module": "MOD-07",
+        "table_name": "CAPA",
+        "record_id": 42,
+        "lan_ip": "192.168.1.22",
+        "detail": "CAPA-2026-0012 verified & closed"
+      },
+      {
+        "log_id": 184206,
+        "ts": "2026-06-15T08:31:02",
+        "username": "hariharan.raju",
+        "role": "NDT_INSPECTOR",
+        "action": "LOGIN",
+        "module": "AUTH",
+        "table_name": "Users",
+        "record_id": 6,
+        "lan_ip": "192.168.1.20",
+        "detail": "Successful login"
+      },
+      {
+        "log_id": 184205,
+        "ts": "2026-06-15T08:05:54",
+        "username": "admin",
+        "role": "ADMIN",
+        "action": "BACKUP",
+        "module": "MOD-26",
+        "table_name": "-",
+        "record_id": null,
+        "lan_ip": "192.168.1.31",
+        "detail": "Nightly backup completed (1.74 GB)"
+      },
+      {
+        "log_id": 184204,
+        "ts": "2026-06-14T17:48:39",
+        "username": "gary.tan",
+        "role": "ADMIN",
+        "action": "CONFIG",
+        "module": "MOD-26",
+        "table_name": "SystemConfig",
+        "record_id": 3,
+        "lan_ip": "192.168.1.31",
+        "detail": "Session timeout changed 8h → 8h (no-op)"
+      }
+    ],
+    "total": 184213
+  },
+  "/admin/users": {
+    "items": [
+      {
+        "user_id": 1,
+        "username": "admin",
+        "full_name": "James Tan Wei Liang",
+        "role": "ADMIN",
+        "employee_id": "ATCA-001",
+        "active": true,
+        "last_login": "2026-06-15T13:42:08",
+        "failed_attempts": 0,
+        "must_reset": false
+      },
+      {
+        "user_id": 2,
+        "username": "gary.tan",
+        "full_name": "Gary Tan Beng Huat",
+        "role": "ADMIN",
+        "employee_id": "ATCA-004",
+        "active": true,
+        "last_login": "2026-06-14T17:48:39",
+        "failed_attempts": 0,
+        "must_reset": false
+      },
+      {
+        "user_id": 3,
+        "username": "hendrich.lim",
+        "full_name": "Hendrich Lim Jun Wei",
+        "role": "NDT_INSPECTOR",
+        "employee_id": "ATCA-002",
+        "active": true,
+        "last_login": "2026-06-15T13:21:04",
+        "failed_attempts": 0,
+        "must_reset": false
+      },
+      {
+        "user_id": 4,
+        "username": "cabal.lo",
+        "full_name": "Cabal Lo Wen Xin",
+        "role": "NDT_INSPECTOR",
+        "employee_id": "ATCA-003",
+        "active": true,
+        "last_login": "2026-06-15T12:55:32",
+        "failed_attempts": 0,
+        "must_reset": true
+      },
+      {
+        "user_id": 5,
+        "username": "azman.ayub",
+        "full_name": "Azman Bin Ayub",
+        "role": "SUPERVISOR",
+        "employee_id": "ATCA-005",
+        "active": false,
+        "last_login": "2026-04-10T16:00:00",
+        "failed_attempts": 0,
+        "must_reset": false
+      },
+      {
+        "user_id": 6,
+        "username": "hariharan.raju",
+        "full_name": "Hariharan s/o Raju",
+        "role": "NDT_INSPECTOR",
+        "employee_id": "ATCA-006",
+        "active": true,
+        "last_login": "2026-06-15T08:31:02",
+        "failed_attempts": 3,
+        "must_reset": false
+      }
+    ],
+    "total": 6
+  },
+  "/admin/backups": {
+    "items": [
+      {
+        "backup_id": 7,
+        "filename": "ATCA_ERP_DB_2026-06-15_0200.bak",
+        "created_at": "2026-06-15T02:00:11",
+        "size_mb": 1843.2,
+        "type": "FULL",
+        "status": "COMPLETE",
+        "retention": "30d"
+      },
+      {
+        "backup_id": 6,
+        "filename": "ATCA_ERP_DB_2026-06-14_0200.bak",
+        "created_at": "2026-06-14T02:00:09",
+        "size_mb": 1838.7,
+        "type": "FULL",
+        "status": "COMPLETE",
+        "retention": "30d"
+      },
+      {
+        "backup_id": 5,
+        "filename": "ATCA_ERP_DB_2026-06-13_0200.bak",
+        "created_at": "2026-06-13T02:00:14",
+        "size_mb": 1835.1,
+        "type": "FULL",
+        "status": "COMPLETE",
+        "retention": "30d"
+      },
+      {
+        "backup_id": 4,
+        "filename": "ATCA_ERP_DB_2026-06-12_1430.bak",
+        "created_at": "2026-06-12T14:30:00",
+        "size_mb": 1832.9,
+        "type": "MANUAL",
+        "status": "COMPLETE",
+        "retention": "90d"
+      },
+      {
+        "backup_id": 3,
+        "filename": "ATCA_ERP_DB_2026-06-12_0200.bak",
+        "created_at": "2026-06-12T02:00:08",
+        "size_mb": 1830.4,
+        "type": "FULL",
+        "status": "COMPLETE",
+        "retention": "30d"
+      }
+    ],
+    "total": 5
+  },
+  "/mod03/alerts/summary": {
+    "in_progress": 4,
+    "pending_signoff": 2,
+    "rejected": 1,
+    "total": 7
+  },
+  "/mod03/jobs": {
+    "items": [
+      {
+        "job_id": 1,
+        "job_ref": "FPI-2026-0001",
+        "customer": "SIA Engineering Company",
+        "part_number": "GE90-7B-FAN-BLADE",
+        "method": "FLUORESCENT",
+        "penetrant_type": "Zyglo ZL-2C",
+        "quantity": 12,
+        "status": "IN_PROGRESS",
+        "disposition": null,
+        "inspector_name": "James Tan Wei Liang",
+        "created_at": "2026-06-12",
+        "completed_steps": 4,
+        "total_steps": 8
+      },
+      {
+        "job_id": 2,
+        "job_ref": "FPI-2026-0002",
+        "customer": "Parker Hannifin Aerospace",
+        "part_number": "PHN-INNER-BODY-HSG",
+        "method": "FLUORESCENT",
+        "penetrant_type": "Zyglo ZL-2C",
+        "quantity": 4,
+        "status": "PENDING_SIGNOFF",
+        "disposition": null,
+        "inspector_name": "Hendrich Lim Jun Wei",
+        "created_at": "2026-06-13",
+        "completed_steps": 7,
+        "total_steps": 8
+      },
+      {
+        "job_id": 3,
+        "job_ref": "FPI-2026-0003",
+        "customer": "ST Engineering Aerospace",
+        "part_number": "STE-INNER-BRACKET-MK2",
+        "method": "FLUORESCENT",
+        "penetrant_type": "Zyglo ZL-2C",
+        "quantity": 6,
+        "status": "IN_PROGRESS",
+        "disposition": null,
+        "inspector_name": "Cabal Lo Wen Xin",
+        "created_at": "2026-06-13",
+        "completed_steps": 2,
+        "total_steps": 8
+      },
+      {
+        "job_id": 4,
+        "job_ref": "FPI-2026-0004",
+        "customer": "Rolls-Royce Singapore",
+        "part_number": "RR-DISC-TRENT-1000",
+        "method": "FLUORESCENT",
+        "penetrant_type": "Zyglo ZL-2C",
+        "quantity": 2,
+        "status": "IN_PROGRESS",
+        "disposition": null,
+        "inspector_name": "James Tan Wei Liang",
+        "created_at": "2026-06-14",
+        "completed_steps": 1,
+        "total_steps": 8
+      },
+      {
+        "job_id": 5,
+        "job_ref": "FPI-2026-0005",
+        "customer": "Parker Hannifin Aerospace",
+        "part_number": "PHN-KLIENT-LEVER",
+        "method": "VISIBLE",
+        "penetrant_type": "Zyglo ZL-60D",
+        "quantity": 6,
+        "status": "REJECTED",
+        "disposition": "REJECT",
+        "inspector_name": "Hendrich Lim Jun Wei",
+        "created_at": "2026-06-10",
+        "completed_steps": 8,
+        "total_steps": 8
+      }
+    ],
+    "total": 5
+  },
+  "/mod03/jobs/1": {
+    "job_id": 1,
+    "job_ref": "FPI-2026-0001",
+    "customer": "SIA Engineering Company",
+    "part_number": "GE90-7B-FAN-BLADE",
+    "method": "FLUORESCENT",
+    "penetrant_type": "Zyglo ZL-2C",
+    "quantity": 12,
+    "status": "IN_PROGRESS",
+    "disposition": null,
+    "inspector_name": "James Tan Wei Liang",
+    "work_order_id": 1,
+    "wo_number": "WO-2026-0001",
+    "steps": [
+      {
+        "seq": 1,
+        "step_code": "PRE_CLEAN",
+        "label": "Pre-Cleaning",
+        "status": "COMPLETE",
+        "signed_by_name": "Ahmad Bin Rashid",
+        "signed_at": "2026-06-12T08:30:00",
+        "cleaning_method": "Solvent wipe",
+        "solvent_used": "MEK"
+      },
+      {
+        "seq": 2,
+        "step_code": "PENETRANT_APPLY",
+        "label": "Penetrant Application",
+        "status": "COMPLETE",
+        "signed_by_name": "James Tan Wei Liang",
+        "signed_at": "2026-06-12T09:00:00",
+        "penetrant_type": "Type 1",
+        "application_method": "Spray"
+      },
+      {
+        "seq": 3,
+        "step_code": "PENETRANT_DWELL",
+        "label": "Penetrant Dwell",
+        "status": "COMPLETE",
+        "signed_by_name": "James Tan Wei Liang",
+        "signed_at": "2026-06-12T09:20:00",
+        "dwell_minutes": 20,
+        "temp_c": 22
+      },
+      {
+        "seq": 4,
+        "step_code": "RINSE",
+        "label": "Rinse / Excess Removal",
+        "status": "COMPLETE",
+        "signed_by_name": "James Tan Wei Liang",
+        "signed_at": "2026-06-12T09:35:00",
+        "wash_method": "Water wash",
+        "water_temp_c": 30,
+        "water_pressure_psi": 25
+      },
+      {
+        "seq": 5,
+        "step_code": "DEVELOPER_APPLY",
+        "label": "Developer Application",
+        "status": "PENDING",
+        "signed_by_name": null,
+        "signed_at": null
+      },
+      {
+        "seq": 6,
+        "step_code": "DEVELOPER_DWELL",
+        "label": "Development Dwell",
+        "status": "PENDING",
+        "signed_by_name": null,
+        "signed_at": null
+      },
+      {
+        "seq": 7,
+        "step_code": "INTERPRET",
+        "label": "Interpretation & Evaluation",
+        "status": "PENDING",
+        "signed_by_name": null,
+        "signed_at": null
+      },
+      {
+        "seq": 8,
+        "step_code": "POST_CLEAN",
+        "label": "Post-Cleaning",
+        "status": "PENDING",
+        "signed_by_name": null,
+        "signed_at": null
+      }
+    ]
+  },
+  "/mod03/baths": [
+    {
+      "bath_id": 1,
+      "bath_code": "FPI-PT-001",
+      "bath_name": "Penetrant Tank #1",
+      "status": "IN_SPEC"
+    },
+    {
+      "bath_id": 2,
+      "bath_code": "FPI-EM-001",
+      "bath_name": "Emulsifier Tank #1",
+      "status": "OUT_OF_SPEC"
+    },
+    {
+      "bath_id": 3,
+      "bath_code": "FPI-DV-001",
+      "bath_name": "Developer Tank #1",
+      "status": "IN_SPEC"
+    }
+  ],
+  "/mod06/alerts/summary": {
+    "out_of_spec": 2,
+    "overdue_sample": 2,
+    "due_soon": 4,
+    "total_baths": 9,
+    "total": 9
+  },
+  "/mod06/baths": {
+    "items": [
+      {
+        "bath_id": 1,
+        "bath_code": "FPI-PT-001",
+        "bath_name": "Penetrant Tank #1",
+        "bath_type": "PT_PENETRANT",
+        "process_area": "FPI",
+        "chemical_product": "Magnaflux ZL-60D",
+        "spec_ref": "ASTM E1417",
+        "concentration_min": null,
+        "concentration_max": null,
+        "temp_min_c": 16,
+        "temp_max_c": 52,
+        "current_temp_c": 22,
+        "last_test_date": "2025-05-20",
+        "next_test_due": "2025-05-27",
+        "status": "IN_SPEC",
+        "active": true
+      },
+      {
+        "bath_id": 2,
+        "bath_code": "FPI-EM-001",
+        "bath_name": "Emulsifier Tank #1",
+        "bath_type": "PT_EMULSIFIER",
+        "process_area": "FPI",
+        "chemical_product": "Magnaflux ZR-10B",
+        "spec_ref": "ASTM E1417",
+        "concentration_min": 5,
+        "concentration_max": 35,
+        "temp_min_c": 16,
+        "temp_max_c": 52,
+        "current_temp_c": 21,
+        "last_test_date": "2025-05-18",
+        "next_test_due": "2025-05-25",
+        "status": "OUT_OF_SPEC",
+        "active": true
+      },
+      {
+        "bath_id": 3,
+        "bath_code": "FPI-DV-001",
+        "bath_name": "Developer Tank #1",
+        "bath_type": "PT_DEVELOPER",
+        "process_area": "FPI",
+        "chemical_product": "Magnaflux ZP-4B",
+        "spec_ref": "ASTM E1417",
+        "concentration_min": 10,
+        "concentration_max": 30,
+        "temp_min_c": 16,
+        "temp_max_c": 52,
+        "current_temp_c": 20,
+        "last_test_date": "2025-05-15",
+        "next_test_due": "2025-05-22",
+        "status": "IN_SPEC",
+        "active": true
+      },
+      {
+        "bath_id": 4,
+        "bath_code": "MPT-WF-001",
+        "bath_name": "Wet Fluorescent Bath",
+        "bath_type": "MT_WET_FLUORESCENT",
+        "process_area": "MPT",
+        "chemical_product": "Magnaflux 14HF",
+        "spec_ref": "ASTM E1444 / AMS 2641",
+        "concentration_min": 0.1,
+        "concentration_max": 0.4,
+        "temp_min_c": 10,
+        "temp_max_c": 40,
+        "current_temp_c": 19,
+        "last_test_date": "2025-05-19",
+        "next_test_due": "2025-05-26",
+        "status": "IN_SPEC",
+        "active": true
+      },
+      {
+        "bath_id": 5,
+        "bath_code": "ANO-SA-001",
+        "bath_name": "Sulfuric Acid Anodize Tank",
+        "bath_type": "ANODIZE_SULFURIC",
+        "process_area": "ANODIZE",
+        "chemical_product": "H2SO4 (Sulfuric Acid)",
+        "spec_ref": "MIL-A-8625 Type II / AMS 2471",
+        "concentration_min": 165,
+        "concentration_max": 210,
+        "temp_min_c": 18,
+        "temp_max_c": 22,
+        "current_temp_c": 20,
+        "last_test_date": "2026-06-13",
+        "next_test_due": "2026-06-14",
+        "status": "IN_SPEC",
+        "active": true
+      },
+      {
+        "bath_id": 6,
+        "bath_code": "ANO-DG-001",
+        "bath_name": "Alkaline Degreaser Tank",
+        "bath_type": "DEGREASE_ALKALINE",
+        "process_area": "ANODIZE",
+        "chemical_product": "Turco 4215-S",
+        "spec_ref": "ATCA-WI-ANO-001",
+        "concentration_min": 30,
+        "concentration_max": 60,
+        "temp_min_c": 60,
+        "temp_max_c": 75,
+        "current_temp_c": 68,
+        "last_test_date": "2026-06-13",
+        "next_test_due": "2026-06-14",
+        "status": "IN_SPEC",
+        "active": true
+      },
+      {
+        "bath_id": 7,
+        "bath_code": "ANO-ET-001",
+        "bath_name": "Acid Etch / Deox Tank",
+        "bath_type": "ACID_ETCH",
+        "process_area": "ANODIZE",
+        "chemical_product": "Nitric Acid 70% (HNO3)",
+        "spec_ref": "MIL-A-8625 §3.3.1",
+        "concentration_min": 25,
+        "concentration_max": 35,
+        "temp_min_c": 15,
+        "temp_max_c": 30,
+        "current_temp_c": 22,
+        "last_test_date": "2026-06-12",
+        "next_test_due": "2026-06-15",
+        "status": "IN_SPEC",
+        "active": true
+      },
+      {
+        "bath_id": 8,
+        "bath_code": "ANO-SL-001",
+        "bath_name": "Hot Water Seal Tank",
+        "bath_type": "ANODIZE_SEAL",
+        "process_area": "ANODIZE",
+        "chemical_product": "DI Water (Seal)",
+        "spec_ref": "MIL-A-8625 §3.4 / AMS 2471",
+        "concentration_min": null,
+        "concentration_max": null,
+        "temp_min_c": 96,
+        "temp_max_c": 100,
+        "current_temp_c": 98,
+        "last_test_date": "2026-06-14",
+        "next_test_due": "2026-06-14",
+        "status": "IN_SPEC",
+        "active": true
+      },
+      {
+        "bath_id": 9,
+        "bath_code": "ANO-BK-001",
+        "bath_name": "Black Anodize Tank",
+        "bath_type": "ANODIZE_BLACK",
+        "process_area": "ANODIZE",
+        "chemical_product": "Sanodal Deep Black MLW",
+        "spec_ref": "MIL-A-8625 Type II",
+        "concentration_min": 5,
+        "concentration_max": 15,
+        "temp_min_c": 18,
+        "temp_max_c": 22,
+        "current_temp_c": 21,
+        "last_test_date": "2026-06-11",
+        "next_test_due": "2026-06-14",
+        "status": "OUT_OF_SPEC",
+        "active": true
+      }
+    ],
+    "total": 9
+  },
+  "/mod06/logs": {
+    "items": [
+      {
+        "log_id": 1,
+        "bath_id": 2,
+        "bath_code": "FPI-EM-001",
+        "bath_name": "Emulsifier Tank #1",
+        "test_date": "2025-05-18",
+        "tested_by_name": "James Tan Wei Liang",
+        "temp_c": 21,
+        "concentration_pct": 38,
+        "fluorescent_brightness": null,
+        "contamination_check": "PASS",
+        "result": "FAIL",
+        "notes": "Concentration 38% exceeds max 35% — bath flagged OUT_OF_SPEC",
+        "ncr_raised": true,
+        "ncr_ref": "NCR-2025-001"
+      },
+      {
+        "log_id": 2,
+        "bath_id": 4,
+        "bath_code": "MPT-WF-001",
+        "bath_name": "Wet Fluorescent Bath",
+        "test_date": "2025-05-19",
+        "tested_by_name": "Hendrich Lim Jun Wei",
+        "temp_c": 19,
+        "concentration_pct": 0.22,
+        "fluorescent_brightness": "ACCEPTABLE",
+        "contamination_check": "PASS",
+        "result": "PASS",
+        "notes": "All readings within spec",
+        "ncr_raised": false,
+        "ncr_ref": null
+      },
+      {
+        "log_id": 3,
+        "bath_id": 1,
+        "bath_code": "FPI-PT-001",
+        "bath_name": "Penetrant Tank #1",
+        "test_date": "2025-05-20",
+        "tested_by_name": "James Tan Wei Liang",
+        "temp_c": 22,
+        "concentration_pct": null,
+        "fluorescent_brightness": "ACCEPTABLE",
+        "contamination_check": "PASS",
+        "result": "PASS",
+        "notes": "Daily check — all OK",
+        "ncr_raised": false,
+        "ncr_ref": null
+      },
+      {
+        "log_id": 4,
+        "bath_id": 5,
+        "bath_code": "ANO-SA-001",
+        "bath_name": "Sulfuric Acid Anodize Tank",
+        "test_date": "2026-06-13",
+        "tested_by_name": "Ahmad Bin Rashid",
+        "temp_c": 20,
+        "concentration_pct": 185,
+        "fluorescent_brightness": null,
+        "contamination_check": "PASS",
+        "result": "PASS",
+        "notes": "H2SO4 titration: 185 g/L — within 165–210 g/L spec. Temperature stable at 20°C.",
+        "ncr_raised": false,
+        "ncr_ref": null
+      },
+      {
+        "log_id": 5,
+        "bath_id": 6,
+        "bath_code": "ANO-DG-001",
+        "bath_name": "Alkaline Degreaser Tank",
+        "test_date": "2026-06-13",
+        "tested_by_name": "Ahmad Bin Rashid",
+        "temp_c": 68,
+        "concentration_pct": 45,
+        "fluorescent_brightness": null,
+        "contamination_check": "PASS",
+        "result": "PASS",
+        "notes": "Alkalinity titration: 45 g/L — within spec. Water break test PASS on coupon.",
+        "ncr_raised": false,
+        "ncr_ref": null
+      },
+      {
+        "log_id": 6,
+        "bath_id": 9,
+        "bath_code": "ANO-BK-001",
+        "bath_name": "Black Anodize Tank",
+        "test_date": "2026-06-11",
+        "tested_by_name": "James Tan Wei Liang",
+        "temp_c": 21,
+        "concentration_pct": 3.5,
+        "fluorescent_brightness": null,
+        "contamination_check": "PASS",
+        "result": "FAIL",
+        "notes": "Dye concentration 3.5% below 5% minimum. Bath depleted — replenishment required. Job ROUTER-12681 on hold.",
+        "ncr_raised": true,
+        "ncr_ref": "NCR-2026-003"
+      },
+      {
+        "log_id": 7,
+        "bath_id": 8,
+        "bath_code": "ANO-SL-001",
+        "bath_name": "Hot Water Seal Tank",
+        "test_date": "2026-06-14",
+        "tested_by_name": "Ahmad Bin Rashid",
+        "temp_c": 98,
+        "concentration_pct": null,
+        "fluorescent_brightness": null,
+        "contamination_check": "PASS",
+        "result": "PASS",
+        "notes": "Temperature at 98°C, DI water conductivity <20 µS/cm. Ready for sealing.",
+        "ncr_raised": false,
+        "ncr_ref": null
+      }
+    ],
+    "total": 7
+  },
+  "/mod08/alerts/summary": {
+    "planned_audits": 2,
+    "open_findings": 5,
+    "overdue_findings": 2,
+    "pending_verification": 3
+  },
+  "/mod08/audit-plans": [
+    {
+      "audit_plan_id": 1,
+      "audit_number": "AP-2026-0001",
+      "audit_title": "Annual Internal FPI Process Audit",
+      "audit_type": "INTERNAL",
+      "audit_scope": "Review all FPI process steps against AC7114 requirements",
+      "standard_ref": "AS9100D §9.2, AC7114 Rev F",
+      "planned_date": "2026-06-20",
+      "actual_date": null,
+      "lead_auditor_full_name": "James Tan Wei Liang",
+      "auditee_dept": "NDT Operations",
+      "status": "PLANNED",
+      "total_findings": 0,
+      "open_findings": 0
+    },
+    {
+      "audit_plan_id": 2,
+      "audit_number": "AP-2026-0002",
+      "audit_title": "NADCAP Pre-Audit Readiness Review",
+      "audit_type": "NADCAP",
+      "audit_scope": "Full NADCAP AC7114 checklist review prior to audit visit",
+      "standard_ref": "AC7114 Rev F Checklist",
+      "planned_date": "2026-07-10",
+      "actual_date": null,
+      "lead_auditor_full_name": "Sarah Lim Mei Ling",
+      "auditee_dept": "Quality Assurance",
+      "status": "PLANNED",
+      "total_findings": 3,
+      "open_findings": 3
+    },
+    {
+      "audit_plan_id": 3,
+      "audit_number": "AP-2025-0004",
+      "audit_title": "Q4 2025 Internal Audit — Document Control",
+      "audit_type": "INTERNAL",
+      "audit_scope": "Review document control processes per AS9100D §7.5",
+      "standard_ref": "AS9100D §7.5",
+      "planned_date": "2025-11-15",
+      "actual_date": "2025-11-16",
+      "lead_auditor_full_name": "Ahmad Bin Rashid",
+      "auditee_dept": "Administration",
+      "status": "COMPLETE",
+      "overall_result": "MINOR_NC",
+      "total_findings": 2,
+      "open_findings": 0
+    }
+  ],
+  "/mod08/audit-plans/1": {
+    "audit_plan_id": 1,
+    "audit_number": "AP-2026-0001",
+    "audit_title": "Annual Internal FPI Process Audit",
+    "audit_type": "INTERNAL",
+    "audit_scope": "Review all FPI process steps against AC7114 requirements",
+    "standard_ref": "AS9100D §9.2, AC7114 Rev F",
+    "planned_date": "2026-06-20",
+    "status": "PLANNED",
+    "auditee_dept": "NDT Operations",
+    "lead_auditor_full_name": "James Tan Wei Liang",
+    "findings": [],
+    "checklist": []
+  },
+  "/mod08/findings": [
+    {
+      "finding_id": 1,
+      "finding_number": "AF-2026-0001",
+      "audit_number": "AP-2026-0002",
+      "finding_type": "MINOR_NC",
+      "clause_reference": "AC7114 §4.3.2",
+      "description": "UV lamp intensity not recorded in calibration log for 3 consecutive weeks",
+      "objective_evidence": "Calibration log entries missing weeks 18–20 of 2026",
+      "assigned_full_name": "Ahmad Bin Rashid",
+      "due_date": "2026-07-01",
+      "status": "OPEN",
+      "root_cause": null,
+      "corrective_action": null
+    },
+    {
+      "finding_id": 2,
+      "finding_number": "AF-2026-0002",
+      "audit_number": "AP-2026-0002",
+      "finding_type": "OBSERVATION",
+      "clause_reference": "AS9100D §8.5.1",
+      "description": "Process traveler sign-off fields not consistently completed",
+      "objective_evidence": "Sample of 10 job travelers: 4 had blank sign-off fields",
+      "assigned_full_name": "Sarah Lim Mei Ling",
+      "due_date": "2026-06-30",
+      "status": "RESPONSE_SUBMITTED",
+      "root_cause": "Awareness gap in process",
+      "corrective_action": "Refresher training scheduled"
+    },
+    {
+      "finding_id": 3,
+      "finding_number": "AF-2025-0009",
+      "audit_number": "AP-2025-0004",
+      "finding_type": "MINOR_NC",
+      "clause_reference": "AS9100D §7.5.3",
+      "description": "Document revision history not updated on 2 controlled documents",
+      "objective_evidence": "Docs ATCA-QP-003 Rev B and ATCA-WI-012 Rev A",
+      "assigned_full_name": "James Tan Wei Liang",
+      "due_date": "2025-12-15",
+      "status": "VERIFIED",
+      "root_cause": "Document control procedure not followed",
+      "corrective_action": "Procedure reviewed with all document owners"
+    }
+  ],
+  "/mod13/alerts/summary": {
+    "active_jobs": 7,
+    "overdue_jobs": 2,
+    "pending_qa": 3,
+    "coc_pending": 2
+  },
+  "/mod13/work-orders": [
+    {
+      "work_order_id": 1,
+      "wo_number": "WO-2026-0001",
+      "job_title": "FPI + MPT on Engine Fan Blades Batch #12",
+      "customer_name": "SIA Engineering Company",
+      "part_number": "GE90-7B-FAN-BLADE",
+      "priority": "HIGH",
+      "planned_end": "2026-06-15",
+      "status": "IN_PROGRESS",
+      "total_steps": 4,
+      "done_steps": 2,
+      "supervisor_name": "James Tan Wei Liang"
+    },
+    {
+      "work_order_id": 2,
+      "wo_number": "WO-2026-0002",
+      "job_title": "Chemical Bath + Visual Inspection — Landing Gear Components",
+      "customer_name": "ST Engineering Aerospace",
+      "part_number": "LG-ACTUATOR-A320",
+      "priority": "NORMAL",
+      "planned_end": "2026-06-20",
+      "status": "PENDING_QA",
+      "total_steps": 3,
+      "done_steps": 3,
+      "supervisor_name": "Sarah Lim Mei Ling"
+    },
+    {
+      "work_order_id": 3,
+      "wo_number": "WO-2026-0003",
+      "job_title": "MPT on Turbine Disc Slots",
+      "customer_name": "Rolls-Royce Singapore",
+      "part_number": "RR-DISC-TRENT-1000",
+      "priority": "URGENT",
+      "planned_end": "2026-06-14",
+      "status": "IN_PROGRESS",
+      "total_steps": 2,
+      "done_steps": 0,
+      "supervisor_name": "James Tan Wei Liang"
+    },
+    {
+      "work_order_id": 4,
+      "wo_number": "WO-2026-0004",
+      "job_title": "Sulfuric Acid Anodize — Inner Body Housing [ROUTER-24913]",
+      "customer_name": "Parker Hannifin Aerospace",
+      "part_number": "PHN-INNER-BODY-HSG",
+      "priority": "NORMAL",
+      "planned_end": "2026-06-17",
+      "status": "IN_PROGRESS",
+      "total_steps": 12,
+      "done_steps": 7,
+      "supervisor_name": "Ahmad Bin Rashid"
+    },
+    {
+      "work_order_id": 5,
+      "wo_number": "WO-2026-0005",
+      "job_title": "Black Anodize — Front Plate & Hub Frame [ROUTER-12681]",
+      "customer_name": "Parker Hannifin Aerospace",
+      "part_number": "PHN-FRONTPLATE-HUBFRAME",
+      "priority": "HIGH",
+      "planned_end": "2026-06-15",
+      "status": "ON_HOLD",
+      "total_steps": 17,
+      "done_steps": 4,
+      "supervisor_name": "Ahmad Bin Rashid"
+    },
+    {
+      "work_order_id": 6,
+      "wo_number": "WO-2026-0006",
+      "job_title": "Sulfuric Acid Anodize Type II — Parker Klient Lever [ROUTER-35296]",
+      "customer_name": "Parker Hannifin Aerospace",
+      "part_number": "PHN-KLIENT-LEVER",
+      "priority": "NORMAL",
+      "planned_end": "2026-06-20",
+      "status": "PENDING_QA",
+      "total_steps": 13,
+      "done_steps": 13,
+      "supervisor_name": "Ahmad Bin Rashid"
+    },
+    {
+      "work_order_id": 7,
+      "wo_number": "WO-2026-0007",
+      "job_title": "Sulfuric Acid Anodize — Couplerols Batch [ROUTER-12758]",
+      "customer_name": "SIA Engineering Company",
+      "part_number": "SIA-COUPLEROLS-ASSY",
+      "priority": "NORMAL",
+      "planned_end": "2026-06-19",
+      "status": "IN_PROGRESS",
+      "total_steps": 10,
+      "done_steps": 3,
+      "supervisor_name": "James Tan Wei Liang"
+    },
+    {
+      "work_order_id": 8,
+      "wo_number": "WO-2026-0008",
+      "job_title": "Sulfuric Acid Anodize Type II — Inner Bracket [ROUTER-21837]",
+      "customer_name": "ST Engineering Aerospace",
+      "part_number": "STE-INNER-BRACKET-MK2",
+      "priority": "NORMAL",
+      "planned_end": "2026-06-18",
+      "status": "RECEIVED",
+      "total_steps": 11,
+      "done_steps": 0,
+      "supervisor_name": "James Tan Wei Liang"
+    }
+  ],
+  "/mod13/work-orders/1": {
+    "work_order_id": 1,
+    "wo_number": "WO-2026-0001",
+    "job_title": "FPI + MPT on Engine Fan Blades Batch #12",
+    "customer_name": "SIA Engineering Company",
+    "part_number": "GE90-7B-FAN-BLADE",
+    "quantity": 12,
+    "priority": "HIGH",
+    "planned_end": "2026-06-15",
+    "status": "IN_PROGRESS",
+    "supervisor_name": "James Tan Wei Liang",
+    "steps": [
+      {
+        "step_id": 1,
+        "step_seq": 1,
+        "step_name": "Pre-Cleaning",
+        "process_type": "OTHER",
+        "standard_ref": "ATCA-WI-003",
+        "status": "COMPLETE",
+        "assigned_name": "Ahmad Bin Rashid",
+        "completed_name": "Ahmad Bin Rashid",
+        "completed_at": "2026-06-12"
+      },
+      {
+        "step_id": 2,
+        "step_seq": 2,
+        "step_name": "FPI Inspection",
+        "process_type": "FPI",
+        "standard_ref": "AC7114 §4",
+        "status": "COMPLETE",
+        "assigned_name": "James Tan Wei Liang",
+        "completed_name": "James Tan Wei Liang",
+        "completed_at": "2026-06-13"
+      },
+      {
+        "step_id": 3,
+        "step_seq": 3,
+        "step_name": "MPT Inspection",
+        "process_type": "MPT",
+        "standard_ref": "AC7114 §5",
+        "status": "PENDING",
+        "assigned_name": "Sarah Lim Mei Ling",
+        "completed_name": null,
+        "completed_at": null
+      },
+      {
+        "step_id": 4,
+        "step_seq": 4,
+        "step_name": "Final Visual + Dimensional",
+        "process_type": "VISUAL",
+        "standard_ref": "Customer Spec Rev C",
+        "status": "PENDING",
+        "assigned_name": null,
+        "completed_name": null,
+        "completed_at": null
+      }
+    ],
+    "documents": [],
+    "notes": [
+      {
+        "note_type": "STATUS_CHANGE",
+        "note_text": "Status changed to IN_PROGRESS",
+        "created_at": "2026-06-11"
+      }
+    ]
+  },
+  "/mod17/alerts/summary": {
+    "active_jobs": 3,
+    "pending_review": 1,
+    "overdue": 1,
+    "rejected_this_month": 0
+  },
+  "/mod17/jobs": [
+    {
+      "mpt_job_id": 1,
+      "job_number": "MPT-2026-0001",
+      "customer_name": "SIA Engineering Company",
+      "part_number": "GE90-7B-FAN-BLADE",
+      "technique": "WET_FLUORESCENT",
+      "magnetisation_method": "CIRCULAR",
+      "inspector_name": "James Tan Wei Liang",
+      "planned_date": "2026-06-14",
+      "status": "IN_PROGRESS",
+      "steps_done": 2
+    },
+    {
+      "mpt_job_id": 2,
+      "job_number": "MPT-2026-0002",
+      "customer_name": "Rolls-Royce Singapore",
+      "part_number": "RR-DISC-TRENT-1000",
+      "technique": "WET_FLUORESCENT",
+      "magnetisation_method": "MULTIDIRECTIONAL",
+      "inspector_name": "Sarah Lim Mei Ling",
+      "planned_date": "2026-06-13",
+      "status": "RECEIVED",
+      "steps_done": 0
+    },
+    {
+      "mpt_job_id": 3,
+      "job_number": "MPT-2026-0003",
+      "customer_name": "ST Engineering Aerospace",
+      "part_number": "LG-ACTUATOR-A320",
+      "technique": "DRY",
+      "magnetisation_method": "LONGITUDINAL",
+      "inspector_name": "Ahmad Bin Rashid",
+      "planned_date": "2026-06-10",
+      "status": "ACCEPTED",
+      "steps_done": 6
+    }
+  ],
+  "/mod17/jobs/1": {
+    "mpt_job_id": 1,
+    "job_number": "MPT-2026-0001",
+    "customer_name": "SIA Engineering Company",
+    "part_number": "GE90-7B-FAN-BLADE",
+    "technique": "WET_FLUORESCENT",
+    "magnetisation_method": "CIRCULAR",
+    "material_spec": "AMS2641",
+    "quantity": 12,
+    "status": "IN_PROGRESS",
+    "inspector_name": "James Tan Wei Liang",
+    "steps": [
+      {
+        "step_id": 1,
+        "step_number": 1,
+        "step_name": "Pre-Cleaning",
+        "status": "COMPLETE",
+        "performed_name": "Ahmad Bin Rashid",
+        "cleaning_method": "Solvent wipe",
+        "solvent_used": "MEK"
+      },
+      {
+        "step_id": 2,
+        "step_number": 2,
+        "step_name": "Equipment Setup & Verification",
+        "status": "COMPLETE",
+        "performed_name": "James Tan Wei Liang",
+        "uv_lamp_intensity_fc": 1200,
+        "uv_lamp_ok": true,
+        "ambient_light_fc": 1.5,
+        "ambient_light_ok": true
+      },
+      {
+        "step_id": 3,
+        "step_number": 3,
+        "step_name": "Magnetisation",
+        "status": "PENDING",
+        "performed_name": null
+      },
+      {
+        "step_id": 4,
+        "step_number": 4,
+        "step_name": "Particle Application",
+        "status": "PENDING",
+        "performed_name": null
+      },
+      {
+        "step_id": 5,
+        "step_number": 5,
+        "step_name": "Examination & Interpretation",
+        "status": "PENDING",
+        "performed_name": null
+      },
+      {
+        "step_id": 6,
+        "step_number": 6,
+        "step_name": "Demagnetisation & Post-Cleaning",
+        "status": "PENDING",
+        "performed_name": null
+      }
+    ],
+    "result": null
+  },
+  "/mod24/alerts/summary": {
+    "draft_cocs": 4,
+    "issued_cocs": 17,
+    "pending_coc": 3,
+    "voided_cocs": 0
+  },
+  "/mod24/cocs": [
+    {
+      "coc_id": 1,
+      "coc_number": "COC-2026-0001",
+      "customer_name": "SIA Engineering Company",
+      "customer_po": "PO-2026-0088",
+      "part_number": "GE90-7B-FAN-BLADE",
+      "quantity_certified": 12,
+      "process_fpi": true,
+      "process_mpt": true,
+      "process_chem_bath": false,
+      "process_other": null,
+      "issued_by_name": "James Tan Wei Liang",
+      "approved_by_name": "James Tan Wei Liang",
+      "issued_at": "2026-06-10",
+      "status": "ISSUED"
+    },
+    {
+      "coc_id": 2,
+      "coc_number": "COC-2026-0002",
+      "customer_name": "Rolls-Royce Singapore",
+      "customer_po": "PO-2026-0101",
+      "part_number": "RR-DISC-TRENT-1000",
+      "quantity_certified": 4,
+      "process_fpi": false,
+      "process_mpt": true,
+      "process_chem_bath": false,
+      "process_other": null,
+      "issued_by_name": null,
+      "approved_by_name": null,
+      "issued_at": null,
+      "status": "DRAFT"
+    },
+    {
+      "coc_id": 3,
+      "coc_number": "COC-2026-0003",
+      "customer_name": "ST Engineering Aerospace",
+      "customer_po": "PO-2026-0077",
+      "part_number": "LG-ACTUATOR-A320",
+      "quantity_certified": 8,
+      "process_fpi": true,
+      "process_mpt": false,
+      "process_chem_bath": true,
+      "process_other": null,
+      "issued_by_name": "Sarah Lim Mei Ling",
+      "approved_by_name": "Sarah Lim Mei Ling",
+      "issued_at": "2026-06-08",
+      "status": "ISSUED"
+    },
+    {
+      "coc_id": 4,
+      "coc_number": "COC-2026-0004",
+      "customer_name": "Parker Hannifin Aerospace",
+      "customer_po": "PO-2026-0120",
+      "part_number": "PHN-KLIENT-LEVER",
+      "quantity_certified": 6,
+      "process_fpi": false,
+      "process_mpt": false,
+      "process_chem_bath": true,
+      "process_other": "Sulfuric Acid Anodize Type II per MIL-A-8625",
+      "issued_by_name": null,
+      "approved_by_name": null,
+      "issued_at": null,
+      "status": "DRAFT"
+    },
+    {
+      "coc_id": 5,
+      "coc_number": "COC-2026-0005",
+      "customer_name": "Parker Hannifin Aerospace",
+      "customer_po": "PO-2026-0118",
+      "part_number": "PHN-INNER-BODY-HSG",
+      "quantity_certified": 4,
+      "process_fpi": false,
+      "process_mpt": false,
+      "process_chem_bath": true,
+      "process_other": "Sulfuric Acid Anodize Type II per MIL-A-8625",
+      "issued_by_name": null,
+      "approved_by_name": null,
+      "issued_at": null,
+      "status": "DRAFT"
+    }
+  ],
+  "/mod24/cocs/2": {
+    "coc_id": 2,
+    "coc_number": "COC-2026-0002",
+    "customer_name": "Rolls-Royce Singapore",
+    "customer_po": "PO-2026-0101",
+    "part_number": "RR-DISC-TRENT-1000",
+    "part_description": "HP Turbine Disc",
+    "part_serial_no": "SN-2026-0044",
+    "quantity_certified": 4,
+    "process_fpi": false,
+    "process_mpt": true,
+    "process_chem_bath": false,
+    "process_other": null,
+    "specification_refs": "AMS2641, AC7114 Rev F, Customer Spec RR-NDT-001",
+    "material_cert_ref": "CERT-2026-0089",
+    "inspection_report_ref": "IR-2026-0033",
+    "conformance_statement": "We hereby certify that the product described above was produced, inspected and tested in accordance with the referenced specifications and requirements, and meets all applicable requirements.",
+    "exceptions_noted": null,
+    "status": "DRAFT",
+    "issued_at": null,
+    "approved_by_name": null,
+    "issued_by_name": null,
+    "approved_at": null,
+    "line_items": [
+      {
+        "line_seq": 1,
+        "process_module": "MOD17",
+        "reference_number": "MPT-2026-0003",
+        "process_description": "Magnetic Particle Testing",
+        "result": "ACCEPT",
+        "notes": "No relevant indications found"
+      }
+    ]
+  },
+  "/mod11/alerts/summary": {
+    "due_this_week": 3,
+    "overdue_pm": 1,
+    "open_permits": 2,
+    "active_breakdowns": 0
+  },
+  "/mod11/assets": [
+    {
+      "asset_id": 1,
+      "asset_code": "MA-2026-0001",
+      "asset_name": "FPI Tank A",
+      "asset_type": "EQUIPMENT",
+      "location": "Bay 1",
+      "manufacturer": "Magnaflux",
+      "model_number": "ZB-100",
+      "status": "ACTIVE",
+      "next_pm_date": "2026-06-20"
+    },
+    {
+      "asset_id": 2,
+      "asset_code": "MA-2026-0002",
+      "asset_name": "UV Light Station 1",
+      "asset_type": "EQUIPMENT",
+      "location": "Bay 1",
+      "manufacturer": "Spectroline",
+      "model_number": "ENF-260C",
+      "status": "ACTIVE",
+      "next_pm_date": "2026-06-15"
+    },
+    {
+      "asset_id": 3,
+      "asset_code": "MA-2026-0003",
+      "asset_name": "Air Compressor Unit",
+      "asset_type": "UTILITY",
+      "location": "Utility Room",
+      "manufacturer": "Atlas Copco",
+      "model_number": "GA18",
+      "status": "ACTIVE",
+      "next_pm_date": "2026-07-01"
+    }
+  ],
+  "/mod11/assets/1": {
+    "asset_id": 1,
+    "asset_code": "MA-2026-0001",
+    "asset_name": "FPI Tank A",
+    "asset_type": "EQUIPMENT",
+    "location": "Bay 1",
+    "manufacturer": "Magnaflux",
+    "model_number": "ZB-100",
+    "serial_number": "MF-2020-0088",
+    "purchase_date": "2020-03-15",
+    "status": "ACTIVE",
+    "schedules": [],
+    "records": []
+  },
+  "/mod11/schedules": [
+    {
+      "schedule_id": 1,
+      "asset_name": "FPI Tank A",
+      "task_description": "Check penetrant concentration & pH",
+      "frequency_days": 7,
+      "last_done_date": "2026-06-06",
+      "next_due_date": "2026-06-13",
+      "rag_status": "DUE_SOON"
+    },
+    {
+      "schedule_id": 2,
+      "asset_name": "UV Light Station 1",
+      "task_description": "UV intensity check — min 1000 μW/cm²",
+      "frequency_days": 30,
+      "last_done_date": "2026-05-14",
+      "next_due_date": "2026-06-13",
+      "rag_status": "DUE_SOON"
+    },
+    {
+      "schedule_id": 3,
+      "asset_name": "Air Compressor Unit",
+      "task_description": "Filter replacement & oil level check",
+      "frequency_days": 90,
+      "last_done_date": "2026-04-01",
+      "next_due_date": "2026-07-01",
+      "rag_status": "OK"
+    }
+  ],
+  "/mod11/permits": [
+    {
+      "permit_id": 1,
+      "permit_number": "WP-2026-0001",
+      "work_description": "Replace UV lamp in Station 1",
+      "location": "Bay 1",
+      "risk_level": "MEDIUM",
+      "status": "ACTIVE",
+      "authorised_by_name": "James Tan Wei Liang",
+      "valid_from": "2026-06-13",
+      "valid_until": "2026-06-14"
+    },
+    {
+      "permit_id": 2,
+      "permit_number": "WP-2026-0002",
+      "work_description": "Drain and clean FPI Tank B",
+      "location": "Bay 2",
+      "risk_level": "HIGH",
+      "status": "PENDING",
+      "authorised_by_name": null,
+      "valid_from": "2026-06-14",
+      "valid_until": "2026-06-14"
+    }
+  ],
+  "/mod12/alerts/summary": {
+    "approved_suppliers": 12,
+    "pending_pr": 3,
+    "open_po": 5,
+    "expiring_accreditations": 1
+  },
+  "/mod12/suppliers": [
+    {
+      "supplier_id": 1,
+      "supplier_code": "SUP-2026-0001",
+      "name": "Magnaflux Asia Pacific",
+      "category": "CHEMICAL",
+      "contact_name": "David Ng",
+      "contact_email": "d.ng@magnaflux.sg",
+      "accreditation_number": "AS9100-MF-2024",
+      "accreditation_expiry": "2027-03-31",
+      "status": "APPROVED"
+    },
+    {
+      "supplier_id": 2,
+      "supplier_code": "SUP-2026-0002",
+      "name": "Spectronics SEA",
+      "category": "EQUIPMENT",
+      "contact_name": "Rachel Teo",
+      "contact_email": "r.teo@spectronics.sg",
+      "accreditation_number": "ISO9001-SP-2025",
+      "accreditation_expiry": "2026-06-30",
+      "status": "APPROVED"
+    },
+    {
+      "supplier_id": 3,
+      "supplier_code": "SUP-2026-0003",
+      "name": "3M Singapore Pte Ltd",
+      "category": "CONSUMABLE",
+      "contact_name": "Kelvin Chan",
+      "contact_email": "k.chan@3m.com.sg",
+      "accreditation_number": null,
+      "accreditation_expiry": null,
+      "status": "PENDING"
+    }
+  ],
+  "/mod12/suppliers/1": {
+    "supplier_id": 1,
+    "supplier_code": "SUP-2026-0001",
+    "name": "Magnaflux Asia Pacific",
+    "category": "CHEMICAL",
+    "status": "APPROVED"
+  },
+  "/mod12/requisitions": [
+    {
+      "requisition_id": 1,
+      "pr_number": "PR-2026-0001",
+      "title": "FPI penetrant replenishment",
+      "supplier_id": 1,
+      "supplier_name": "Magnaflux Asia Pacific",
+      "estimated_value": 2400.0,
+      "required_by": "2026-06-20",
+      "status": "APPROVED",
+      "raised_by_name": "Sarah Lim Mei Ling",
+      "approved_by_name": "James Tan Wei Liang"
+    },
+    {
+      "requisition_id": 2,
+      "pr_number": "PR-2026-0002",
+      "title": "UV intensity meter replacement",
+      "supplier_id": 2,
+      "supplier_name": "Spectronics SEA",
+      "estimated_value": 850.0,
+      "required_by": "2026-06-25",
+      "status": "PENDING",
+      "raised_by_name": "James Tan Wei Liang",
+      "approved_by_name": null
+    },
+    {
+      "requisition_id": 3,
+      "pr_number": "PR-2026-0003",
+      "title": "PPE stock replenishment",
+      "supplier_id": 3,
+      "supplier_name": "3M Singapore Pte Ltd",
+      "estimated_value": 620.0,
+      "required_by": "2026-06-30",
+      "status": "DRAFT",
+      "raised_by_name": "Rachel Yap",
+      "approved_by_name": null
+    }
+  ],
+  "/mod12/purchase-orders": [
+    {
+      "po_id": 1,
+      "po_number": "PO-2026-0001",
+      "pr_number": "PR-2026-0001",
+      "supplier_name": "Magnaflux Asia Pacific",
+      "po_date": "2026-06-10",
+      "delivery_date": "2026-06-20",
+      "total_value": 2400.0,
+      "status": "ISSUED"
+    },
+    {
+      "po_id": 2,
+      "po_number": "PO-2026-0002",
+      "pr_number": "PR-2025-0099",
+      "supplier_name": "Spectronics SEA",
+      "po_date": "2026-05-28",
+      "delivery_date": "2026-06-05",
+      "total_value": 850.0,
+      "status": "RECEIVED"
+    }
+  ],
+  "/mod14/alerts/summary": {
+    "low_stock": 4,
+    "out_of_stock": 2,
+    "expiring_chemicals": 3,
+    "total_items": 35
+  },
+  "/mod14/items": [
+    {
+      "item_id": 1,
+      "item_code": "INV-2026-0001",
+      "name": "Zyglo ZL-2C Penetrant",
+      "category": "CHEMICAL",
+      "unit": "litre",
+      "location": "Chemical Store",
+      "current_stock": 5,
+      "reorder_level": 10,
+      "hazardous_flag": true,
+      "rag_status": "AMBER"
+    },
+    {
+      "item_id": 2,
+      "item_code": "INV-2026-0002",
+      "name": "ZR-10B Remover",
+      "category": "CHEMICAL",
+      "unit": "litre",
+      "location": "Chemical Store",
+      "current_stock": 0,
+      "reorder_level": 5,
+      "hazardous_flag": true,
+      "rag_status": "RED"
+    },
+    {
+      "item_id": 3,
+      "item_code": "INV-2026-0003",
+      "name": "Disposable Nitrile Gloves (L)",
+      "category": "PPE",
+      "unit": "box",
+      "location": "PPE Cabinet",
+      "current_stock": 24,
+      "reorder_level": 5,
+      "hazardous_flag": false,
+      "rag_status": "GREEN"
+    },
+    {
+      "item_id": 4,
+      "item_code": "INV-2026-0004",
+      "name": "Lint-Free Wipes",
+      "category": "CONSUMABLE",
+      "unit": "roll",
+      "location": "Bay 1 Shelf",
+      "current_stock": 8,
+      "reorder_level": 6,
+      "hazardous_flag": false,
+      "rag_status": "AMBER"
+    },
+    {
+      "item_id": 5,
+      "item_code": "INV-2026-0005",
+      "name": "Sulfuric Acid 98% (H2SO4)",
+      "category": "CHEMICAL",
+      "unit": "litre",
+      "location": "Acid Store (Locked)",
+      "current_stock": 40,
+      "reorder_level": 20,
+      "hazardous_flag": true,
+      "rag_status": "GREEN"
+    },
+    {
+      "item_id": 6,
+      "item_code": "INV-2026-0006",
+      "name": "Turco 4215-S Alkaline Cleaner",
+      "category": "CHEMICAL",
+      "unit": "kg",
+      "location": "Chemical Store",
+      "current_stock": 12,
+      "reorder_level": 10,
+      "hazardous_flag": true,
+      "rag_status": "AMBER"
+    },
+    {
+      "item_id": 7,
+      "item_code": "INV-2026-0007",
+      "name": "Nitric Acid 70% (HNO3)",
+      "category": "CHEMICAL",
+      "unit": "litre",
+      "location": "Acid Store (Locked)",
+      "current_stock": 18,
+      "reorder_level": 10,
+      "hazardous_flag": true,
+      "rag_status": "GREEN"
+    },
+    {
+      "item_id": 8,
+      "item_code": "INV-2026-0008",
+      "name": "Sanodal Deep Black MLW Dye",
+      "category": "CHEMICAL",
+      "unit": "kg",
+      "location": "Chemical Store",
+      "current_stock": 2,
+      "reorder_level": 5,
+      "hazardous_flag": true,
+      "rag_status": "RED"
+    },
+    {
+      "item_id": 9,
+      "item_code": "INV-2026-0009",
+      "name": "DI Water (Drum)",
+      "category": "CONSUMABLE",
+      "unit": "drum",
+      "location": "Utility Room",
+      "current_stock": 6,
+      "reorder_level": 2,
+      "hazardous_flag": false,
+      "rag_status": "GREEN"
+    },
+    {
+      "item_id": 10,
+      "item_code": "INV-2026-0010",
+      "name": "Titanium Anodizing Rack (Small)",
+      "category": "TOOLING",
+      "unit": "pcs",
+      "location": "Anodize Bay",
+      "current_stock": 8,
+      "reorder_level": 4,
+      "hazardous_flag": false,
+      "rag_status": "GREEN"
+    }
+  ],
+  "/mod14/movements": [
+    {
+      "movement_id": 1,
+      "item_code": "INV-2026-0001",
+      "item_name": "Zyglo ZL-2C Penetrant",
+      "movement_type": "ISSUE",
+      "qty": 2,
+      "lot_number": "LOT-MF-2025-88",
+      "moved_by_name": "James Tan Wei Liang",
+      "moved_at": "2026-06-12T10:30:00",
+      "notes": "Replenish FPI Tank A"
+    },
+    {
+      "movement_id": 2,
+      "item_code": "INV-2026-0003",
+      "item_name": "Disposable Nitrile Gloves (L)",
+      "movement_type": "RECEIPT",
+      "qty": 50,
+      "lot_number": null,
+      "moved_by_name": "Sarah Lim Mei Ling",
+      "moved_at": "2026-06-11T14:00:00",
+      "notes": "PO-2026-0002"
+    }
+  ],
+  "/mod18/alerts/summary": {
+    "total_staff": 18,
+    "new_this_month": 1,
+    "pending_onboarding": 2,
+    "conflict_declarations_due": 3
+  },
+  "/mod18/staff": [
+    {
+      "staff_id": 1,
+      "employee_id": "EMP-0001",
+      "full_name": "James Tan Wei Liang",
+      "job_title": "Quality Manager",
+      "department": "Quality Assurance",
+      "employment_type": "PERMANENT",
+      "employment_date": "2018-04-01",
+      "onboarding_complete": true,
+      "conflict_of_interest_declared": true,
+      "status": "ACTIVE"
+    },
+    {
+      "staff_id": 2,
+      "employee_id": "EMP-0002",
+      "full_name": "Sarah Lim Mei Ling",
+      "job_title": "NDT Level II Inspector",
+      "department": "NDT Operations",
+      "employment_type": "PERMANENT",
+      "employment_date": "2020-07-15",
+      "onboarding_complete": true,
+      "conflict_of_interest_declared": true,
+      "status": "ACTIVE"
+    },
+    {
+      "staff_id": 3,
+      "employee_id": "EMP-0003",
+      "full_name": "Kevin Raj Kumar",
+      "job_title": "Production Technician",
+      "department": "Production",
+      "employment_type": "CONTRACT",
+      "employment_date": "2026-06-01",
+      "onboarding_complete": false,
+      "conflict_of_interest_declared": false,
+      "status": "ACTIVE"
+    }
+  ],
+  "/mod18/staff/1": {
+    "staff_id": 1,
+    "employee_id": "EMP-0001",
+    "full_name": "James Tan Wei Liang",
+    "job_title": "Quality Manager",
+    "status": "ACTIVE"
+  },
+  "/mod18/org-entities": [
+    {
+      "entity_id": 1,
+      "entity_name": "ATC Aviation Pte Ltd",
+      "division": "Corporate",
+      "department": null,
+      "team": null
+    },
+    {
+      "entity_id": 2,
+      "entity_name": "Quality Assurance",
+      "division": "Operations",
+      "department": "QA",
+      "team": null
+    },
+    {
+      "entity_id": 3,
+      "entity_name": "NDT Operations",
+      "division": "Operations",
+      "department": "NDT",
+      "team": null
+    },
+    {
+      "entity_id": 4,
+      "entity_name": "Production",
+      "division": "Operations",
+      "department": "Production",
+      "team": null
+    }
+  ],
+  "/mod20/alerts/summary": {
+    "open_complaints": 4,
+    "critical_open": 1,
+    "overdue_complaints": 1,
+    "open_8d": 2
+  },
+  "/mod15/alerts/summary": {
+    "critical_items": 19,
+    "warnings": 56,
+    "modules_attention": 16,
+    "health_score": 22
+  },
+  "/mod21/alerts/summary": {
+    "active_announcements": 3,
+    "unacknowledged": 2,
+    "urgent_count": 1,
+    "expired_this_week": 0
+  },
+  "/mod21/announcements": [
+    {
+      "announcement_id": 1,
+      "title": "NADCAP Surveillance Audit — 2026-07-10",
+      "body": "NADCAP surveillance audit scheduled for 10 July 2026. All personnel must ensure their certifications are current. Review your procedure checklist by 30 June.",
+      "priority": "URGENT",
+      "published_by_name": "James Tan Wei Liang",
+      "published_at": "2026-06-10T09:00:00",
+      "expires_at": "2026-07-10T23:59:59",
+      "target_roles": null,
+      "acknowledged": false
+    },
+    {
+      "announcement_id": 2,
+      "title": "Updated PPE Policy — Effective 2026-07-01",
+      "body": "Revised PPE requirements for chemical processing areas. Double-glove policy now mandatory when handling Class 1 chemicals. See QP-PPE-003 Rev 5.",
+      "priority": "IMPORTANT",
+      "published_by_name": "James Tan Wei Liang",
+      "published_at": "2026-06-08T14:30:00",
+      "expires_at": null,
+      "target_roles": "NDT_INSPECTOR,SUPERVISOR",
+      "acknowledged": true
+    },
+    {
+      "announcement_id": 3,
+      "title": "Canteen Renovation — Level 2 Closed 14–16 Jun",
+      "body": "Level 2 canteen will be closed from 14 to 16 June for renovation. Alternative dining available at Level 1 lobby.",
+      "priority": "NORMAL",
+      "published_by_name": "Sarah Lim Mei Ling",
+      "published_at": "2026-06-12T11:00:00",
+      "expires_at": "2026-06-16T23:59:59",
+      "target_roles": null,
+      "acknowledged": false
+    }
+  ],
+  "/mod22/alerts/summary": {
+    "pending_requests": 4,
+    "on_leave_today": 2,
+    "absent_today": 1,
+    "low_balance_staff": 3
+  },
+  "/mod22/leave-requests": [
+    {
+      "request_id": 1,
+      "staff_name": "Kevin Raj Kumar",
+      "leave_type_name": "Annual Leave",
+      "start_date": "2026-06-16",
+      "end_date": "2026-06-17",
+      "days_taken": 2,
+      "status": "PENDING",
+      "approved_by_name": null
+    },
+    {
+      "request_id": 2,
+      "staff_name": "Sarah Lim Mei Ling",
+      "leave_type_name": "Medical Leave",
+      "start_date": "2026-06-13",
+      "end_date": "2026-06-13",
+      "days_taken": 1,
+      "status": "APPROVED",
+      "approved_by_name": "James Tan Wei Liang"
+    },
+    {
+      "request_id": 3,
+      "staff_name": "Rachel Yap",
+      "leave_type_name": "Annual Leave",
+      "start_date": "2026-06-20",
+      "end_date": "2026-06-24",
+      "days_taken": 5,
+      "status": "PENDING",
+      "approved_by_name": null
+    }
+  ],
+  "/mod22/leave-types": [
+    {
+      "type_id": 1,
+      "name": "Annual Leave",
+      "days_per_year": 14,
+      "carry_forward_max": 5
+    },
+    {
+      "type_id": 2,
+      "name": "Medical Leave",
+      "days_per_year": 14,
+      "carry_forward_max": 0
+    },
+    {
+      "type_id": 3,
+      "name": "Hospitalisation Leave",
+      "days_per_year": 60,
+      "carry_forward_max": 0
+    },
+    {
+      "type_id": 4,
+      "name": "Childcare Leave",
+      "days_per_year": 6,
+      "carry_forward_max": 0
+    },
+    {
+      "type_id": 5,
+      "name": "Compassionate Leave",
+      "days_per_year": 3,
+      "carry_forward_max": 0
+    }
+  ],
+  "/mod23/alerts/summary": {
+    "pending_runs": 1,
+    "current_month_gross": 98450.0,
+    "staff_paid": 17,
+    "runs_disbursed_ytd": 5
+  },
+  "/mod23/runs": [
+    {
+      "run_id": 1,
+      "pay_period_start": "2026-05-01",
+      "pay_period_end": "2026-05-31",
+      "run_by_name": "James Tan Wei Liang",
+      "line_count": 17,
+      "total_gross": 98450.0,
+      "total_net": 78760.0,
+      "status": "DISBURSED",
+      "approved_by_name": "James Tan Wei Liang"
+    },
+    {
+      "run_id": 2,
+      "pay_period_start": "2026-06-01",
+      "pay_period_end": "2026-06-30",
+      "run_by_name": "James Tan Wei Liang",
+      "line_count": 18,
+      "total_gross": 99200.0,
+      "total_net": 79360.0,
+      "status": "DRAFT",
+      "approved_by_name": null
+    }
+  ],
+  "/mod23/runs/1": {
+    "run_id": 1,
+    "pay_period_start": "2026-05-01",
+    "pay_period_end": "2026-05-31",
+    "status": "DISBURSED",
+    "lines": [
+      {
+        "employee_id": "EMP-0001",
+        "full_name": "James Tan Wei Liang",
+        "department": "Quality Assurance",
+        "basic_pay": 7500.0,
+        "allowances": 500.0,
+        "overtime_pay": 0.0,
+        "gross_pay": 8000.0,
+        "cpf_employee": 1600.0,
+        "cpf_employer": 1360.0,
+        "net_pay": 6400.0
+      },
+      {
+        "employee_id": "EMP-0002",
+        "full_name": "Sarah Lim Mei Ling",
+        "department": "NDT Operations",
+        "basic_pay": 5200.0,
+        "allowances": 300.0,
+        "overtime_pay": 240.0,
+        "gross_pay": 5740.0,
+        "cpf_employee": 1148.0,
+        "cpf_employer": 975.8,
+        "net_pay": 4592.0
+      }
+    ]
+  },
+  "/mod23/runs/2": {
+    "run_id": 2,
+    "pay_period_start": "2026-06-01",
+    "pay_period_end": "2026-06-30",
+    "status": "DRAFT",
+    "lines": []
+  },
+  "/mod16/alerts/summary": {
+    "ar_outstanding": 125600.0,
+    "overdue_invoices": 2,
+    "ap_outstanding": 38450.0,
+    "pending_payroll_runs": 1
+  },
+  "/mod16/accounts": [
+    {
+      "account_id": 1,
+      "account_code": "1001",
+      "account_name": "Cash at Bank — OCBC",
+      "account_type": "ASSET",
+      "category": "Current Asset",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 2,
+      "account_code": "1100",
+      "account_name": "Accounts Receivable",
+      "account_type": "ASSET",
+      "category": "Current Asset",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 3,
+      "account_code": "1200",
+      "account_name": "Inventory",
+      "account_type": "ASSET",
+      "category": "Current Asset",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 4,
+      "account_code": "1500",
+      "account_name": "Fixed Assets",
+      "account_type": "ASSET",
+      "category": "Non-Current Asset",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 5,
+      "account_code": "2001",
+      "account_name": "Accounts Payable",
+      "account_type": "LIABILITY",
+      "category": "Current Liability",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 6,
+      "account_code": "2100",
+      "account_name": "CPF Payable",
+      "account_type": "LIABILITY",
+      "category": "Current Liability",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 7,
+      "account_code": "2200",
+      "account_name": "Accrued Expenses",
+      "account_type": "LIABILITY",
+      "category": "Current Liability",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 8,
+      "account_code": "3001",
+      "account_name": "Retained Earnings",
+      "account_type": "EQUITY",
+      "category": "Equity",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 9,
+      "account_code": "4001",
+      "account_name": "NDT Services Revenue",
+      "account_type": "REVENUE",
+      "category": "Operating Revenue",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 10,
+      "account_code": "4002",
+      "account_name": "Calibration Services Revenue",
+      "account_type": "REVENUE",
+      "category": "Operating Revenue",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 11,
+      "account_code": "5001",
+      "account_name": "Staff Salaries & CPF",
+      "account_type": "EXPENSE",
+      "category": "Staff Costs",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 12,
+      "account_code": "5100",
+      "account_name": "Chemical & Consumables",
+      "account_type": "EXPENSE",
+      "category": "Direct Costs",
+      "currency": "SGD"
+    },
+    {
+      "account_id": 13,
+      "account_code": "5200",
+      "account_name": "Equipment Maintenance",
+      "account_type": "EXPENSE",
+      "category": "Overhead",
+      "currency": "SGD"
+    }
+  ],
+  "/mod16/ar-invoices": [
+    {
+      "invoice_id": 1,
+      "invoice_number": "INV-2026-0001",
+      "customer_name": "SIA Engineering Company",
+      "issue_date": "2026-05-15",
+      "due_date": "2026-06-14",
+      "amount": 48000.0,
+      "status": "OVERDUE"
+    },
+    {
+      "invoice_id": 2,
+      "invoice_number": "INV-2026-0002",
+      "customer_name": "Rolls-Royce Singapore",
+      "issue_date": "2026-06-01",
+      "due_date": "2026-07-01",
+      "amount": 32600.0,
+      "status": "SENT"
+    },
+    {
+      "invoice_id": 3,
+      "invoice_number": "INV-2026-0003",
+      "customer_name": "ST Engineering Aerospace",
+      "issue_date": "2026-06-05",
+      "due_date": "2026-07-05",
+      "amount": 45000.0,
+      "status": "SENT"
+    }
+  ],
+  "/mod16/ap-invoices": [
+    {
+      "invoice_id": 1,
+      "supplier_name": "Magnaflux Asia Pacific",
+      "supplier_invoice_number": "MF-INV-2026-0441",
+      "received_date": "2026-06-10",
+      "due_date": "2026-07-10",
+      "amount": 2400.0,
+      "status": "PENDING"
+    },
+    {
+      "invoice_id": 2,
+      "supplier_name": "Spectronics SEA",
+      "supplier_invoice_number": "SPEC-2026-088",
+      "received_date": "2026-06-05",
+      "due_date": "2026-07-05",
+      "amount": 850.0,
+      "status": "APPROVED"
+    }
+  ],
+  "/mod16/journal-entries": [
+    {
+      "entry_id": 1,
+      "entry_number": "JE-2026-0001",
+      "description": "May 2026 payroll disbursement",
+      "entry_date": "2026-05-31",
+      "total_debit": 98450.0,
+      "total_credit": 98450.0,
+      "status": "POSTED"
+    },
+    {
+      "entry_id": 2,
+      "entry_number": "JE-2026-0002",
+      "description": "Chemical inventory write-off — expired batch",
+      "entry_date": "2026-06-01",
+      "total_debit": 450.0,
+      "total_credit": 450.0,
+      "status": "DRAFT"
+    }
+  ],
+  "/changelog/alerts/summary": {
+    "total_entries": 11,
+    "entries_this_month": 4,
+    "feature_count": 8,
+    "bugfix_count": 3
+  },
+  "/changelog/entries": [
+    {
+      "entry_id": 8,
+      "version": "1.7.0",
+      "category": "FEATURE",
+      "description": "Phase 8: System Change Log and Bug Report modules added",
+      "affected_modules": "MOD-CHANGELOG,MOD-BUGREPORT",
+      "notes": null,
+      "created_by_name": "James Tan Wei Liang",
+      "created_at": "2026-06-14T01:00:00"
+    },
+    {
+      "entry_id": 7,
+      "version": "1.6.0",
+      "category": "FEATURE",
+      "description": "Phase 7: Finance module — AR/AP invoices, journal entries, chart of accounts (13 seeded accounts)",
+      "affected_modules": "MOD-16",
+      "notes": null,
+      "created_by_name": "James Tan Wei Liang",
+      "created_at": "2026-06-13T22:00:00"
+    },
+    {
+      "entry_id": 6,
+      "version": "1.5.0",
+      "category": "FEATURE",
+      "description": "Phase 6: HR Management, Communications, Leave & Attendance, Payroll Processing",
+      "affected_modules": "MOD-18,MOD-21,MOD-22,MOD-23",
+      "notes": null,
+      "created_by_name": "James Tan Wei Liang",
+      "created_at": "2026-06-13T20:00:00"
+    },
+    {
+      "entry_id": 5,
+      "version": "1.4.0",
+      "category": "FEATURE",
+      "description": "Phase 5: Maintenance, Purchasing & AVL, Inventory Management with RAG stock status",
+      "affected_modules": "MOD-11,MOD-12,MOD-14",
+      "notes": null,
+      "created_by_name": "James Tan Wei Liang",
+      "created_at": "2026-06-13T18:00:00"
+    },
+    {
+      "entry_id": 4,
+      "version": "1.3.0",
+      "category": "FEATURE",
+      "description": "Phase 4: Production Management with AC7108 Appendix D condition recording; Extended Laboratory",
+      "affected_modules": "MOD-10,MOD-19",
+      "notes": null,
+      "created_by_name": "James Tan Wei Liang",
+      "created_at": "2026-06-13T14:00:00"
+    },
+    {
+      "entry_id": 3,
+      "version": "1.0.3",
+      "category": "BUGFIX",
+      "description": "Fixed atca-core.js duplicate init — replaced auto-init with singleton ATCA.initPage() to eliminate double clock timers",
+      "affected_modules": "ALL",
+      "notes": "Eliminates duplicate alert polling and double session listeners",
+      "created_by_name": "James Tan Wei Liang",
+      "created_at": "2026-06-12T10:00:00"
+    },
+    {
+      "entry_id": 2,
+      "version": "1.0.2",
+      "category": "BUGFIX",
+      "description": "Fixed route ordering in MOD-01 reviews — /actions/:id matched before /:id causing action updates to be unreachable",
+      "affected_modules": "MOD-01",
+      "notes": "Moved action route above generic ID route",
+      "created_by_name": "James Tan Wei Liang",
+      "created_at": "2026-06-12T09:30:00"
+    },
+    {
+      "entry_id": 1,
+      "version": "1.0.1",
+      "category": "BUGFIX",
+      "description": "Fixed KPI field name mismatch in MOD-04 — expired_certs vs certs_expired causing KPI cards to always show em-dash",
+      "affected_modules": "MOD-04",
+      "notes": null,
+      "created_by_name": "James Tan Wei Liang",
+      "created_at": "2026-06-12T09:00:00"
+    }
+  ],
+  "/bugreport/alerts/summary": {
+    "open_bugs": 3,
+    "critical_bugs": 1,
+    "resolved_this_month": 5,
+    "avg_resolution_days": 1.8
+  },
+  "/bugreport/bugs": [
+    {
+      "bug_id": 1,
+      "title": "Calibration due-date shows wrong year after midnight rollover",
+      "description": "On 2026-01-01 00:05, all calibration due dates displayed as 2025 due to timezone offset in date formatting.",
+      "severity": "CRITICAL",
+      "module_affected": "MOD-05",
+      "steps_to_reproduce": "1. Open MOD-05 at midnight. 2. Check due dates. 3. Observe year shown as previous year.",
+      "status": "OPEN",
+      "resolution_notes": null,
+      "reported_by_name": "Sarah Lim Mei Ling",
+      "resolved_by_name": null,
+      "reported_at": "2026-06-10T08:30:00",
+      "resolved_at": null
+    },
+    {
+      "bug_id": 2,
+      "title": "Work Order step sign-off allows same user twice",
+      "description": "A user can sign off both the inspector and supervisor fields on the same WO step without restriction.",
+      "severity": "HIGH",
+      "module_affected": "MOD-13",
+      "steps_to_reproduce": "1. Open any WO traveler. 2. Sign off inspector field. 3. Sign off supervisor field as same user. 4. No validation error shown.",
+      "status": "IN_PROGRESS",
+      "resolution_notes": "Investigating RBAC check on step sign-off endpoint",
+      "reported_by_name": "James Tan Wei Liang",
+      "resolved_by_name": null,
+      "reported_at": "2026-06-11T10:15:00",
+      "resolved_at": null
+    },
+    {
+      "bug_id": 3,
+      "title": "NCR list does not refresh after closing CAPA modal",
+      "description": "After closing the Add CAPA modal, the NCR table does not reload — requires manual page refresh to see new CAPA.",
+      "severity": "MEDIUM",
+      "module_affected": "MOD-07",
+      "steps_to_reproduce": "1. Open NCR list. 2. Click Add CAPA. 3. Fill and save. 4. Close modal. 5. NCR table shows stale data.",
+      "status": "OPEN",
+      "resolution_notes": null,
+      "reported_by_name": "Kevin Raj Kumar",
+      "resolved_by_name": null,
+      "reported_at": "2026-06-12T14:00:00",
+      "resolved_at": null
+    },
+    {
+      "bug_id": 4,
+      "title": "Leave type select blank on first modal open",
+      "description": "On first page load, the Apply Leave modal's leave type dropdown is empty until the Leave Types tab is visited first.",
+      "severity": "LOW",
+      "module_affected": "MOD-22",
+      "steps_to_reproduce": "1. Open MOD-22. 2. Click Apply Leave without visiting Leave Types tab. 3. Dropdown is empty.",
+      "status": "RESOLVED",
+      "resolution_notes": "Fixed: loadLeaveTypes() now called in init() rather than on tab shown event.",
+      "reported_by_name": "Rachel Yap",
+      "resolved_by_name": "James Tan Wei Liang",
+      "reported_at": "2026-06-13T09:00:00",
+      "resolved_at": "2026-06-13T11:30:00"
+    }
+  ],
+  "/chat/alerts/summary": {
+    "unread_messages": 3,
+    "active_rooms": 2
+  },
+  "/chat/users": [
+    {
+      "user_id": 1,
+      "full_name": "James Tan Wei Liang",
+      "username": "james.tan",
+      "role": "ADMIN"
+    },
+    {
+      "user_id": 2,
+      "full_name": "Sarah Lim Mei Ling",
+      "username": "sarah.lim",
+      "role": "QA_MANAGER"
+    },
+    {
+      "user_id": 3,
+      "full_name": "Kevin Raj Kumar",
+      "username": "kevin.raj",
+      "role": "ENGINEER"
+    },
+    {
+      "user_id": 4,
+      "full_name": "Rachel Yap",
+      "username": "rachel.yap",
+      "role": "SUPERVISOR"
+    },
+    {
+      "user_id": 5,
+      "full_name": "Ahmad Fauzi",
+      "username": "ahmad.fauzi",
+      "role": "NDT_INSPECTOR"
+    }
+  ],
+  "/chat/rooms": [
+    {
+      "room_id": 1,
+      "name": null,
+      "room_type": "DIRECT",
+      "created_at": "2026-06-13T08:00:00",
+      "last_message": "Ready for the bath test this morning?",
+      "last_sent_at": "2026-06-14T07:45:00",
+      "participant_count": 2,
+      "other_names": "Sarah Lim Mei Ling"
+    },
+    {
+      "room_id": 2,
+      "name": "QA Team",
+      "room_type": "GROUP",
+      "created_at": "2026-06-10T10:00:00",
+      "last_message": "All NCRs for June reviewed.",
+      "last_sent_at": "2026-06-13T17:30:00",
+      "participant_count": 3,
+      "other_names": "Sarah Lim Mei Ling, Kevin Raj Kumar"
+    }
+  ],
+  "/chat/rooms/1/messages": [
+    {
+      "message_id": 1,
+      "room_id": 1,
+      "sender_id": 2,
+      "sender_name": "Sarah Lim Mei Ling",
+      "body": "Morning James, did you review the CoC for WO-2026-0042?",
+      "sent_at": "2026-06-14T07:30:00",
+      "is_deleted": 0
+    },
+    {
+      "message_id": 2,
+      "room_id": 1,
+      "sender_id": 1,
+      "sender_name": "James Tan Wei Liang",
+      "body": "Yes, looks good. Approved and issued.",
+      "sent_at": "2026-06-14T07:35:00",
+      "is_deleted": 0
+    },
+    {
+      "message_id": 3,
+      "room_id": 1,
+      "sender_id": 2,
+      "sender_name": "Sarah Lim Mei Ling",
+      "body": "Ready for the bath test this morning?",
+      "sent_at": "2026-06-14T07:45:00",
+      "is_deleted": 0
+    }
+  ],
+  "/chat/rooms/2/messages": [
+    {
+      "message_id": 4,
+      "room_id": 2,
+      "sender_id": 3,
+      "sender_name": "Kevin Raj Kumar",
+      "body": "NCR-2026-0018 CAPA verified and closed.",
+      "sent_at": "2026-06-13T16:00:00",
+      "is_deleted": 0
+    },
+    {
+      "message_id": 5,
+      "room_id": 2,
+      "sender_id": 2,
+      "sender_name": "Sarah Lim Mei Ling",
+      "body": "Good work team. All NCRs for June reviewed.",
+      "sent_at": "2026-06-13T17:30:00",
+      "is_deleted": 0
+    }
+  ],
+  "/auth/signature": {
+    "signature_data": null,
+    "signature_updated_at": null
+  },
+  "/mod09/alerts/summary": {
+    "pending_reviews": 2,
+    "pending_grn_inspection": 1,
+    "ready_to_ship": 3,
+    "expired_quotations": 1,
+    "total": 3
+  },
+  "/mod09/customers": {
+    "items": [
+      {
+        "customer_id": 1,
+        "customer_code": "CUST-0001",
+        "company_name": "SIA Engineering Company",
+        "customer_type": "TIER1",
+        "contact_person": "Jonathan Goh",
+        "approved_vendor": true,
+        "quotation_count": 4
+      },
+      {
+        "customer_id": 2,
+        "customer_code": "CUST-0002",
+        "company_name": "Rolls-Royce Singapore",
+        "customer_type": "OEM",
+        "contact_person": "Emily Watson",
+        "approved_vendor": true,
+        "quotation_count": 3
+      },
+      {
+        "customer_id": 3,
+        "customer_code": "CUST-0003",
+        "company_name": "ST Engineering Aerospace",
+        "customer_type": "TIER1",
+        "contact_person": "Marcus Tan",
+        "approved_vendor": true,
+        "quotation_count": 2
+      },
+      {
+        "customer_id": 4,
+        "customer_code": "CUST-0004",
+        "company_name": "Parker Hannifin Aerospace",
+        "customer_type": "OEM",
+        "contact_person": "Rebecca Lim",
+        "approved_vendor": false,
+        "quotation_count": 1
+      }
+    ],
+    "total": 4
+  },
+  "/mod09/parts": {
+    "items": [
+      {
+        "part_id": 1,
+        "part_number": "GE90-7B-FAN-BLADE",
+        "part_description": "GE90 Stage-7B Fan Blade",
+        "part_type": "COMPONENT",
+        "process_area": "FPI",
+        "unit_of_measure": "EA",
+        "standard_price": 1250.0
+      },
+      {
+        "part_id": 2,
+        "part_number": "RR-DISC-TRENT-1000",
+        "part_description": "Trent 1000 HP Turbine Disc",
+        "part_type": "COMPONENT",
+        "process_area": "MPT",
+        "unit_of_measure": "EA",
+        "standard_price": 4800.0
+      },
+      {
+        "part_id": 3,
+        "part_number": "LG-ACTUATOR-A320",
+        "part_description": "A320 Landing Gear Actuator",
+        "part_type": "ASSEMBLY",
+        "process_area": "CHEM_PROC",
+        "unit_of_measure": "EA",
+        "standard_price": 2100.0
+      }
+    ],
+    "total": 3
+  },
+  "/mod09/quotations": {
+    "items": [
+      {
+        "quotation_id": 1,
+        "quotation_ref": "QT-2026-0001",
+        "customer_name": "SIA Engineering Company",
+        "quotation_date": "2026-05-20",
+        "valid_until": "2026-06-20",
+        "total_amount": 48000.0,
+        "status": "ACCEPTED",
+        "prepared_by_name": "James Tan Wei Liang"
+      },
+      {
+        "quotation_id": 2,
+        "quotation_ref": "QT-2026-0002",
+        "customer_name": "Rolls-Royce Singapore",
+        "quotation_date": "2026-06-01",
+        "valid_until": "2026-07-01",
+        "total_amount": 32600.0,
+        "status": "SENT",
+        "prepared_by_name": "Sarah Lim Mei Ling"
+      },
+      {
+        "quotation_id": 3,
+        "quotation_ref": "QT-2026-0003",
+        "customer_name": "Parker Hannifin Aerospace",
+        "quotation_date": "2026-04-10",
+        "valid_until": "2026-05-10",
+        "total_amount": 15400.0,
+        "status": "EXPIRED",
+        "prepared_by_name": "James Tan Wei Liang"
+      }
+    ],
+    "total": 3
+  },
+  "/mod09/contract-reviews": {
+    "items": [
+      {
+        "review_id": 1,
+        "review_ref": "CR-2026-0001",
+        "customer_name": "SIA Engineering Company",
+        "review_date": "2026-05-22",
+        "reviewer_name": "James Tan Wei Liang",
+        "spec_reviewed": true,
+        "capability_ok": true,
+        "delivery_ok": true,
+        "status": "APPROVED"
+      },
+      {
+        "review_id": 2,
+        "review_ref": "CR-2026-0002",
+        "customer_name": "Rolls-Royce Singapore",
+        "review_date": "2026-06-03",
+        "reviewer_name": "Sarah Lim Mei Ling",
+        "spec_reviewed": true,
+        "capability_ok": true,
+        "delivery_ok": false,
+        "status": "PENDING"
+      }
+    ],
+    "total": 2
+  },
+  "/mod09/grn": {
+    "items": [
+      {
+        "grn_id": 1,
+        "grn_ref": "GRN-2026-0042",
+        "supplier_name": "Rolls-Royce Singapore",
+        "customer_name": "Rolls-Royce Singapore",
+        "delivery_note_no": "DN-88231",
+        "received_date": "2026-06-10",
+        "inspection_reqd": true,
+        "inspection_done": true,
+        "inspect_result": "ACCEPT",
+        "status": "ACCEPTED",
+        "received_by_name": "James Tan Wei Liang"
+      },
+      {
+        "grn_id": 2,
+        "grn_ref": "GRN-2026-0041",
+        "supplier_name": "ST Engineering Aerospace",
+        "customer_name": "ST Engineering Aerospace",
+        "delivery_note_no": "DN-88102",
+        "received_date": "2026-06-08",
+        "inspection_reqd": true,
+        "inspection_done": false,
+        "inspect_result": null,
+        "status": "PENDING",
+        "received_by_name": "Sarah Lim Mei Ling"
+      }
+    ],
+    "total": 2
+  },
+  "/mod09/delivery-orders": {
+    "items": [
+      {
+        "do_id": 1,
+        "do_ref": "DO-2026-0015",
+        "customer_name": "SIA Engineering Company",
+        "delivery_date": "2026-06-12",
+        "shipped_date": "2026-06-12T14:30:00",
+        "tracking_number": "SGX-552180",
+        "status": "SHIPPED",
+        "prepared_by_name": "James Tan Wei Liang"
+      },
+      {
+        "do_id": 2,
+        "do_ref": "DO-2026-0016",
+        "customer_name": "ST Engineering Aerospace",
+        "delivery_date": "2026-06-18",
+        "shipped_date": null,
+        "tracking_number": null,
+        "status": "READY",
+        "prepared_by_name": "Sarah Lim Mei Ling"
+      }
+    ],
+    "total": 2
+  },
+  "/mod10/alerts/summary": {
+    "active_route_cards": 5,
+    "pending_conditions": 2,
+    "open_checklists": 1,
+    "total": 5
+  },
+  "/mod10/route-cards": {
+    "items": [
+      {
+        "route_card_id": 1,
+        "route_card_ref": "RC-2026-0001",
+        "part_number": "PHN-INNER-BODY-HSG",
+        "customer_name": "Parker Hannifin Aerospace",
+        "process_type": "ANODIZE",
+        "priority": "NORMAL",
+        "status": "IN_PROGRESS",
+        "steps_done": 7,
+        "steps_total": 12
+      },
+      {
+        "route_card_id": 2,
+        "route_card_ref": "RC-2026-0002",
+        "part_number": "GE90-7B-FAN-BLADE",
+        "customer_name": "SIA Engineering Company",
+        "process_type": "FPI",
+        "priority": "HIGH",
+        "status": "IN_PROGRESS",
+        "steps_done": 2,
+        "steps_total": 8
+      }
+    ],
+    "total": 2
+  },
+  "/mod19/alerts/summary": {
+    "overdue_schedules": 1,
+    "failed_results": 1,
+    "low_chemicals": 2,
+    "total": 2
+  },
+  "/mod19/analysis-schedules": {
+    "items": [
+      {
+        "schedule_id": 1,
+        "schedule_ref": "LAB-SCH-001",
+        "analysis_name": "Anodize bath H2SO4 titration",
+        "frequency": "DAILY",
+        "next_due": "2026-06-15",
+        "status": "DUE",
+        "assigned_to_name": "Ahmad Bin Rashid"
+      },
+      {
+        "schedule_id": 2,
+        "schedule_ref": "LAB-SCH-002",
+        "analysis_name": "Penetrant sensitivity (TAM panel)",
+        "frequency": "WEEKLY",
+        "next_due": "2026-06-18",
+        "status": "OK",
+        "assigned_to_name": "James Tan Wei Liang"
+      }
+    ],
+    "total": 2
+  },
+  "/mod20/complaints": {
+    "items": [
+      {
+        "complaint_id": 1,
+        "complaint_ref": "CMP-2026-0001",
+        "customer_name": "Rolls-Royce Singapore",
+        "subject": "Surface finish out of spec on disc batch",
+        "severity": "CRITICAL",
+        "received_date": "2026-06-05",
+        "status": "OPEN",
+        "owner_name": "James Tan Wei Liang"
+      },
+      {
+        "complaint_id": 2,
+        "complaint_ref": "CMP-2026-0002",
+        "customer_name": "SIA Engineering Company",
+        "subject": "Late delivery of CoC documentation",
+        "severity": "MEDIUM",
+        "received_date": "2026-06-09",
+        "status": "IN_PROGRESS",
+        "owner_name": "Sarah Lim Mei Ling"
+      }
+    ],
+    "total": 2
+  },
+  "/mod20/8d-reports": {
+    "items": [
+      {
+        "report_id": 1,
+        "report_ref": "8D-2026-0001",
+        "complaint_ref": "CMP-2026-0001",
+        "team_lead_name": "James Tan Wei Liang",
+        "current_step": "D4",
+        "status": "OPEN",
+        "opened_date": "2026-06-06"
+      }
+    ],
+    "total": 1
+  }
+};

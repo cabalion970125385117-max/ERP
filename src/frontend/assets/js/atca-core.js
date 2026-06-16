@@ -136,16 +136,29 @@ ATCA.api = {
         return null;
       }
 
-      const json = await res.json();
+      // Try to parse a JSON body (may fail when the host returns an HTML 404)
+      let json = null;
+      try { json = await res.json(); } catch (e) { json = null; }
+
       if (!res.ok) {
-        ATCA.utils.toast(json.message || 'Server error.', 'error');
+        // "Unreachable" = endpoint absent (404) or non-JSON body — i.e. no real
+        // backend, as on the static Vercel host or the preview stub server.
+        const unreachable = (json === null) || res.status === 404;
+        if (method === 'GET' && unreachable) return ATCA.demo.handle('GET', endpoint);
+        // Genuine backend error with a JSON message → surface it
+        if (json && json.message !== undefined) {
+          ATCA.utils.toast(json.message, 'error');
+          return null;
+        }
+        if (method !== 'GET') return ATCA.demo.handle(method, endpoint);
+        ATCA.utils.toast('Server error.', 'error');
         return null;
       }
       return json;
     } catch (err) {
-      ATCA.utils.toast('Network error — check LAN connection.', 'error');
+      // Network failure → fall back to bundled demo data so the static site works
       console.error('[ATCA API]', err);
-      return null;
+      return ATCA.demo.handle(method, endpoint);
     }
   },
 
@@ -154,6 +167,51 @@ ATCA.api = {
   put(endpoint, body)      { return this.request('PUT',    endpoint, body); },
   patch(endpoint, body)    { return this.request('PATCH',  endpoint, body); },
   delete(endpoint)         { return this.request('DELETE', endpoint); },
+};
+
+/* ============================================================
+   DEMO / OFFLINE FALLBACK
+   When the LAN backend is unreachable (e.g. the static Vercel
+   deployment), serve bundled sample data so pages still render.
+   Demo data lives in /assets/js/atca-demo.js (window.ATCA_DEMO).
+   ============================================================ */
+ATCA.demo = {
+  active: false,
+
+  // Resolve a GET endpoint to bundled demo data (query string ignored).
+  // Returns [] for anything not explicitly mapped so tables render
+  // "No records found." instead of hanging on "Loading…".
+  lookup(endpoint) {
+    const map = window.ATCA_DEMO || {};
+    const path = endpoint.split('?')[0];
+    if (Object.prototype.hasOwnProperty.call(map, path)) return map[path];
+    return [];
+  },
+
+  handle(method, endpoint) {
+    this.activate();
+    if (method === 'GET') return this.lookup(endpoint);
+    // Writes can't persist on a static host — report softly, don't fake an error
+    ATCA.utils.toast('Demo mode — changes are not saved (no backend connected).', 'info');
+    return { ok: true, demo: true };
+  },
+
+  // Show a one-time banner the first time demo mode kicks in.
+  activate() {
+    if (this.active) return;
+    this.active = true;
+    if (document.getElementById('atca-demo-banner')) return;
+    const b = document.createElement('div');
+    b.id = 'atca-demo-banner';
+    b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:11000;'
+      + 'background:#1B2A4A;color:#fff;font-size:.78rem;text-align:center;'
+      + 'padding:.35rem .75rem;box-shadow:0 -2px 8px rgba(0,0,0,.2);';
+    b.innerHTML = '<i class="bi bi-info-circle me-1"></i>'
+      + 'Demo mode — showing sample data. The live backend (LAN SQL Server) is not connected on this preview.'
+      + ' <span style="cursor:pointer;text-decoration:underline;margin-left:.5rem" '
+      + 'onclick="this.parentElement.remove()">dismiss</span>';
+    (document.body || document.documentElement).appendChild(b);
+  },
 };
 
 /* ============================================================
@@ -374,6 +432,36 @@ ATCA.table = {
       const rows = document.querySelectorAll(`#${tbodyId} tr`);
       rows.forEach(tr => {
         tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  },
+};
+
+/* ============================================================
+   PAGINATION — renders Prev / page-info / Next into a container
+   render(containerId, currentPage, total, perPage, onPage)
+   ============================================================ */
+ATCA.pagination = {
+  render(containerId, currentPage, total, perPage, onPage) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    currentPage = parseInt(currentPage) || 1;
+    perPage     = parseInt(perPage) || 50;
+    const totalRows  = parseInt(total) || 0;
+    const totalPages = Math.max(1, Math.ceil(totalRows / perPage));
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+    const btn = (label, page, disabled) =>
+      `<button class="btn btn-sm btn-outline-secondary"${disabled ? ' disabled' : ''} data-page="${page}">${label}</button>`;
+    el.innerHTML =
+      btn('&laquo; Prev', currentPage - 1, currentPage <= 1) +
+      `<span class="px-2 small text-muted align-self-center">Page ${currentPage} of ${totalPages}</span>` +
+      btn('Next &raquo;', currentPage + 1, currentPage >= totalPages);
+
+    el.querySelectorAll('[data-page]').forEach(b => {
+      b.addEventListener('click', () => {
+        const p = parseInt(b.dataset.page);
+        if (p >= 1 && p <= totalPages && typeof onPage === 'function') onPage(p);
       });
     });
   },
