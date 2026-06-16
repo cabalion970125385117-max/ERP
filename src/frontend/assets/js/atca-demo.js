@@ -3098,10 +3098,11 @@ window.ATCA_DEMO = {
     "total": 2
   },
   "/mod10/alerts/summary": {
-    "active_route_cards": 5,
-    "pending_conditions": 2,
-    "open_checklists": 1,
-    "total": 5
+    "due_soon": 3,
+    "overdue_jobs": 1,
+    "incomplete_checklists": 1,
+    "failed_test_pieces": 0,
+    "total": 4
   },
   "/mod10/route-cards": {
     "items": [
@@ -3131,10 +3132,12 @@ window.ATCA_DEMO = {
     "total": 2
   },
   "/mod19/alerts/summary": {
-    "overdue_schedules": 1,
-    "failed_results": 1,
-    "low_chemicals": 2,
-    "total": 2
+    "overdue_analyses": 1,
+    "due_soon": 2,
+    "low_stock": 2,
+    "validation_overdue": 1,
+    "lab_accred_expiring": 0,
+    "total": 4
   },
   "/mod19/analysis-schedules": {
     "items": [
