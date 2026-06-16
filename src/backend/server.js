@@ -367,6 +367,7 @@ apiRouter.use('/chat',       require('./api/chat/index'));                   // 
 // apiRouter.use('/mod15', require('./api/mod15/index'));   // KPI Dashboard
 apiRouter.use('/mod25',   require('./api/mod25/index'));              // User & Role Management
 // apiRouter.use('/mod26', require('./api/mod26/index'));   // System Configuration
+apiRouter.use('/mod27',   require('./api/mod27/index'));              // Value Flow Tracker (AS9100D §8.5)
 
 app.use('/api/v1', apiRouter);
 

@@ -98,6 +98,16 @@ STUBS = {
         {"user_id":6,"username":"hariharan.raju","full_name":"Hariharan s/o Raju","role":"NDT_INSPECTOR","employee_id":"ATCA-006","personnel_id":6,"active":True,"created_date":"2025-03-01","last_login":"2025-05-23T08:00:00"},
     ], "total": 6},
 
+    # ══ MOD-27 Value Flow Tracker ══
+    "GET /api/v1/mod27/alerts/summary": {
+        "active_jobs": 8, "grn_pending": 2, "coc_pending": 3, "shipped_today": 4, "total": 8
+    },
+    "GET /api/v1/mod27/active-grns": {"items": [
+        {"grn_ref": "GRN-2026-0042", "customer_name": "Rolls-Royce Singapore", "received_date": "2026-06-10", "status": "ACCEPTED"},
+        {"grn_ref": "GRN-2026-0041", "customer_name": "ST Engineering", "received_date": "2026-06-08", "status": "ACCEPTED"},
+        {"grn_ref": "GRN-2026-0040", "customer_name": "SIA Engineering", "received_date": "2026-06-05", "status": "PENDING"},
+    ]},
+
     # ══ MOD-26 System Maintenance Console (SUPERUSER / ADMIN only) ══
     "GET /api/v1/mod26/alerts/summary": {
         "db_used_pct": 24, "active_sessions": 3, "failed_logins_24h": 2, "days_since_backup": 0
@@ -540,6 +550,28 @@ class ATCAHandler(SimpleHTTPRequestHandler):
         key = f"GET {path}"
         if key in STUBS:
             return self.send_json(200, STUBS[key])
+
+        # MOD-27 dynamic value-flow lookup: /api/v1/mod27/flow/<grn_ref>
+        if path.startswith("/api/v1/mod27/flow/"):
+            grn_ref = path.rsplit("/", 1)[-1] or "GRN-2026-0042"
+            return self.send_json(200, {
+                "grn_ref": grn_ref,
+                "customer_name": "Rolls-Royce Singapore",
+                "stages": {
+                    "contract_review": {"ref": "CR-2026-0031", "status": "APPROVED", "review_date": "2026-06-05"},
+                    "grn":             {"ref": grn_ref, "status": "ACCEPTED", "received_date": "2026-06-06", "inspection_done": True, "inspect_result": "ACCEPT"},
+                    "work_order":      {"ref": "WO-2026-0019", "work_order_id": 19, "status": "IN_PROGRESS", "planned_end": "2026-06-20", "steps_done": 3, "steps_total": 6},
+                    "production":      {"total": 2, "done": 2, "complete": True},
+                    "fpi":             {"required": True, "ref": "FPI-2026-0007", "status": "COMPLETE", "disposition": "ACCEPT"},
+                    "mpt":             {"required": False},
+                    "qa_signoff":      {"status": "PENDING_QA"},
+                    "coc":             {"ref": None, "status": "NOT_ISSUED"},
+                    "delivery":        {"ref": None, "status": "NOT_READY"},
+                },
+                "current_stage": 6,
+                "blocked": False,
+                "ncr_open": 0,
+            })
 
         # 404 for unknown API routes
         if path.startswith("/api/"):

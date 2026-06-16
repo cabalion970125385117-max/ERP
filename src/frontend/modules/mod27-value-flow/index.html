@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-27: Value Flow Tracker
+  AS9100D §8.5 (Production & Service Provision) | Process Traceability
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Value Flow Tracker — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    /* ── Value Flow Diagram ─────────────────────────────────── */
+    .vf-wrap { background: var(--atca-white); border: 1px solid var(--atca-border); border-radius: 8px; padding: 1.25rem 1rem; }
+    .vf-diagram {
+      display: flex; flex-wrap: wrap; align-items: stretch;
+      gap: .35rem; justify-content: flex-start;
+    }
+    .vf-stage {
+      flex: 1 1 150px; min-width: 140px; max-width: 200px;
+      border: 2px solid var(--atca-border); border-radius: 8px;
+      background: var(--atca-light); padding: .6rem .55rem .55rem;
+      position: relative; cursor: pointer; transition: all .15s ease;
+      display: flex; flex-direction: column; gap: .25rem;
+    }
+    .vf-stage:hover { box-shadow: 0 3px 10px rgba(0,0,0,.12); transform: translateY(-2px); }
+    .vf-stage:focus-visible { outline: 3px solid var(--atca-blue); outline-offset: 2px; }
+    .vf-stage-num {
+      position: absolute; top: -10px; left: -10px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--atca-navy); color: #fff; font-size: .7rem;
+      display: flex; align-items: center; justify-content: center; font-weight: 700;
+    }
+    .vf-icon { font-size: 1.4rem; color: var(--atca-muted); }
+    .vf-stage-label { font-size: .78rem; font-weight: 600; line-height: 1.15; color: var(--atca-text); }
+    .vf-mod-badge { font-size: .6rem; align-self: flex-start; }
+    .vf-stage-state { font-size: .68rem; color: var(--atca-muted); min-height: 1em; }
+    .vf-stage-ref { font-size: .66rem; font-family: monospace; color: var(--atca-blue); }
+    .vf-arrow { display: flex; align-items: center; color: var(--atca-muted); font-size: 1.3rem; flex: 0 0 auto; }
+
+    /* NDT split node */
+    .vf-ndt-sub { display: flex; gap: .25rem; margin-top: .15rem; }
+    .vf-ndt-pill {
+      flex: 1; font-size: .62rem; text-align: center; border-radius: 4px;
+      padding: .15rem .1rem; border: 1px solid var(--atca-border); background: #fff; cursor: pointer;
+    }
+    .vf-ndt-pill:hover { border-color: var(--atca-blue); }
+    .vf-ndt-pill.off { opacity: .4; }
+
+    /* States */
+    .vf-stage--pending  { border-color: var(--atca-border); }
+    .vf-stage--active   { border-color: var(--atca-blue); background: #eaf3fb; animation: vfpulse 1.6s ease-in-out infinite; }
+    .vf-stage--active   .vf-icon { color: var(--atca-blue); }
+    .vf-stage--waiting  { border-color: var(--rag-amber); background: #fff8e6; }
+    .vf-stage--waiting  .vf-icon { color: #b8860b; }
+    .vf-stage--complete { border-color: var(--rag-green); background: #eaf6ef; }
+    .vf-stage--complete .vf-icon { color: var(--rag-green); }
+    .vf-stage--blocked  { border-color: var(--rag-red); background: #fbeaec; }
+    .vf-stage--blocked  .vf-icon { color: var(--rag-red); }
+    .vf-stage--complete::after {
+      content: "\F26E"; font-family: "bootstrap-icons"; position: absolute; top: .4rem; right: .5rem;
+      color: var(--rag-green); font-size: .85rem;
+    }
+    .vf-stage--blocked::after {
+      content: "\F623"; font-family: "bootstrap-icons"; position: absolute; top: .4rem; right: .5rem;
+      color: var(--rag-red); font-size: .85rem;
+    }
+    @keyframes vfpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(31,107,174,.4); } 50% { box-shadow: 0 0 0 6px rgba(31,107,174,0); } }
+
+    .vf-context { background: var(--atca-navy); color: #fff; border-radius: 8px; padding: .75rem 1rem; }
+    .vf-context .vf-cur { color: var(--atca-gold); font-weight: 600; }
+
+    @media (max-width: 767px) {
+      .vf-diagram { flex-direction: column; align-items: stretch; }
+      .vf-stage { max-width: none; }
+      .vf-arrow { justify-content: center; transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-document-control/"  class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"          class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit/"             class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod17-mpt-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-magnet"></i></span>MPT Process</a>
+  <a href="/modules/mod04-ndt-personnel/"     class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod09-sales-customer-service/" class="nav-link"><span class="nav-icon"><i class="bi bi-briefcase"></i></span>Sales &amp; Customer Service</a>
+  <a href="/modules/mod10-production-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Production Management</a>
+  <a href="/modules/mod13-work-order/"        class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod24-certificate-of-conformance/" class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod27-value-flow/"        class="nav-link active"><span class="nav-icon"><i class="bi bi-diagram-2"></i></span>Value Flow</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-diagram-2 me-1"></i>MOD-27 — Value Flow Tracker</p>
+      <p class="topbar-subtitle mb-0">AS9100D §8.5 · Process Traceability · PO → GRN → WO → NDT → CoC → DO</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-27 Value Flow Tracker</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-active-jobs">
+        <div class="kpi-label">Active Jobs</div>
+        <div class="kpi-value" id="val-active-jobs">—</div>
+        <div class="kpi-sub">In production pipeline</div>
+      </div>
+      <div class="kpi-card" id="kpi-grn-pending">
+        <div class="kpi-label">GRN Pending</div>
+        <div class="kpi-value" id="val-grn-pending">—</div>
+        <div class="kpi-sub">Awaiting acceptance</div>
+      </div>
+      <div class="kpi-card" id="kpi-coc-pending">
+        <div class="kpi-label">CoC Pending</div>
+        <div class="kpi-value" id="val-coc-pending">—</div>
+        <div class="kpi-sub">Complete jobs, no CoC issued</div>
+      </div>
+      <div class="kpi-card" id="kpi-shipped-today">
+        <div class="kpi-label">Shipped Today</div>
+        <div class="kpi-value" id="val-shipped-today">—</div>
+        <div class="kpi-sub">Delivery orders despatched</div>
+      </div>
+    </div>
+
+    <!-- GRN LOOKUP -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <label class="form-label fw-semibold mb-1"><i class="bi bi-search me-1"></i>Trace a job by GRN reference</label>
+        <div class="row g-2 align-items-center">
+          <div class="col-md-6 position-relative">
+            <input type="text" class="form-control" id="grn-search" autocomplete="off"
+                   placeholder="e.g. GRN-2026-0042">
+            <div id="grn-suggestions" class="list-group position-absolute w-100 shadow"
+                 style="z-index:1000; max-height:260px; overflow-y:auto; display:none;"></div>
+          </div>
+          <div class="col-auto">
+            <button class="btn btn-outline-secondary" id="btn-clear-grn"><i class="bi bi-x-lg me-1"></i>Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTEXT HEADER (hidden until a GRN is loaded) -->
+    <div class="vf-context mb-3" id="vf-context" style="display:none;">
+      <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center">
+        <div>
+          <strong id="vf-ctx-grn">—</strong>
+          <span class="ms-2" id="vf-ctx-customer"></span>
+          <span class="ms-2 small" id="vf-ctx-received"></span>
+        </div>
+        <div class="vf-cur">● Currently at: <span id="vf-ctx-stage">—</span></div>
+      </div>
+      <div class="small mt-1" id="vf-ctx-blocked" style="display:none; color:#ffb3b3;">
+        <i class="bi bi-exclamation-octagon me-1"></i><span id="vf-ctx-blocked-text"></span>
+      </div>
+    </div>
+
+    <!-- VALUE FLOW DIAGRAM -->
+    <div class="vf-wrap">
+      <div class="vf-diagram" id="vf-diagram">
+
+        <div class="vf-stage vf-stage--pending" id="vf-s1" tabindex="0" role="button"
+             data-href="/modules/mod09-sales-customer-service/"
+             data-compliance="AS9100D §8.2.3 (Contract Review)"
+             data-action-desc="Customer PO received and reviewed for capability, delivery and regulatory requirements. Opens MOD-09.">
+          <div class="vf-stage-num">1</div>
+          <i class="bi bi-file-earmark-text vf-icon"></i>
+          <div class="vf-stage-label">Customer PO /<br>Contract Review</div>
+          <span class="badge bg-secondary vf-mod-badge">MOD-09</span>
+          <div class="vf-stage-ref" id="vf-s1-ref"></div>
+          <div class="vf-stage-state" id="vf-s1-state"></div>
+        </div>
+        <div class="vf-arrow">→</div>
+
+        <div class="vf-stage vf-stage--pending" id="vf-s2" tabindex="0" role="button"
+             data-href="/modules/mod09-sales-customer-service/"
+             data-compliance="AS9100D §8.4.3 (GRN / Incoming Verification)"
+             data-action-desc="Goods Receiving Note raised and inspected on receipt. Opens MOD-09.">
+          <div class="vf-stage-num">2</div>
+          <i class="bi bi-box-seam vf-icon"></i>
+          <div class="vf-stage-label">Goods Receiving<br>Note (GRN)</div>
+          <span class="badge bg-secondary vf-mod-badge">MOD-09</span>
+          <div class="vf-stage-ref" id="vf-s2-ref"></div>
+          <div class="vf-stage-state" id="vf-s2-state"></div>
+        </div>
+        <div class="vf-arrow">→</div>
+
+        <div class="vf-stage vf-stage--pending" id="vf-s3" tabindex="0" role="button"
+             data-href="/modules/mod13-work-order/"
+             data-compliance="AS9100D §8.5 (Production Planning)"
+             data-action-desc="Work Order / Job Traveler issued with sequenced operations. Opens MOD-13.">
+          <div class="vf-stage-num">3</div>
+          <i class="bi bi-file-earmark-ruled vf-icon"></i>
+          <div class="vf-stage-label">Work Order &amp;<br>Job Steps</div>
+          <span class="badge bg-secondary vf-mod-badge">MOD-13</span>
+          <div class="vf-stage-ref" id="vf-s3-ref"></div>
+          <div class="vf-stage-state" id="vf-s3-state"></div>
+        </div>
+        <div class="vf-arrow">→</div>
+
+        <div class="vf-stage vf-stage--pending" id="vf-s4" tabindex="0" role="button"
+             data-href="/modules/mod10-production-management/"
+             data-compliance="NADCAP AC7108 App D (Production Conditions)"
+             data-action-desc="Route card and production conditions executed and recorded. Opens MOD-10.">
+          <div class="vf-stage-num">4</div>
+          <i class="bi bi-gear-wide-connected vf-icon"></i>
+          <div class="vf-stage-label">Production<br>Conditions</div>
+          <span class="badge bg-secondary vf-mod-badge">MOD-10</span>
+          <div class="vf-stage-ref" id="vf-s4-ref"></div>
+          <div class="vf-stage-state" id="vf-s4-state"></div>
+        </div>
+        <div class="vf-arrow">→</div>
+
+        <div class="vf-stage vf-stage--pending" id="vf-s5" tabindex="0" role="button"
+             data-compliance="NADCAP AC7114 (FPI ASTM E1417 / MPT ASTM E1444)"
+             data-action-desc="NDT process control — FPI and/or MPT inspection with sequential sign-off.">
+          <div class="vf-stage-num">5</div>
+          <i class="bi bi-radioactive vf-icon"></i>
+          <div class="vf-stage-label">NDT Process<br>(FPI / MPT)</div>
+          <div class="vf-ndt-sub">
+            <div class="vf-ndt-pill off" id="vf-s5-fpi" data-href="/modules/mod03-fpi-process/" title="Open FPI (MOD-03)">FPI</div>
+            <div class="vf-ndt-pill off" id="vf-s5-mpt" data-href="/modules/mod17-mpt-process/" title="Open MPT (MOD-17)">MPT</div>
+          </div>
+          <div class="vf-stage-state" id="vf-s5-state"></div>
+        </div>
+        <div class="vf-arrow">→</div>
+
+        <div class="vf-stage vf-stage--pending" id="vf-s6" tabindex="0" role="button"
+             data-href="/modules/mod13-work-order/"
+             data-compliance="AS9100D §8.6 (Release of Products)"
+             data-action-desc="Final QA sign-off / release authority on the work order. Opens MOD-13.">
+          <div class="vf-stage-num">6</div>
+          <i class="bi bi-patch-check vf-icon"></i>
+          <div class="vf-stage-label">QA Final<br>Sign-off</div>
+          <span class="badge bg-secondary vf-mod-badge">MOD-13</span>
+          <div class="vf-stage-ref" id="vf-s6-ref"></div>
+          <div class="vf-stage-state" id="vf-s6-state"></div>
+        </div>
+        <div class="vf-arrow">→</div>
+
+        <div class="vf-stage vf-stage--pending" id="vf-s7" tabindex="0" role="button"
+             data-href="/modules/mod24-certificate-of-conformance/"
+             data-compliance="AS9100D §8.6 (Certificate of Conformance)"
+             data-action-desc="Certificate of Conformance drafted and issued. Opens MOD-24.">
+          <div class="vf-stage-num">7</div>
+          <i class="bi bi-file-earmark-check vf-icon"></i>
+          <div class="vf-stage-label">Certificate of<br>Conformance</div>
+          <span class="badge bg-secondary vf-mod-badge">MOD-24</span>
+          <div class="vf-stage-ref" id="vf-s7-ref"></div>
+          <div class="vf-stage-state" id="vf-s7-state"></div>
+        </div>
+        <div class="vf-arrow">→</div>
+
+        <div class="vf-stage vf-stage--pending" id="vf-s8" tabindex="0" role="button"
+             data-href="/modules/mod09-sales-customer-service/"
+             data-compliance="AS9100D §8.5.4 (Preservation / Delivery)"
+             data-action-desc="Delivery Order prepared, released and shipped to customer. Opens MOD-09.">
+          <div class="vf-stage-num">8</div>
+          <i class="bi bi-truck vf-icon"></i>
+          <div class="vf-stage-label">Delivery<br>Order</div>
+          <span class="badge bg-secondary vf-mod-badge">MOD-09</span>
+          <div class="vf-stage-ref" id="vf-s8-ref"></div>
+          <div class="vf-stage-state" id="vf-s8-state"></div>
+        </div>
+
+      </div>
+      <p class="text-muted small mt-3 mb-0">
+        <i class="bi bi-info-circle me-1"></i>Click any stage to open its module.
+        Search a GRN above to see the live position of that job, colour-coded:
+        <span class="badge bg-secondary">pending</span>
+        <span class="badge" style="background:var(--atca-blue)">active</span>
+        <span class="badge text-dark" style="background:var(--rag-amber)">waiting</span>
+        <span class="badge" style="background:var(--rag-green)">complete</span>
+        <span class="badge" style="background:var(--rag-red)">blocked</span>
+      </p>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast-msg" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="toast-body"></div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js?v=4"></script>
+<script>
+'use strict';
+(async () => {
+  await ATCA.initPage();
+  ATCA.tooltips.init();
+
+  const toast = new bootstrap.Toast(document.getElementById('toast-msg'));
+  function showToast(msg, ok = true) {
+    const el = document.getElementById('toast-msg');
+    el.className = `toast align-items-center text-bg-${ok ? 'success' : 'danger'} border-0`;
+    document.getElementById('toast-body').textContent = msg;
+    toast.show();
+  }
+
+  const STAGE_NAMES = {
+    1: 'Stage 1 — Customer PO / Contract Review',
+    2: 'Stage 2 — Goods Receiving Note',
+    3: 'Stage 3 — Work Order & Job Steps',
+    4: 'Stage 4 — Production Conditions',
+    5: 'Stage 5 — NDT Process (FPI / MPT)',
+    6: 'Stage 6 — QA Final Sign-off',
+    7: 'Stage 7 — Certificate of Conformance',
+    8: 'Stage 8 — Delivery Order',
+  };
+  const WAITING = ['PENDING','PENDING_QA','DRAFT','READY','ON_HOLD','NOT_ISSUED','NOT_READY','RECEIVED'];
+
+  // ── KPIs ──────────────────────────────────────────────────────
+  async function loadKpis() {
+    try {
+      const a = await ATCA.api.get('/mod27/alerts/summary');
+      document.getElementById('val-active-jobs').textContent   = a.active_jobs;
+      document.getElementById('val-grn-pending').textContent   = a.grn_pending;
+      document.getElementById('val-coc-pending').textContent   = a.coc_pending;
+      document.getElementById('val-shipped-today').textContent = a.shipped_today;
+      document.getElementById('kpi-active-jobs').classList.toggle('rag-green', a.active_jobs > 0);
+      document.getElementById('kpi-grn-pending').classList.toggle('rag-amber', a.grn_pending > 0);
+      document.getElementById('kpi-coc-pending').classList.toggle('rag-amber', a.coc_pending > 0);
+      document.getElementById('kpi-shipped-today').classList.toggle('rag-green', a.shipped_today > 0);
+    } catch {}
+  }
+
+  // ── Node navigation ───────────────────────────────────────────
+  document.querySelectorAll('.vf-stage[data-href]').forEach(node => {
+    node.addEventListener('click', () => { window.location.href = node.dataset.href; });
+    node.addEventListener('keydown', e => { if (e.key === 'Enter') node.click(); });
+  });
+  document.querySelectorAll('.vf-ndt-pill').forEach(pill => {
+    pill.addEventListener('click', e => { e.stopPropagation(); window.location.href = pill.dataset.href; });
+  });
+
+  // ── GRN typeahead ─────────────────────────────────────────────
+  const grnInput = document.getElementById('grn-search');
+  const suggBox  = document.getElementById('grn-suggestions');
+  let debounceTimer = null;
+
+  grnInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = grnInput.value.trim();
+    if (q.length < 2) { suggBox.style.display = 'none'; return; }
+    debounceTimer = setTimeout(async () => {
+      try {
+        const d = await ATCA.api.get(`/mod27/active-grns?q=${encodeURIComponent(q)}&limit=10`);
+        if (!d.items.length) { suggBox.innerHTML = '<div class="list-group-item text-muted small">No matching GRNs</div>'; suggBox.style.display = 'block'; return; }
+        suggBox.innerHTML = d.items.map(g => `
+          <button type="button" class="list-group-item list-group-item-action" data-grn="${g.grn_ref}">
+            <code>${g.grn_ref}</code> — ${g.customer_name || '—'}
+            <span class="badge bg-secondary float-end">${g.status}</span>
+          </button>`).join('');
+        suggBox.style.display = 'block';
+        suggBox.querySelectorAll('[data-grn]').forEach(btn => {
+          btn.addEventListener('click', () => { grnInput.value = btn.dataset.grn; suggBox.style.display = 'none'; loadFlow(btn.dataset.grn); });
+        });
+      } catch {}
+    }, 250);
+  });
+  document.addEventListener('click', e => {
+    if (!suggBox.contains(e.target) && e.target !== grnInput) suggBox.style.display = 'none';
+  });
+  grnInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); suggBox.style.display = 'none'; if (grnInput.value.trim()) loadFlow(grnInput.value.trim()); }
+  });
+
+  document.getElementById('btn-clear-grn').addEventListener('click', resetDiagram);
+
+  // ── Load flow for a GRN ───────────────────────────────────────
+  async function loadFlow(grnRef) {
+    let data;
+    try {
+      data = await ATCA.api.get(`/mod27/flow/${encodeURIComponent(grnRef)}`);
+    } catch (err) {
+      showToast('GRN not found or not active.', false);
+      resetDiagram();
+      return;
+    }
+    renderContext(data);
+    applyStages(data);
+  }
+
+  function renderContext(d) {
+    const ctx = document.getElementById('vf-context');
+    ctx.style.display = 'block';
+    document.getElementById('vf-ctx-grn').textContent = d.grn_ref;
+    document.getElementById('vf-ctx-customer').textContent = d.customer_name || '';
+    document.getElementById('vf-ctx-stage').textContent = STAGE_NAMES[d.current_stage] || '—';
+    const blk = document.getElementById('vf-ctx-blocked');
+    if (d.blocked) {
+      blk.style.display = 'block';
+      document.getElementById('vf-ctx-blocked-text').textContent =
+        d.ncr_open > 0 ? `${d.ncr_open} open NCR(s) — job is blocked.` : 'Job is blocked (rejected / quarantined).';
+    } else { blk.style.display = 'none'; }
+  }
+
+  function setNode(id, stateClass, ref, stateText) {
+    const el = document.getElementById(id);
+    el.className = el.className.replace(/vf-stage--\w+/g, '').trim() + ' ' + stateClass;
+    const refEl = document.getElementById(id + '-ref');
+    const stEl  = document.getElementById(id + '-state');
+    if (refEl) refEl.textContent = ref || '';
+    if (stEl)  stEl.textContent  = stateText || '';
+  }
+
+  function stateClassFor(idx, current, blocked, statusText) {
+    if (idx < current) return 'vf-stage--complete';
+    if (idx > current) return 'vf-stage--pending';
+    if (blocked) return 'vf-stage--blocked';
+    if (WAITING.includes((statusText || '').toUpperCase())) return 'vf-stage--waiting';
+    return 'vf-stage--active';
+  }
+
+  function applyStages(d) {
+    const s = d.stages, cur = d.current_stage, blk = d.blocked;
+
+    setNode('vf-s1', stateClassFor(1, cur, blk, s.contract_review.status),
+      s.contract_review.ref, s.contract_review.status);
+
+    setNode('vf-s2', stateClassFor(2, cur, blk, s.grn.status),
+      s.grn.ref, s.grn.status);
+
+    setNode('vf-s3', stateClassFor(3, cur, blk, s.work_order.status),
+      s.work_order.ref, `${s.work_order.status}${s.work_order.steps_total ? ` · ${s.work_order.steps_done}/${s.work_order.steps_total} steps` : ''}`);
+
+    const prodTxt = s.production.complete === null ? 'N/A'
+      : s.production.complete ? 'COMPLETE' : `${s.production.done}/${s.production.total}`;
+    setNode('vf-s4', stateClassFor(4, cur, blk, s.production.complete === false ? 'PENDING' : 'COMPLETE'),
+      '', prodTxt);
+
+    // Stage 5 NDT (combined)
+    const fpiPill = document.getElementById('vf-s5-fpi');
+    const mptPill = document.getElementById('vf-s5-mpt');
+    fpiPill.classList.toggle('off', !s.fpi.required);
+    mptPill.classList.toggle('off', !s.mpt.required);
+    let ndtStatus = 'N/A';
+    if (s.fpi.required || s.mpt.required) {
+      const parts = [];
+      if (s.fpi.required) parts.push(`FPI:${s.fpi.status}`);
+      if (s.mpt.required) parts.push(`MPT:${s.mpt.status}`);
+      ndtStatus = parts.join(' · ');
+    }
+    setNode('vf-s5', stateClassFor(5, cur, blk, (cur === 5 ? 'PENDING' : ndtStatus)), '', ndtStatus);
+
+    setNode('vf-s6', stateClassFor(6, cur, blk, s.qa_signoff.status),
+      '', s.qa_signoff.status);
+
+    setNode('vf-s7', stateClassFor(7, cur, blk, s.coc.status),
+      s.coc.ref, s.coc.status);
+
+    setNode('vf-s8', stateClassFor(8, cur, blk, s.delivery.status),
+      s.delivery.ref, s.delivery.status);
+  }
+
+  function resetDiagram() {
+    grnInput.value = '';
+    suggBox.style.display = 'none';
+    document.getElementById('vf-context').style.display = 'none';
+    for (let i = 1; i <= 8; i++) {
+      const el = document.getElementById('vf-s' + i);
+      el.className = el.className.replace(/vf-stage--\w+/g, '').trim() + ' vf-stage--pending';
+      const r = document.getElementById('vf-s' + i + '-ref'); if (r) r.textContent = '';
+      const st = document.getElementById('vf-s' + i + '-state'); if (st) st.textContent = '';
+    }
+    document.getElementById('vf-s5-fpi').classList.add('off');
+    document.getElementById('vf-s5-mpt').classList.add('off');
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  await loadKpis();
+})();
+</script>
+</body>
+</html>

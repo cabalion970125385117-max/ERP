@@ -26,3 +26,5 @@ __pycache__/
 # Build output (if any)
 dist/
 build/
+
+.vercel

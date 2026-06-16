@@ -96,6 +96,7 @@ Six roles in ascending privilege order:
 | **MOD-15** KPI Dashboard | Cross-module compliance health ring; aggregates all `/modXX/alerts/summary` client-side; attention list sorted by criticality; AS9100D §9.1 |
 | **MOD-25** User & Role Management | User register, create/edit/deactivate, password reset (bcrypt), signature upload; ADMIN mutations, QA_MANAGER+ view |
 | **MOD-26** System Maintenance Console | ADMIN-gated superuser console — storage analytics, activity logs, user management, password control, backup & download, maintenance mode toggle |
+| **MOD-27** Value Flow Tracker | Interactive 8-stage PO→GRN→WO→NDT→COC→DO pipeline diagram; GRN lookup shows live job position with colour-coded stage status; clickable stage nodes link to owning module; read-only (NDT_INSPECTOR+); AS9100D §8.5 |
 
 ### Phase 8 Utilities
 
@@ -141,6 +142,7 @@ ATCA-ERP/
 │   │       ├── payroll/            # MOD-23
 │   │       ├── certificate-of-conformance/ # MOD-24
 │   │       ├── mod25/              # MOD-25 User Management
+│   │       ├── mod27/              # MOD-27 Value Flow Tracker
 │   │       ├── changelog/          # Change Log
 │   │       ├── bugreport/          # Bug Report
 │   │       └── chat/               # Internal Chat
@@ -159,11 +161,12 @@ ATCA-ERP/
 │   │       ├── ...                 # (all 26 SoR modules)
 │   │       ├── mod25-user-management/
 │   │       ├── mod26-maintenance/
+│   │       ├── mod27-value-flow/
 │   │       ├── mod-changelog/
 │   │       ├── mod-bugreport/
 │   │       └── mod-chat/
 │   └── database/
-│       └── migrations/             # 027 SQL migration scripts
+│       └── migrations/             # 028 SQL migration scripts
 ├── database/migrations/            # Additional migration scripts
 ├── preview_server.py               # Local preview server (no DB required)
 ├── vercel.json                     # Vercel static deployment config
@@ -203,7 +206,7 @@ cp .env.example .env
 # Edit .env: DB_HOST, DB_NAME, DB_USER, DB_PASS, SESSION_SECRET
 
 # 3. Run database migrations
-# Execute scripts in src/database/migrations/ in order (001 → 027)
+# Execute scripts in src/database/migrations/ in order (001 → 028)
 # against ATCA_ERP_DB on SQL Server
 
 # 4. Start the server

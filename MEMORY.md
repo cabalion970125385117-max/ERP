@@ -1,6 +1,6 @@
 # ATCA-ERP Build Memory
 ATC Aviation Pte Ltd | AS9100D | NADCAP AC7108 | NADCAP AC7110 | NADCAP AC7114 | NAS410
-**Last updated:** 2026-06-15 — MOD-25 User & Role Management backend BUILT (api/mod25/index.js: GET /users, POST /users, PUT /users/:id, POST /users/:id/reset-password, GET /alerts/summary; ADMIN mutations, QA_MANAGER+ view; mounted in server.js). **All 26 SoR modules 100% complete — no stubs remaining.** Earlier 2026-06-15: MOD-26 System Maintenance Console (SUPERUSER) BUILT — storage/activity-logs/users/password-control/backup + maintenance-mode toggle; ADMIN-gated (preview admin now role ADMIN). **All 26 SoR modules now built (0 inactive home cards).** Earlier same day: MOD-15 KPI Dashboard BUILT (cross-module health roll-up, AS9100D §9.1); fixed latent MOD-20 page crash (missing alerts/summary stub). Earlier 2026-06-15: UX & System QC Protocol run (TEST-PLAN v1.1 §13–14): 31/31 PASS after fixing 2 defects — Internal Chat broken (dead atca-erp.js ref → atca-core.js?v=4) + app-wide mojibake (double-encoded UTF-8 + BOM repaired across 39 files). Earlier 2026-06-15: Usability Pass — home nav rebuilt (all 27 linked, 0 broken), global ⌂ home button (3 layouts), ThreadingHTTPServer fix, cache-bust v=4. Prior (2026-06-14): App Improvement Pass — initPage crash fix, preview no-cache headers, stub field alignment, router seed data
+**Last updated:** 2026-06-16 — MOD-27 Value Flow Tracker BUILT (migration 028 grn_id FK on WorkOrder; api/mod27/index.js — alerts/summary, active-grns, flow/:grn_ref; frontend modules/mod27-value-flow/ — 8-stage clickable pipeline diagram + GRN typeahead lookup with live colour-coded stage status; preview-verified: KPIs, typeahead, flow render, node navigation all pass, 0 console errors; mounted in server.js; home card + sidebar nav added; AS9100D §8.5). Dev plan: MOD27-DEVPLAN.md. Earlier: MOD-25 User & Role Management backend BUILT (api/mod25/index.js: GET /users, POST /users, PUT /users/:id, POST /users/:id/reset-password, GET /alerts/summary; ADMIN mutations, QA_MANAGER+ view; mounted in server.js). **All 26 SoR modules 100% complete — no stubs remaining.** Earlier 2026-06-15: MOD-26 System Maintenance Console (SUPERUSER) BUILT — storage/activity-logs/users/password-control/backup + maintenance-mode toggle; ADMIN-gated (preview admin now role ADMIN). **All 26 SoR modules now built (0 inactive home cards).** Earlier same day: MOD-15 KPI Dashboard BUILT (cross-module health roll-up, AS9100D §9.1); fixed latent MOD-20 page crash (missing alerts/summary stub). Earlier 2026-06-15: UX & System QC Protocol run (TEST-PLAN v1.1 §13–14): 31/31 PASS after fixing 2 defects — Internal Chat broken (dead atca-erp.js ref → atca-core.js?v=4) + app-wide mojibake (double-encoded UTF-8 + BOM repaired across 39 files). Earlier 2026-06-15: Usability Pass — home nav rebuilt (all 27 linked, 0 broken), global ⌂ home button (3 layouts), ThreadingHTTPServer fix, cache-bust v=4. Prior (2026-06-14): App Improvement Pass — initPage crash fix, preview no-cache headers, stub field alignment, router seed data
 
 ---
 
@@ -83,6 +83,7 @@ ATC Aviation Pte Ltd | AS9100D | NADCAP AC7108 | NADCAP AC7110 | NADCAP AC7114 |
 | `026_bugreport.sql` | BUGREPORT | BugReport (severity/status/resolution workflow) |
 | `026_chat.sql` | CHAT | ChatRoom (DIRECT/GROUP), ChatParticipant (UNIQUE room+user), ChatMessage (body, sent_at, is_deleted) |
 | `027_user_signature.sql` | SIGNATURE | ALTER Users ADD signature_data NVARCHAR(MAX), signature_updated_at DATETIME2 |
+| `028_mod27_value_flow.sql` | MOD-27 | ALTER WorkOrder ADD grn_id INT FK→GoodsReceivingNote + IX_WorkOrder_GrnId; backfill from order_reference (idempotent) |
 | `017_mod11_maintenance.sql` | MOD-11 | MaintenanceAsset (MA-), PmSchedule, MaintenanceRecord, WorkPermit (WP-), Mod11Sequence |
 | `018_mod12_purchasing.sql` | MOD-12 | Supplier (SUP-), PurchaseRequisition (PR-), PurchaseOrder (PO-), Mod12Sequence |
 | `019_mod14_inventory.sql` | MOD-14 | InventoryItem (INV-), InventoryMovement, StockCount, StockCountLine, Mod14Sequence |
@@ -118,8 +119,9 @@ ATC Aviation Pte Ltd | AS9100D | NADCAP AC7108 | NADCAP AC7110 | NADCAP AC7114 |
 | `api/bugreport/` | BUGREPORT | GET /alerts/summary, GET /bugs, POST /bugs (any auth), PATCH /bugs/:id/resolve (SUPERVISOR+) |
 | `api/chat/` | CHAT | GET /users, GET /rooms, POST /rooms, GET /rooms/:id/messages?since=, POST /rooms/:id/messages, DELETE /rooms/:id/messages/:mid |
 | `api/mod25/` | MOD-25 | GET /alerts/summary (QA_MANAGER+), GET /users (QA_MANAGER+), POST /users (ADMIN), PUT /users/:id (ADMIN), POST /users/:id/reset-password (ADMIN) |
+| `api/mod27/` | MOD-27 | GET /alerts/summary, GET /active-grns?q=, GET /flow/:grn_ref — all requireMinRole('NDT_INSPECTOR'); read-only; resolves GRN→WO→CR/FPI/MPT/CoC/DO chain + open NCR block detection |
 | `server.js auth` | SIGNATURE | PATCH /auth/signature (self), GET /auth/signature (self), GET /auth/signature/:userId (any), PATCH /auth/signature/admin/:userId (ADMIN only) |
-| `server.js` | Core | Mounts mod01–08, mod11–14, mod16–18, mod21–24, changelog, bugreport, chat; GET /login; GET /logout |
+| `server.js` | Core | Mounts mod01–08, mod11–14, mod16–18, mod21–25, mod27, changelog, bugreport, chat; GET /login; GET /logout |
 
 #### ATCA Core JS Additions (atca-core.js)
 - `ATCA.tooltips.init()` — scans `[data-compliance]`, `[data-linked]`, `[data-action-desc]` attributes, creates Bootstrap Popovers on hover
@@ -177,6 +179,7 @@ Covered: MOD-02, MOD-03, MOD-04, MOD-05, MOD-06, MOD-07 (all action + modal save
 | `modules/mod-chat/index.html` | CHAT | ✅ Done — WhatsApp-style layout; sidebar room list with preview; DIRECT/GROUP rooms; 3s polling; soft-delete messages; New DM/Group modal (loads atca-core.js?v=4 since 2026-06-15)
 | `modules/mod15-dashboard/index.html` | MOD-15 | ✅ Done 2026-06-15 — Cross-module KPI roll-up; compliance health ring; 4 domain cards; prioritized Attention list; 18-chip status matrix; aggregates all `/modXX/alerts/summary` client-side; AS9100D §9.1
 | `modules/mod26-maintenance/index.html` | MOD-26 | ✅ Done 2026-06-15 — Superuser Maintenance Console (ADMIN-gated); tabs Storage/Activity Logs/Users/Password Control/Backup + Maintenance Mode toggle; stubs under `/api/v1/admin/*` + `/mod26/alerts/summary`; preview admin role set to ADMIN |
+| `modules/mod27-value-flow/index.html` | MOD-27 | ✅ Done 2026-06-16 — Layout A; 8-stage clickable pipeline diagram (PO/CR→GRN→WO→Production→NDT FPI/MPT→QA→CoC→DO); GRN typeahead lookup colours each stage live (pending/active/waiting/complete/blocked); NDT node has FPI(MOD-03)/MPT(MOD-17) sub-pills; nodes navigate to owning module; KPI tiles; preview-verified |
 | `modules/mod25-user-management/index.html` | MOD-25 | ✅ Updated — added Signature Upload modal; pen icon per user (admin); view/upload signature; admin endpoint PATCH /auth/signature/admin/:userId |
 | `user-guide.html` | System | ✅ Updated v1.8 — added all Phase 2–8 modules (MOD-01,08–24), Signature Upload, Internal Chat, Change Log, Bug Report sections; expanded sidebar TOC |
 
@@ -236,6 +239,7 @@ Source: `SoR_ERP_Rev1_0.pdf` — Prepared by Leong | Scope: AS9100D | NADCAP AC7
 | MOD-24 | Certificate of Conformance | §4, §6 | ✅ BUILT — Phase 2 |
 | MOD-25 | User & Role Management | §12 | ✅ BUILT 2026-06-15 — full backend + frontend; ADMIN mutations, QA_MANAGER+ view, signature upload |
 | MOD-26 | System Maintenance Console (Superuser) | §1 | ✅ BUILT — 2026-06-15 (storage/logs/users/password/backup + maintenance mode) |
+| MOD-27 | Value Flow Tracker (PO→GRN→WO→NDT→COC→DO) | §4, §8.5 | ✅ BUILT — 2026-06-16 (8-stage clickable pipeline diagram + GRN lookup; read-only; AS9100D §8.5; dev plan: MOD27-DEVPLAN.md) |
 
 ---
 

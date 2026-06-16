@@ -1,9 +1,10 @@
 # ATCA-ERP System Test Plan
-**Version:** 1.2  
-**Date:** 2026-06-15  
+**Version:** 1.3  
+**Date:** 2026-06-16  
 **Prepared by:** QA / Development  
 **Standards:** AS9100D · NADCAP AC7108 · NADCAP AC7110 · NADCAP AC7114 · NAS410  
 
+> **v1.3 change (2026-06-16):** MOD-27 Value Flow Tracker built (§3.15 integration + UX tests, §7 alert contract, §12 closed-as-built). Read-only 8-stage traceability diagram (PO→GRN→WO→NDT→CoC→DO) + GRN lookup; migration 028 adds `WorkOrder.grn_id` FK. Preview-verified end-to-end.  
 > **v1.2 change (2026-06-15):** MOD-25 User Management backend complete (§3.14, §5.2 RBAC, §7 alert contract added). MOD-25/26 closed as built in §12 — all 26 SoR modules now complete. §13 UX-NAV criteria updated to 29 pages (28 module pages + home). §14 run footnote added.  
 > **v1.1 change:** Added **Section 13 — UX & System Quality Control Protocol**, an executable protocol run against the live preview (`http://localhost:3000`). Covers navigation accessibility, page-load integrity, data rendering, layout/header consistency, text-encoding QC, and server stability. Latest execution results in **Section 14**.
 
@@ -329,6 +330,34 @@ Run against a test SQL Server instance (or in-memory mock). Use Supertest.
 
 ---
 
+### 3.15 MOD-27 Value Flow Tracker
+
+Read-only module. All endpoints `requireMinRole('NDT_INSPECTOR')`.
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-VF-01 | `GET /api/v1/mod27/alerts/summary` | NDT_INSPECTOR+ | 200, `{active_jobs, grn_pending, coc_pending, shipped_today, total}` all numeric |
+| I-VF-02 | `GET /api/v1/mod27/alerts/summary` | READONLY role | 403 |
+| I-VF-03 | `GET /api/v1/mod27/active-grns?q=GRN-2026` | NDT_INSPECTOR+ | 200, `{items:[...]}`, each `{grn_ref, customer_name, received_date, status}` |
+| I-VF-04 | `GET /api/v1/mod27/active-grns?q=` (empty) | NDT_INSPECTOR+ | 200, returns most-recent GRNs (TOP limit) |
+| I-VF-05 | `GET /api/v1/mod27/flow/:grn_ref` | valid GRN ref | 200, `{grn_ref, customer_name, stages{...}, current_stage, blocked, ncr_open}` |
+| I-VF-06 | `GET /api/v1/mod27/flow/:grn_ref` | unknown GRN ref | 404 `GRN not found or not active.` |
+| I-VF-07 | flow `stages` shape | valid GRN | keys: contract_review, grn, work_order, production, fpi, mpt, qa_signoff, coc, delivery |
+| I-VF-08 | `current_stage` computation | WO at PENDING_QA, NDT complete | `current_stage = 6` (first non-complete stage) |
+| I-VF-09 | `blocked` flag | open NCR on WO | `blocked = true`, `ncr_open > 0` |
+| I-VF-10 | `blocked` flag | GRN status QUARANTINE/REJECTED | `blocked = true` |
+| I-VF-11 | NDT detection | WO with FpiJob only | `stages.fpi.required = true`, `stages.mpt.required = false` |
+| I-VF-12 | Delivery resolution | CoC has delivery_order_id | `stages.delivery.ref` resolved from CoC link |
+| UX-VF-01 | Page `/modules/mod27-value-flow/` | load | 200; 8 stage nodes render with MOD badges + arrows; KPI tiles populated |
+| UX-VF-02 | GRN typeahead | type ≥2 chars | suggestion dropdown lists matching GRNs with status badge |
+| UX-VF-03 | Select a GRN | click suggestion | context header shows ref + customer + "Currently at: Stage N"; stages recolour |
+| UX-VF-04 | Stage colours | loaded flow | completed=green+check, current=blue/amber, future=grey, blocked=red |
+| UX-VF-05 | Node click | click any stage node | navigates to owning module page (e.g. Stage 3 → MOD-13) |
+| UX-VF-06 | NDT sub-pills | loaded flow with FPI | FPI pill active, MPT pill faded; FPI pill click → MOD-03 |
+| UX-VF-07 | Clear button | click Clear | diagram resets to all-pending, context header hidden |
+
+---
+
 ## 4. Compliance-Critical Test Cases
 
 ### 4.1 AS9100D
@@ -641,6 +670,7 @@ Every module exposes `GET /api/v1/modXX/alerts/summary`. Test that each returns 
 | MOD-24 | `draft_cocs`, `issued_cocs`, `pending_coc`, `voided_cocs` |
 | CHANGELOG | `total_entries`, `entries_this_month`, `feature_count`, `bugfix_count` |
 | MOD-25 | `total_users`, `active_users`, `inactive_users`, `elevated_roles` |
+| MOD-27 | `active_jobs`, `grn_pending`, `coc_pending`, `shipped_today`, `total` |
 | BUGREPORT | `open_bugs`, `critical_bugs`, `resolved_this_month`, `avg_resolution_days` |
 
 **Test pattern:** Call endpoint, assert 200, assert all fields present and numeric (not undefined/null).
@@ -731,6 +761,7 @@ The following are acknowledged gaps for future phases:
 | ~~MOD-15 KPI Dashboard~~ | ✅ **Built 2026-06-15** — `modules/mod15-dashboard/`; composes all `/modXX/alerts/summary` into a compliance-health roll-up (AS9100D §9.1). Now active on home page. |
 | ~~MOD-25 User Management backend~~ | ✅ **Built 2026-06-15** — `api/mod25/index.js`; GET /users (QA_MANAGER+), POST /users, PUT /users/:id, POST /users/:id/reset-password (ADMIN only); audit-logged; self-deactivation guard. |
 | ~~MOD-26 System Maintenance Console~~ | ✅ **Built 2026-06-15** — `modules/mod26-maintenance/`; ADMIN-gated superuser console; storage/activity-logs/users/password-control/backup + maintenance-mode toggle. **All 26 SoR modules are now complete.** |
+| ~~MOD-27 Value Flow Tracker~~ | ✅ **Built 2026-06-16** — `api/mod27/index.js` + `modules/mod27-value-flow/`; read-only 8-stage pipeline diagram (PO→GRN→WO→NDT→CoC→DO); GRN typeahead lookup with live colour-coded stage status; clickable nodes; migration 028 (`WorkOrder.grn_id` FK); preview-verified. Tests in §3.15. |
 | Electronic Signature (non-repudiation) | AAM phase |
 | AAM (Acceptance Authority Matrix) | Phase 9 |
 | ECN (Engineering Change Notice) | Phase 9 |
