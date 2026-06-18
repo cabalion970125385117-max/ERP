@@ -1,9 +1,10 @@
 # ATCA-ERP System Test Plan
-**Version:** 1.3  
-**Date:** 2026-06-16  
+**Version:** 1.4  
+**Date:** 2026-06-17  
 **Prepared by:** QA / Development  
 **Standards:** AS9100D · NADCAP AC7108 · NADCAP AC7110 · NADCAP AC7114 · NAS410  
 
+> **v1.4 change (2026-06-17):** Added **two deployment targets** to the strategy (§1.5): the LAN backend (`192.168.1.10`) and the **static demo host** (`https://atca-erp.vercel.app`, no backend — frontend falls back to bundled demo data). New **§15 — Static Deployment & Demo-Mode Protocol** (executable iframe-sweep of all 30 module pages). §7 alert-contract table extended (MOD-09/10/19/20) + demo field-name parity assertion. §8 regression extended (R-07 pagination, R-08 demo KPI field-name parity, R-09 fallback trigger, R-10 demo writes). §13 scope updated to 30 module pages and `atca-core.js?v=5` + `atca-demo.js`. §14 adds the 2026-06-17 full-site Vercel sweep results.  
 > **v1.3 change (2026-06-16):** MOD-27 Value Flow Tracker built (§3.15 integration + UX tests, §7 alert contract, §12 closed-as-built). Read-only 8-stage traceability diagram (PO→GRN→WO→NDT→CoC→DO) + GRN lookup; migration 028 adds `WorkOrder.grn_id` FK. Preview-verified end-to-end.  
 > **v1.2 change (2026-06-15):** MOD-25 User Management backend complete (§3.14, §5.2 RBAC, §7 alert contract added). MOD-25/26 closed as built in §12 — all 26 SoR modules now complete. §13 UX-NAV criteria updated to 29 pages (28 module pages + home). §14 run footnote added.  
 > **v1.1 change:** Added **Section 13 — UX & System Quality Control Protocol**, an executable protocol run against the live preview (`http://localhost:3000`). Covers navigation accessibility, page-load integrity, data rendering, layout/header consistency, text-encoding QC, and server stability. Latest execution results in **Section 14**.
@@ -55,6 +56,24 @@ Use seeded test data already loaded in `preview_server.py` stubs and router data
 - **Router-35296** — Sulfuric Acid Anodize, Parker Klient Lever
 - Personnel: ATCA-001 to ATCA-006 (seed via `001_init.sql`)
 - Equipment: 20 items (UV lamps, thermometers, pressure gauges)
+
+### 1.5 Deployment Targets (two environments)
+
+The app ships to **two distinct runtime targets**, each with its own test focus. A change is not "done" until it passes on the target(s) it can affect.
+
+| Target | URL | Backend | What it proves | Owning protocol |
+|---|---|---|---|---|
+| **LAN production** | `http://192.168.1.10:3000` | Node/Express + SQL Server | Real data, RBAC, audit log, compliance gates | §2–§9 (full) |
+| **Local preview** | `http://localhost:3000` | `preview_server.py` stubs (no DB) | Frontend behaviour, layouts, encoding, nav | §13 |
+| **Static demo** | `https://atca-erp.vercel.app` | **none** — `atca-demo.js` fallback | The frontend renders end-to-end with bundled sample data when the backend is unreachable | §15 |
+
+**Demo-mode architecture (test-relevant):** when a fetch to `/api/v1/...` is unreachable (static host returns a `text/plain` 404, or any 404 / non-JSON body), `ATCA.api.request` falls back to `window.ATCA_DEMO` (in `assets/js/atca-demo.js`):
+- **GET** → mapped sample data, else `[]` (so tables render "No records found." rather than hang on "Loading…").
+- **writes** → soft `Demo mode — changes are not saved` toast + `{ok:true,demo:true}` (no fake error).
+- A one-time bottom banner announces demo mode.
+- When the real backend **is** reachable, the fallback never triggers — production behaviour is unchanged.
+
+**Contract:** demo-data field names in `atca-demo.js` MUST match what each page's `loadKpis()` / render functions read (see §7 and R-08). A mismatch renders blank KPI tiles even though the fetch "succeeded".
 
 ---
 
@@ -657,6 +676,8 @@ Every module exposes `GET /api/v1/modXX/alerts/summary`. Test that each returns 
 | MOD-06 | `out_of_spec`, `overdue_sample`, `due_soon`, `total_baths`, `total` |
 | MOD-07 | `open_ncr`, `overdue_capa`, `pending_verify`, `ncr_open_only`, `total` |
 | MOD-08 | `planned_audits`, `open_findings`, `overdue_findings`, `pending_verification` |
+| MOD-09 | `pending_reviews`, `pending_grn_inspection`, `ready_to_ship`, `expired_quotations`, `total` |
+| MOD-10 | `due_soon`, `overdue_jobs`, `incomplete_checklists`, `failed_test_pieces` |
 | MOD-11 | `due_this_week`, `overdue_pm`, `open_permits`, `active_breakdowns` |
 | MOD-12 | `approved_suppliers`, `pending_pr`, `open_po`, `expiring_accreditations` |
 | MOD-13 | `active_jobs`, `overdue_jobs`, `pending_qa`, `coc_pending` |
@@ -664,6 +685,8 @@ Every module exposes `GET /api/v1/modXX/alerts/summary`. Test that each returns 
 | MOD-16 | `ar_outstanding`, `overdue_invoices`, `ap_outstanding`, `pending_payroll_runs` |
 | MOD-17 | `active_jobs`, `pending_review`, `overdue`, `rejected_this_month` |
 | MOD-18 | `total_staff`, `new_this_month`, `pending_onboarding`, `conflict_declarations_due` |
+| MOD-19 | `overdue_analyses`, `due_soon`, `low_stock`, `validation_overdue`, `lab_accred_expiring` |
+| MOD-20 | `open_complaints`, `critical_open`, `overdue_complaints`, `open_8d` |
 | MOD-21 | `active_announcements`, `unacknowledged`, `urgent_count`, `expired_this_week` |
 | MOD-22 | `pending_requests`, `on_leave_today`, `absent_today`, `low_balance_staff` |
 | MOD-23 | `pending_runs`, `current_month_gross`, `staff_paid`, `runs_disbursed_ytd` |
@@ -673,13 +696,15 @@ Every module exposes `GET /api/v1/modXX/alerts/summary`. Test that each returns 
 | MOD-27 | `active_jobs`, `grn_pending`, `coc_pending`, `shipped_today`, `total` |
 | BUGREPORT | `open_bugs`, `critical_bugs`, `resolved_this_month`, `avg_resolution_days` |
 
-**Test pattern:** Call endpoint, assert 200, assert all fields present and numeric (not undefined/null).
+**Test pattern (backend):** Call endpoint, assert 200, assert all fields present and numeric (not undefined/null).
+
+**Test pattern (demo parity — A-DEMO):** For each module, assert `window.ATCA_DEMO['/modXX/alerts/summary']` defines **exactly the field names above** (the same keys the page's `loadKpis()` reads). A mismatch is the MOD-10/MOD-19 defect class: the fetch "succeeds" but every KPI tile renders blank. This is the static-host equivalent of the backend contract and must be kept in lock-step with it.
 
 ---
 
 ## 8. Regression Tests — Gap Closures
 
-These test the 6 compliance gaps fixed in Phase 8:
+### 8.1 Phase-8 compliance gaps (backend)
 
 | ID | Gap | Test |
 |---|---|---|
@@ -689,6 +714,16 @@ These test the 6 compliance gaps fixed in Phase 8:
 | R-04 | FPI Sequential Steps | Step N+1 sign-off blocked until step N = COMPLETE |
 | R-05 | OOT Withdrawal | OOT result sets `oot_status=WITHDRAWN`; job placed on hold |
 | R-06 | NAS410 PT Cert | Inspector with PT cert assigned to MPT job → 422 (method mismatch) |
+
+### 8.2 Frontend / demo-mode fixes (2026-06-16/17)
+
+| ID | Fix | Test | Pass Criteria |
+|---|---|---|---|
+| R-07 | `ATCA.pagination` defined | `ATCA.pagination` referenced by many list pages but was never defined → throw swallowed by empty catches, but MOD-09 customers' catch overwrote the table with "Error loading customers." | `typeof ATCA.pagination.render === 'function'`; MOD-09 Customers tab renders rows, not the error row; pager shows when `total > perPage` |
+| R-08 | Demo KPI field-name parity | MOD-10 & MOD-19 demo `alerts/summary` used wrong keys → blank KPI tiles | For every module, `ATCA_DEMO['/modXX/alerts/summary']` keys ⊇ the keys `loadKpis()` reads (see §7). MOD-10 tiles = `3/1/1/0`; MOD-19 = `1/2/2/1/0` |
+| R-09 | Demo fallback trigger | Backend unreachable must serve demo data, not hang | With no backend: GET maps to demo data or `[]`; tables show data or "No records found." (never perpetual "Loading…"); `/auth/me` resolves so the user chip is populated (not "—") and no "Network error" toast spam |
+| R-10 | Demo writes are safe | Writes on the static host must not fake a server error | POST/PUT/PATCH/DELETE while unreachable → one `Demo mode — changes are not saved` info toast, returns `{ok:true,demo:true}`; the demo banner appears once |
+| R-11 | Real-backend errors still surface | Fallback must not mask genuine 5xx | With a backend present, a GET returning `500 {message}` shows the error toast (not demo data); a write `400 {message}` shows the validation message |
 
 ---
 
@@ -732,10 +767,14 @@ Run after go-live on LAN server (192.168.1.10):
 - Record video artefacts for NADCAP evidence package
 
 ### Phase E — Regression + Sign-off (Week 5)
-- Execute all R-01 to R-06 gap closure regression tests
-- Execute alert contract tests (Section 7)
+- Execute all R-01 to R-11 regression tests (Phase-8 gaps + frontend/demo-mode fixes)
+- Execute alert contract tests, backend **and** demo-parity (Section 7)
+- Execute the UX & System QC protocol on the preview host (Section 13)
+- Execute the Static Deployment & Demo-Mode protocol on `atca-erp.vercel.app` after each deploy (Section 15)
 - Performance smoke tests on LAN server
 - QA sign-off by QA_MANAGER
+
+> **Per-deploy gate:** any change pushed to the static host must pass the §15 DEMO-SWEEP (30/30 modules) before sign-off — this is what caught DEF-DEMO-01/02.
 
 ---
 
@@ -776,7 +815,7 @@ The following are acknowledged gaps for future phases:
 
 **Purpose:** Verify the application is usable and accessible as a real user would meet it — every page reachable, every page loads cleanly, data renders, and the system stays responsive. Run against the live preview server (`preview_server.py`, `http://localhost:3000`) using browser-driven checks.
 
-**Scope:** All 27 built module pages + home + login. **Method:** browser navigation + DOM assertions + network inspection. **Pre-req:** preview server running; logged-in session (preview auto-auths as `admin`).
+**Scope:** All 30 built module pages (26 SoR + MOD-27 + Change Log + Bug Report + Chat) + home + login + user-guide. **Method:** browser navigation + DOM assertions + network inspection. **Pre-req:** preview server running; logged-in session (preview auto-auths as `admin`). **Static-host equivalent:** the same checks run against `https://atca-erp.vercel.app` under demo mode — see **§15**.
 
 ### 13.1 Navigation & Accessibility (UX-NAV)
 
@@ -785,20 +824,20 @@ The following are acknowledged gaps for future phases:
 | UX-NAV-01 | Home page links to every built module | Enumerate `a.module-card` + `a.nav-link` hrefs; fetch each | All built-module links return HTTP 200 |
 | UX-NAV-02 | No broken (404) navigation links | Fetch every home href | 0 links return 404 |
 | UX-NAV-03 | No built module is greyed `inactive` | Check `.inactive`/`.disabled` class on each card | 0 inactive cards (all 26 SoR modules + Phase 8 pages built) |
-| UX-NAV-04 | Every module page has a Home button | Load each page; query `.atca-home-btn` | `.atca-home-btn` present on all 28 module pages |
+| UX-NAV-04 | Every module page has a Home button | Load each page; query `.atca-home-btn` | `.atca-home-btn` present on all 30 module pages |
 | UX-NAV-05 | Home button returns to dashboard | Click `.atca-home-btn` on a module | Lands on `/`, title = "Home — ATCA-ERP" |
 | UX-NAV-06 | Home button is unique (not duplicated) | Count `.atca-home-btn` per page | Exactly 1 per page (idempotent injection) |
 | UX-NAV-07 | Home/login pages do NOT show a home button | Load `/` and `/login` | `.atca-home-btn` absent |
-| UX-NAV-08 | Sidebar/nav lists all built modules grouped | Inspect home `#sidebar` | All 28 built module pages present, grouped by domain |
+| UX-NAV-08 | Sidebar/nav lists all built modules grouped | Inspect home `#sidebar` | All 30 built module pages present, grouped by domain |
 
 ### 13.2 Page-Load Integrity (UX-LOAD)
 
 | ID | Test Case | Method | Pass Criteria |
 |---|---|---|---|
-| UX-LOAD-01 | Every module page returns HTTP 200 | Fetch each module index | 200 for all 27 |
+| UX-LOAD-01 | Every module page returns HTTP 200 | Fetch each module index | 200 for all 30 |
 | UX-LOAD-02 | Page reaches `readyState = complete` | Navigate + poll | No page hangs in `loading` (≤5 s) |
 | UX-LOAD-03 | `ATCA` core object initialises | Eval `typeof ATCA` (bare) | `"object"` — no `initPage()` crash |
-| UX-LOAD-04 | Core JS loaded with current cache version | Inspect `<script>` src | `atca-core.js?v=4` (or current) present |
+| UX-LOAD-04 | Core JS loaded with current cache version | Inspect `<script>` src | `atca-demo.js?v=1` loaded **before** `atca-core.js?v=5` (or current) on every page |
 | UX-LOAD-05 | No uncaught console errors on load | Read console logs after load | 0 error-level messages |
 | UX-LOAD-06 | All page assets resolve | Network panel after load | 0 failed (4xx/5xx) asset requests |
 
@@ -839,7 +878,19 @@ The following are acknowledged gaps for future phases:
 | SYS-04 | API write verbs supported | OPTIONS/probe PATCH/PUT/DELETE handlers | Not 501 (handlers present) |
 | SYS-05 | Unknown route returns clean 404 | GET a bogus path | 404 JSON, server stays responsive |
 
-**Defect severity for this protocol:** UX-NAV/UX-LOAD failures (page unreachable or crashes) = **HIGH**; UX-DATA/UX-ENC (renders but wrong) = **MEDIUM**; cosmetic = **LOW**. Log via MOD-BUGREPORT.
+### 13.7 Static-Reference Integrity (REF) — pre-deploy gate
+
+Catches dead links/assets *before* a browser ever loads the page. Run as a static scan over all HTML (`href`/`src`), resolving each against files/routes on disk. (This scan found DEF-NAV-01/02 and DEF-CSS-01 in the 2026-06-17b run.)
+
+| ID | Test Case | Method | Pass Criteria |
+|---|---|---|---|
+| REF-01 | No broken module links | For every `href="/modules/<slug>/"`, assert `src/frontend/modules/<slug>/` exists | 0 unresolved module slugs |
+| REF-02 | No broken asset refs | For every `href`/`src="/assets/..."` (and other `/`-rooted file paths), assert the file exists on disk | 0 missing assets (css/js/fonts/img) |
+| REF-03 | Stylesheet set complete | Each page links `bootstrap.min.css` + `atca-erp.css` + an icons CSS that all resolve 200 | No page missing the theme or icons |
+| REF-04 | Core/demo scripts wired | Each page loads `atca-demo.js` then `atca-core.js` at the current `?v=` | Both present + resolve (mirrors UX-LOAD-04) |
+| REF-05 | No orphan/duplicate module dirs | Every `modules/*/` dir is reachable from home nav or another page | 0 unreferenced module directories |
+
+**Defect severity for this protocol:** UX-NAV/UX-LOAD/REF failures (page unreachable, crashes, or missing theme/assets) = **HIGH**; UX-DATA/UX-ENC (renders but wrong) = **MEDIUM**; cosmetic = **LOW**. Log via MOD-BUGREPORT.
 
 ---
 
@@ -872,10 +923,100 @@ The following are acknowledged gaps for future phases:
 #### Observations (no fix required this run)
 
 - `GET /api/v1/mod01/alerts/summary` → 404. MOD-01 (QMS Core) sources its KPIs from other endpoints; KPIs render correctly (`APPROVED/2/1/OVERDUE`). No UI impact — stub intentionally absent.
-- **Layout A pages** (10) still carry their own hardcoded Phase-1 sidebars (list ~12 modules incl. unbuilt "KPI Dashboard"). Bridged by the global home button; unify in a later pass.
-- `mod06-bath` is a stale 709-line orphan duplicate of `mod06-bath-control` (not linked from home; candidate for deletion).
+- ~~**Layout A pages** still carry hardcoded Phase-1 sidebars with stale module hrefs.~~ → **RESOLVED 2026-06-17** (see DEF-NAV-01 below).
+- ~~`mod06-bath` is a stale 709-line orphan duplicate of `mod06-bath-control`.~~ → **RESOLVED 2026-06-17** — orphan directory deleted (DEF-NAV-02).
 
 #### Evidence
 - MOD-03 header now renders `NADCAP AC7114 · ASTM E1417 · AMS 2644 · NAS410` and Result column `—` (previously `Â·` / `â€"`).
 - Chat: 2 conversations load ("Sarah Lim Mei Ling", "QA Team") with home button in sidebar + navbar.
+
+---
+
+### Run 2026-06-17 — Full-site quality sweep on the static demo host
+
+**Environment:** `https://atca-erp.vercel.app` (Vercel static — **no backend**, demo-mode fallback active). **Method:** §15 protocol — each of the 30 module pages loaded into a same-origin hidden `<iframe>`; rendered DOM inspected for KPI values, `tbody` row counts, stuck "Loading…", error text, mojibake, and blank body. **Coverage:** all 30 module pages.
+
+| Group | Result | Notes |
+|---|---|---|
+| **DEMO-LOAD** Page load | **30/30 PASS** | All pages load, correct `<title>`, no blank body |
+| **DEMO-KPI** KPI population | **30/30 PASS** *(after 2 fixes)* | KPIs populate from demo data on every module (e.g. MOD-13 `7/2/3/2`, MOD-16 `125,600/2/38,450/1`, MOD-24 `4/17/3/0`, MOD-25 `6/5/1/2`, MOD-26 `24%/3/2/0`) |
+| **DEMO-DATA** Table rendering | **30/30 PASS** | Default tab populates demo rows (MOD-13=8, MOD-14=10, MOD-24=5, MOD-25=6); secondary tabs lazy-load on click (resolve to demo data or "No records found.") |
+| **DEMO-DASH** Aggregate/specials | **PASS** | MOD-15 health roll-up renders (`21/62/18`); MOD-27 diagram + GRN lookup resolves stage colours; MOD-26 console accessible (demo `/auth/me` = ADMIN) |
+| **DEMO-ENC** Encoding | **30/30 PASS** | 0 mojibake on any page |
+| **DEMO-WRITE** Demo-mode writes | **PASS** | Banner appears once; write attempts toast "Demo mode — changes are not saved" |
+
+**Overall: 30/30 modules PASS** after fixing 2 defects found mid-run.
+
+#### Defects found this run
+
+| ID | Severity | Finding | Status |
+|---|---|---|---|
+| DEF-DEMO-01 | **MEDIUM** | **MOD-10 KPI tiles blank** — demo `/mod10/alerts/summary` used `active_route_cards/pending_conditions/open_checklists`, but `loadKpis()` reads `due_soon/overdue_jobs/incomplete_checklists/failed_test_pieces`. Fetch "succeeded" → every tile rendered empty. | **FIXED** — demo keys corrected; verified live tiles = `3/1/1/0`. |
+| DEF-DEMO-02 | **MEDIUM** | **MOD-19 KPI tiles blank** — same class: demo used `overdue_schedules/failed_results/low_chemicals`; page reads `overdue_analyses/due_soon/low_stock/validation_overdue/lab_accred_expiring`. | **FIXED** — demo keys corrected; verified live tiles = `1/2/2/1/0`. |
+
+> Root-cause guard now captured as **R-08** (demo KPI field-name parity must track §7). Earlier in the same session, the demo-mode layer itself (R-09/R-10) and the latent `ATCA.pagination` bug (R-07) were added and fixed.
+
+#### Observations (no fix required)
+- Secondary tabs show "Loading…" until first activated — intentional lazy-load; on click they resolve via the same demo fallback. Not a defect.
+- All values are the bundled sample set; the demo banner makes this explicit. Real data replaces it automatically when the LAN backend is connected.
+
+---
+
+### Run 2026-06-17b — Static-reference defect remediation
+
+**Trigger:** "fix all defect". **Method:** static scan of every `href`/`src` in all 41 HTML files against the actual files/routes on disk (broken-link + broken-asset detection), then targeted fix + re-scan + preview verification.
+
+| ID | Severity | Finding | Status |
+|---|---|---|---|
+| DEF-NAV-01 | **HIGH** | **Broken sidebar navigation links** — 18 Layout-A pages linked 8 stale Phase-1 module slugs that 404: `mod08-audit`, `mod09-customer`, `mod10-vendor`, `mod12-traceability`, `mod13-traveler`, `mod17-mpt`, `mod24-coc`, `mod26-config`. | **FIXED** — repointed to the real dirs (`mod08-audit-management`, `mod09-sales-customer-service`, `mod12-purchasing`, `mod27-value-flow`, `mod13-work-order`, `mod17-mpt-process`, `mod24-certificate-of-conformance`, `mod26-maintenance`). Re-scan: 0 broken `/modules/` hrefs. Targets verified 200. |
+| DEF-NAV-02 | **LOW** | **Orphan duplicate page** — `modules/mod06-bath/` (710 lines), an unreferenced stale copy of `mod06-bath-control`. | **FIXED** — directory deleted; `/modules/mod06-bath/` now 404 (was unreachable anyway). |
+| DEF-CSS-01 | **HIGH** | **Broken stylesheets** — 4 Layout-B/C pages (`mod08`, `mod13`, `mod17`, `mod24`) linked non-existent `/assets/css/atca-core.css` and `/assets/css/bootstrap-icons.min.css` → pages rendered **without the ATCA theme and without icons**. | **FIXED** — repointed to `/assets/css/atca-erp.css` and `/assets/fonts/bootstrap-icons.css`. Verified on preview: both → 200, theme + icons now applied (KPI cards/badges styled, navbar present). |
+
+**Result:** broken-static-reference scan now reports **0** across all 41 HTML files (0 broken `/modules/` links, 0 broken asset refs). These checks are now codified as **§13.7 / DEMO-WIRE** style static-reference assertions and should run pre-deploy.
+
+---
+
+## 15. Static Deployment & Demo-Mode Protocol (Executable)
+
+**Purpose:** Verify the **static demo host** (`https://atca-erp.vercel.app`, no backend) renders every page end-to-end via the `atca-demo.js` fallback, and that the fallback never masks a real backend error. This is the deployment-target counterpart of §13.
+
+**Pre-req:** the deployed build references `atca-demo.js?v=N` before `atca-core.js?v=M`, and `assets/js/atca-demo.js` returns HTTP 200. Use a fresh load (cache-bust query) — a stale cached page can briefly redirect to `/login`.
+
+### 15.1 Build & wiring (DEMO-WIRE)
+
+| ID | Test Case | Method | Pass Criteria |
+|---|---|---|---|
+| DEMO-WIRE-01 | Demo asset deployed | `GET /assets/js/atca-demo.js` | 200; defines `window.ATCA_DEMO` |
+| DEMO-WIRE-02 | Loaded before core, every page | Inspect `<script>` order in all 41 HTML | `atca-demo.js` precedes `atca-core.js`; both current `?v=` |
+| DEMO-WIRE-03 | Missing API route shape | `GET /api/v1/<bogus>` on host | Static host returns 404 (text/plain) → triggers fallback |
+
+### 15.2 Full-page sweep (DEMO-SWEEP)
+
+**Method (repeatable):** from the deployed home page, run a same-origin iframe sweep — for each of the 30 module paths, create a hidden `<iframe src=path+'?cb='+Date.now()>`, wait ~1.8 s for `ATCA.initPage()` + first data load, then read `contentDocument`: `.kpi-value` texts, `tbody` row counts + "Loading"/"Error" markers, `body.innerText` length, and a mojibake probe (`indexOf('Ã')`/`'â€'`). (Reference harness: `window.__testPage(path)` used in the 2026-06-17 run.)
+
+| ID | Test Case | Pass Criteria |
+|---|---|---|
+| DEMO-SWEEP-01 | Every page loads | 30/30 correct `<title>`; `body.innerText.length > 50` (not blank) |
+| DEMO-SWEEP-02 | KPI tiles populate | No `.kpi-value` left blank/`—` on any module (parity with §7 / R-08) |
+| DEMO-SWEEP-03 | Default tab renders rows | First `tbody` has ≥1 row **or** explicit "No records found." (never stuck "Loading…") |
+| DEMO-SWEEP-04 | No error rows | No `tbody` contains "Error loading…" / "Server error" |
+| DEMO-SWEEP-05 | No mojibake | 0 pages contain `Ã`/`â€` sequences |
+| DEMO-SWEEP-06 | Aggregates & specials | MOD-15 health ring numeric; MOD-27 GRN lookup colours stages; MOD-26 console reachable (demo `/auth/me` = ADMIN) |
+
+### 15.3 Fallback behaviour (DEMO-FALLBACK)
+
+| ID | Test Case | Pass Criteria |
+|---|---|---|
+| DEMO-FB-01 | GET maps to demo data | Mapped endpoint returns sample object/array (R-09) |
+| DEMO-FB-02 | Unmapped GET degrades | Unmapped endpoint → `[]` → "No records found." (no hang) |
+| DEMO-FB-03 | User chip resolves | `/auth/me` demo entry → user name shown (not "—"); no "Network error" toast on load |
+| DEMO-FB-04 | Writes are safe | POST/PUT/PATCH/DELETE → "Demo mode — changes are not saved" toast; no fake server error (R-10) |
+| DEMO-FB-05 | Demo banner once | Bottom "Demo mode — showing sample data" banner appears exactly once per page, dismissible |
+| DEMO-FB-06 | No leakage to real backend | When backend reachable, fallback never fires; genuine 5xx/4xx surfaces normally (R-11) |
+
+**Defect severity:** page blank/unreachable = **HIGH**; KPI/table renders wrong or empty when data exists (e.g. field-name mismatch) = **MEDIUM**; cosmetic = **LOW**. Log via MOD-BUGREPORT.
+
+---
+
+*End of ATCA-ERP System Test Plan v1.4.*
 
