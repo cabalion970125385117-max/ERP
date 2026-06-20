@@ -375,6 +375,8 @@ apiRouter.use('/mod31',   require('./api/mod31/index'));              // Operato
 apiRouter.use('/mod32',   require('./api/mod32/index'));              // Bay Load Scheduler + Tank-Fit Check
 apiRouter.use('/mod33',   require('./api/mod33/index'));              // Spec & Flowdown / Frozen Process + ECN + AAM
 apiRouter.use('/mod34',   require('./api/mod34/index'));              // Chemical & Hazmat Control + Alert Escalation Engine
+apiRouter.use('/mod35',   require('./api/mod35/index'));              // Government & Regulatory Certification Renewal Monitoring
+apiRouter.use('/mod36',   require('./api/mod36/index'));              // Equipment Periodic Preventive Maintenance
 
 app.use('/api/v1', apiRouter);
 

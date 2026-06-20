@@ -44,7 +44,7 @@ Six roles in ascending privilege order:
 
 ---
 
-## Modules (28 SoR + Phase 10 Modules — All Complete)
+## Modules (31 SoR + Phase 12 Modules — All Complete)
 
 ### Quality Management
 
@@ -104,6 +104,8 @@ Six roles in ascending privilege order:
 | **MOD-32** Bay Load Scheduler | Bay/shift scheduling queue; **tank-fit check** (part L×W×D vs PCM tank envelope, OVERSIZE flag); visual slot cards per bay × shift; manual vs auto line; AS9100D §8.1 |
 | **MOD-33** Spec & Flowdown / Frozen Process | Spec library (customer/industry/internal); parameter flowdown spec→recipe; **frozen-process guard** (ENGINEER blocked on frozen specs, must raise ECN); ECN state machine (DRAFT→IMPLEMENTED); Acceptance Authority Matrix (2-person, PIN, QAM co-sign); NADCAP Frozen Process, AS9100D §8.1, §8.5.6 |
 | **MOD-34** Chemical & Hazmat Control | SDS register (12 chemicals, OVERDUE/DUE_SOON RAG, controlled-substance flags); **bath make-up calculator** (sequenced addition steps, CONTROLLED warning banner); replenishment queue (OUT_OF_SPEC/SCHEDULED/LOW_STOCK triggers); chemical inventory; **Alert Escalation Engine** (10 cross-module rules, CRITICAL/ALERT/WARNING, acknowledge workflow); AC7108/AC7110, WSH/SDS, REACH/RoHS, AS9100D §9.1 |
+| **MOD-35** Government & Regulatory Certification Renewal Monitoring | Cert register for all NADCAP accreditations, customer approvals, government licenses, ISO registrations; configurable renewal lead days; OVERDUE/DUE_SOON/OK RAG; renewal action workflow (INITIATE→SUBMIT_APPLICATION→AUDIT_SCHEDULED→AUDIT_COMPLETE→CERT_RECEIVED); body-type filtering (NADCAP/CUSTOMER/GOVERNMENT/ISO_BODY/INDUSTRY); AS9100D §7.1.2, NADCAP AC7102/AC7108/AC7114, MOM WSH Act, CAAS AMO |
+| **MOD-36** Equipment Periodic Preventive Maintenance | Asset register (15 assets: OVEN/TANK/NDT_EQUIPMENT/COMPRESSOR/RECTIFIER/HVAC/INSTRUMENT); cross-ref to MOD-30 ovens; PM schedules (DAILY→ANNUAL); checklist tasks; log PM completion with auto-advance `next_due_date` (DATEADD by frequency); OVERDUE/DUE_SOON (≤7 days)/OK RAG; AS9100D §7.1.3, AMS 2750H equipment requirements, NADCAP AC7108 |
 
 ### Phase 8 Utilities
 
@@ -176,11 +178,13 @@ ATCA-ERP/
 │   │       ├── mod32-bay-scheduler/    # MOD-32 Bay Load Scheduler + Tank-Fit
 │   │       ├── mod33-spec-flowdown/    # MOD-33 Spec & Flowdown / Frozen Process
 │   │       ├── mod34-chemical-hazmat/  # MOD-34 Chemical & Hazmat + Escalation Engine
+│   │       ├── mod35-regulatory-certs/ # MOD-35 Government & Regulatory Cert Renewal
+│   │       ├── mod36-equipment-ppm/    # MOD-36 Equipment Periodic Preventive Maintenance
 │   │       ├── mod-changelog/
 │   │       ├── mod-bugreport/
 │   │       └── mod-chat/
 │   └── database/
-│       └── migrations/             # 037 SQL migration scripts
+│       └── migrations/             # 039 SQL migration scripts
 ├── database/migrations/            # Additional migration scripts
 ├── preview_server.py               # Local preview server (no DB required)
 ├── vercel.json                     # Vercel static deployment config
@@ -257,7 +261,7 @@ Each module with numbered records uses a dedicated `Mod##Sequence` table updated
 Format: `PREFIX-YYYY-NNNN` (e.g. `FPI-2026-0042`, `WO-2026-0015`, `COC-2026-0007`)
 
 ### Alert Summary API
-Every module exposes `GET /api/v1/modXX/alerts/summary` returning a standardised JSON object. MOD-15 KPI Dashboard aggregates all 26 endpoints client-side via `Promise.all` to build the compliance health ring.
+Every module exposes `GET /api/v1/modXX/alerts/summary` returning a standardised JSON object. MOD-15 KPI Dashboard aggregates all 28 endpoints client-side via `Promise.all` to build the compliance health ring.
 
 ### Frontend Architecture
 Three header layouts coexist across the 28 module pages (legacy Layout A with `#topbar`, Layout B with `#atca-topbar`, Layout C with `nav.navbar`). The global `ATCA.nav.init()` in `atca-core.js` detects which layout is present and injects the home button in the correct location — no per-page changes needed.
@@ -281,7 +285,7 @@ All frontend files are **UTF-8 no-BOM**. Never save with PowerShell `Set-Content
 
 ## Testing
 
-See [TEST-PLAN.md](TEST-PLAN.md) for the full test plan (v1.7, 200+ test cases).
+See [TEST-PLAN.md](TEST-PLAN.md) for the full test plan (v1.9, 210+ test cases).
 
 **Sections:**
 - §2 Unit tests — auth, sequences, FPI, MPT, bath, calibration, personnel, finance, CoC, purchasing
@@ -294,18 +298,19 @@ See [TEST-PLAN.md](TEST-PLAN.md) for the full test plan (v1.7, 200+ test cases).
 
 ---
 
-## Roadmap (Phases 9–12)
+## Roadmap (Phases 9–13)
 
-Forward features are sequenced into four structure-driven phases — see **[ROADMAP.md](ROADMAP.md)** for the full plan. Grounded in ATC's actual structure (process bays, AMS 2750 ovens, aerospace + semiconductor markets) from `ATC-PCM-001` and the SoR.
+Forward features are sequenced into five structure-driven phases — see **[ROADMAP.md](ROADMAP.md)** for the full plan. Grounded in ATC's actual structure (process bays, AMS 2750 ovens, aerospace + semiconductor markets) from `ATC-PCM-001` and the SoR.
 
 | Phase | Theme | New modules |
 |---|---|---|
 | **9** Special-Process Compliance Core ✅ **BUILT** | **MOD-30 Pyrometry & Heat-Treat** (AMS 2750 / NADCAP AC7102), **MOD-31 Operator Competency & PIN sign-off** (= Electronic Signature) |
 | **10** Capacity & Process Control ✅ **BUILT** | **MOD-32 Bay Load Scheduler + tank-fit**, **MOD-33 Spec & Flowdown / Frozen Process**, ECN, AAM |
 | **11** Chemicals, Safety & Escalation ✅ **BUILT** | **MOD-34 Chemical & Hazmat control** (SDS, bath make-up/replenishment, cyanide/cadmium controls), Alert Escalation Engine |
-| **12** Market Expansion & Group Scale | **MOD-35 Semiconductor Segment**, Multi-entity isolation, Document Template & Rule Engine |
+| **12** Compliance Monitoring & Asset Management ✅ **BUILT** | **MOD-35 Government & Regulatory Cert Renewal Monitoring**, **MOD-36 Equipment Periodic Preventive Maintenance** |
+| **13** Market Expansion & Group Scale | **MOD-37 Semiconductor Segment**, Multi-entity isolation, Document Template & Rule Engine |
 
-**Recommended start:** Phase 9 → MOD-30 Pyrometry & Heat-Treat (largest NADCAP gap; data already in the PCM Equipment sheet).
+**Recommended next:** Phase 13 → MOD-37 Semiconductor Segment (cleanroom + ASML/LAM/Applied Materials customer requirements).
 
 ---
 

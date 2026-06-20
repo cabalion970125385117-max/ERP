@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOD-35 — Regulatory Cert Renewal | ATCA-ERP</title>
+<link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
+<link rel="stylesheet" href="/assets/css/atca-core.css">
+<style>
+  .rag-OVERDUE  { background:#dc3545!important; color:#fff; font-weight:600; }
+  .rag-DUE_SOON { background:#fd7e14!important; color:#fff; font-weight:600; }
+  .rag-OK       { background:#198754!important; color:#fff; }
+  .status-EXPIRED           { color:#dc3545; font-weight:600; }
+  .status-RENEWAL_IN_PROGRESS { color:#0d6efd; font-weight:600; }
+  .status-ACTIVE            { color:#198754; }
+  .status-SUSPENDED         { color:#6c757d; }
+  .type-badge { font-size:.7rem; padding:2px 6px; border-radius:4px; font-weight:600; text-transform:uppercase; }
+  .type-NADCAP    { background:#6f42c1; color:#fff; }
+  .type-CUSTOMER  { background:#0d6efd; color:#fff; }
+  .type-GOVERNMENT{ background:#20c997; color:#000; }
+  .type-ISO_BODY  { background:#0dcaf0; color:#000; }
+  .type-INDUSTRY  { background:#ffc107; color:#000; }
+  .cert-row-OVERDUE  { background:rgba(220,53,69,.07); }
+  .cert-row-DUE_SOON { background:rgba(253,126,20,.07); }
+  .action-OPEN      { color:#dc3545; }
+  .action-COMPLETED { color:#198754; }
+  .action-OVERDUE   { color:#6c757d; }
+  .days-chip { font-size:.75rem; font-weight:700; padding:2px 8px; border-radius:12px; }
+  .days-neg  { background:#dc3545; color:#fff; }
+  .days-warn { background:#fd7e14; color:#fff; }
+  .days-ok   { background:#198754; color:#fff; }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="d-flex" style="height:calc(100vh - 56px)">
+  <div id="sidebar"></div>
+  <main class="flex-grow-1 overflow-auto p-3">
+
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <i class="bi bi-shield-check fs-4" style="color:#1565C0"></i>
+      <h5 class="mb-0 fw-bold">Regulatory Certification Renewal</h5>
+      <span class="badge ms-auto" style="background:#1565C0">MOD-35</span>
+    </div>
+
+    <!-- KPI cards -->
+    <div class="row g-2 mb-3" id="kpiRow">
+      <div class="col-6 col-md-2"><div class="card text-center p-2"><div class="fs-4 fw-bold text-primary" id="kpiTotal">—</div><div class="small text-muted">Total Certs</div></div></div>
+      <div class="col-6 col-md-2"><div class="card text-center p-2"><div class="fs-4 fw-bold text-success" id="kpiActive">—</div><div class="small text-muted">Active</div></div></div>
+      <div class="col-6 col-md-2"><div class="card text-center p-2"><div class="fs-4 fw-bold text-danger" id="kpiOverdue">—</div><div class="small text-muted">Overdue</div></div></div>
+      <div class="col-6 col-md-2"><div class="card text-center p-2"><div class="fs-4 fw-bold text-warning" id="kpiDueSoon">—</div><div class="small text-muted">Due Soon</div></div></div>
+      <div class="col-6 col-md-2"><div class="card text-center p-2"><div class="fs-4 fw-bold text-info" id="kpiRenewal">—</div><div class="small text-muted">Renewal In Progress</div></div></div>
+      <div class="col-6 col-md-2"><div class="card text-center p-2"><div class="fs-4 fw-bold text-secondary" id="kpiExpired">—</div><div class="small text-muted">Expired</div></div></div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="mainTabs">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabDashboard">Dashboard</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabCerts" id="btnTabCerts">Certificate Register</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabActions" id="btnTabActions">Renewal Actions</button></li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ── Tab 1: Dashboard ── -->
+      <div class="tab-pane fade show active" id="tabDashboard">
+        <div id="dashAlerts"></div>
+        <h6 class="fw-semibold mb-2 mt-3">Certs Requiring Attention</h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle" id="dashTable">
+            <thead class="table-light"><tr>
+              <th>Certificate</th><th>Body</th><th>Type</th><th>Expiry</th><th>Days</th><th>Status</th>
+            </tr></thead>
+            <tbody id="dashTbody"><tr><td colspan="6" class="text-center text-muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Tab 2: Certificate Register ── -->
+      <div class="tab-pane fade" id="tabCerts">
+        <div class="d-flex gap-2 mb-2">
+          <select class="form-select form-select-sm w-auto" id="filterRag">
+            <option value="">All RAG</option>
+            <option value="OVERDUE">Overdue</option>
+            <option value="DUE_SOON">Due Soon</option>
+            <option value="OK">OK</option>
+          </select>
+          <select class="form-select form-select-sm w-auto" id="filterType">
+            <option value="">All Types</option>
+            <option value="NADCAP">NADCAP</option>
+            <option value="CUSTOMER">Customer</option>
+            <option value="GOVERNMENT">Government</option>
+            <option value="ISO_BODY">ISO / QMS</option>
+          </select>
+          <button class="btn btn-sm btn-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modalCert">
+            <i class="bi bi-plus-lg"></i> Add Certificate
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle" id="certTable">
+            <thead class="table-light"><tr>
+              <th>Certificate</th><th>Number</th><th>Body</th><th>Body Type</th>
+              <th>Cert Type</th><th>Expiry</th><th>Days</th><th>RAG</th><th>Status</th><th>Lead Days</th>
+            </tr></thead>
+            <tbody id="certTbody"><tr><td colspan="10" class="text-center text-muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── Tab 3: Renewal Actions ── -->
+      <div class="tab-pane fade" id="tabActions">
+        <div class="d-flex gap-2 mb-2">
+          <button class="btn btn-sm btn-outline-primary ms-auto" data-bs-toggle="modal" data-bs-target="#modalAction">
+            <i class="bi bi-plus-lg"></i> Log Renewal Action
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle">
+            <thead class="table-light"><tr>
+              <th>Certificate</th><th>Body</th><th>Action Type</th><th>Date</th><th>Due Date</th><th>Performed By</th><th>Notes</th><th>Status</th>
+            </tr></thead>
+            <tbody id="actionTbody"><tr><td colspan="8" class="text-center text-muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /tab-content -->
+  </main>
+</div>
+
+<!-- Modal: Add Certificate -->
+<div class="modal fade" id="modalCert" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h6 class="modal-title fw-bold">Add Certificate</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="row g-2">
+          <div class="col-md-8"><label class="form-label small">Certificate Name *</label><input class="form-control form-control-sm" id="fCertName"></div>
+          <div class="col-md-4"><label class="form-label small">Cert Number</label><input class="form-control form-control-sm" id="fCertNumber"></div>
+          <div class="col-md-6"><label class="form-label small">Cert Type *</label>
+            <select class="form-select form-select-sm" id="fCertType">
+              <option value="">Select…</option>
+              <option>ACCREDITATION</option><option>APPROVAL</option><option>LICENSE</option>
+              <option>PERMIT</option><option>QUALIFICATION</option><option>REGISTRATION</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Regulatory Body</label>
+            <select class="form-select form-select-sm" id="fBodyId"><option value="">Select…</option></select>
+          </div>
+          <div class="col-md-4"><label class="form-label small">Issue Date</label><input type="date" class="form-control form-control-sm" id="fIssueDate"></div>
+          <div class="col-md-4"><label class="form-label small">Expiry Date *</label><input type="date" class="form-control form-control-sm" id="fExpiryDate"></div>
+          <div class="col-md-4"><label class="form-label small">Renewal Lead Days</label><input type="number" class="form-control form-control-sm" id="fLeadDays" value="90"></div>
+          <div class="col-12"><label class="form-label small">Scope</label><textarea class="form-control form-control-sm" id="fScope" rows="2"></textarea></div>
+          <div class="col-md-6"><label class="form-label small">Document Reference</label><input class="form-control form-control-sm" id="fDocRef"></div>
+          <div class="col-md-6"><label class="form-label small">Status</label>
+            <select class="form-select form-select-sm" id="fStatus">
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="RENEWAL_IN_PROGRESS">RENEWAL IN PROGRESS</option>
+              <option value="EXPIRED">EXPIRED</option>
+              <option value="SUSPENDED">SUSPENDED</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-sm btn-primary" onclick="saveCert()">Save Certificate</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Log Renewal Action -->
+<div class="modal fade" id="modalAction" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h6 class="modal-title fw-bold">Log Renewal Action</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <div class="row g-2">
+          <div class="col-12"><label class="form-label small">Certificate *</label>
+            <select class="form-select form-select-sm" id="fActionCert"><option value="">Select…</option></select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Action Type *</label>
+            <select class="form-select form-select-sm" id="fActionType">
+              <option value="">Select…</option>
+              <option>INITIATE</option><option>SUBMIT_APPLICATION</option>
+              <option>AUDIT_SCHEDULED</option><option>AUDIT_COMPLETE</option>
+              <option>CERT_RECEIVED</option><option>ESCALATE</option><option>NOTE</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label small">Due Date</label><input type="date" class="form-control form-control-sm" id="fActionDue"></div>
+          <div class="col-12"><label class="form-label small">Notes</label><textarea class="form-control form-control-sm" id="fActionNotes" rows="3"></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-sm btn-primary" onclick="saveAction()">Log Action</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script src="/assets/js/atca-demo.js"></script>
+<script>
+let allCerts = [];
+let allBodies = [];
+
+function ragBadge(rag) {
+  const labels = { OVERDUE:'OVERDUE', DUE_SOON:'DUE SOON', OK:'OK' };
+  return `<span class="badge rag-${rag}">${labels[rag]||rag}</span>`;
+}
+function typeBadge(t) {
+  return `<span class="type-badge type-${t}">${t}</span>`;
+}
+function daysChip(d) {
+  if (d < 0) return `<span class="days-chip days-neg">${d}d</span>`;
+  if (d <= 90) return `<span class="days-chip days-warn">${d}d</span>`;
+  return `<span class="days-chip days-ok">${d}d</span>`;
+}
+function statusSpan(s) {
+  return `<span class="status-${s}">${s.replace(/_/g,' ')}</span>`;
+}
+
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod35/alerts/summary');
+  document.getElementById('kpiTotal').textContent   = d.total_certs    ?? '—';
+  document.getElementById('kpiActive').textContent  = d.active_certs   ?? '—';
+  document.getElementById('kpiOverdue').textContent = d.overdue_certs  ?? '—';
+  document.getElementById('kpiDueSoon').textContent = d.due_soon_certs ?? '—';
+  document.getElementById('kpiRenewal').textContent = d.renewal_in_progress ?? '—';
+  document.getElementById('kpiExpired').textContent = d.expired_certs  ?? '—';
+
+  const total = (d.overdue_certs || 0) + (d.due_soon_certs || 0);
+  const dashAlerts = document.getElementById('dashAlerts');
+  if (total > 0) {
+    dashAlerts.innerHTML = `<div class="alert alert-danger py-2">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i>
+      <strong>${total} certification(s) require immediate attention</strong> —
+      ${d.overdue_certs||0} overdue, ${d.due_soon_certs||0} due soon.
+    </div>`;
+  } else {
+    dashAlerts.innerHTML = `<div class="alert alert-success py-2"><i class="bi bi-check-circle-fill me-1"></i>All certifications are current.</div>`;
+  }
+}
+
+async function loadCerts() {
+  const data = await ATCA.api.get('/mod35/certs');
+  allCerts = Array.isArray(data) ? data : (data.items || []);
+  renderCertTable(allCerts);
+  renderDashTable(allCerts.filter(c => c.expiry_rag !== 'OK'));
+  populateCertSelect();
+}
+
+function renderDashTable(certs) {
+  const tbody = document.getElementById('dashTbody');
+  if (!certs.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-success">No certs requiring attention.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = certs.map(c => `
+    <tr class="cert-row-${c.expiry_rag}">
+      <td class="fw-semibold">${c.cert_name}</td>
+      <td><small>${c.body_name||'—'}</small></td>
+      <td>${typeBadge(c.body_type||'INDUSTRY')}</td>
+      <td>${c.expiry_date||'—'}</td>
+      <td>${daysChip(c.days_to_expiry)}</td>
+      <td>${ragBadge(c.expiry_rag)} ${statusSpan(c.status)}</td>
+    </tr>`).join('');
+}
+
+function renderCertTable(certs) {
+  const ragF  = document.getElementById('filterRag').value;
+  const typeF = document.getElementById('filterType').value;
+  const filtered = certs.filter(c =>
+    (!ragF  || c.expiry_rag === ragF) &&
+    (!typeF || c.body_type  === typeF)
+  );
+  const tbody = document.getElementById('certTbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">No certificates match filter.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(c => `
+    <tr class="cert-row-${c.expiry_rag}">
+      <td class="fw-semibold" style="max-width:220px"><small>${c.cert_name}</small></td>
+      <td><small class="text-muted">${c.cert_number||'—'}</small></td>
+      <td><small>${c.body_name||'—'}</small></td>
+      <td>${typeBadge(c.body_type||'INDUSTRY')}</td>
+      <td><span class="badge bg-secondary">${c.cert_type}</span></td>
+      <td>${c.expiry_date||'—'}</td>
+      <td>${daysChip(c.days_to_expiry)}</td>
+      <td>${ragBadge(c.expiry_rag)}</td>
+      <td>${statusSpan(c.status)}</td>
+      <td class="text-center">${c.renewal_lead_days}d</td>
+    </tr>`).join('');
+}
+
+async function loadActions() {
+  const data = await ATCA.api.get('/mod35/renewal-actions');
+  const actions = Array.isArray(data) ? data : (data.items || []);
+  const tbody = document.getElementById('actionTbody');
+  if (!actions.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No renewal actions logged.</td></tr>';
+    return;
+  }
+  const typeLabels = {
+    INITIATE:'Initiate', SUBMIT_APPLICATION:'Submit App',
+    AUDIT_SCHEDULED:'Audit Scheduled', AUDIT_COMPLETE:'Audit Complete',
+    CERT_RECEIVED:'Cert Received', ESCALATE:'Escalate', NOTE:'Note'
+  };
+  const typeColors = {
+    INITIATE:'bg-primary', SUBMIT_APPLICATION:'bg-info text-dark',
+    AUDIT_SCHEDULED:'bg-warning text-dark', AUDIT_COMPLETE:'bg-success',
+    CERT_RECEIVED:'bg-success', ESCALATE:'bg-danger', NOTE:'bg-secondary'
+  };
+  tbody.innerHTML = actions.map(a => `
+    <tr>
+      <td class="fw-semibold"><small>${a.cert_name||'—'}</small></td>
+      <td><small class="text-muted">${a.body_name||'—'}</small></td>
+      <td><span class="badge ${typeColors[a.action_type]||'bg-secondary'}">${typeLabels[a.action_type]||a.action_type}</span></td>
+      <td><small>${a.action_date?a.action_date.slice(0,10):'—'}</small></td>
+      <td><small>${a.due_date||'—'}</small></td>
+      <td><small>${a.performed_by||'—'}</small></td>
+      <td style="max-width:200px"><small class="text-muted">${a.notes||'—'}</small></td>
+      <td><span class="action-${a.status}">${a.status}</span></td>
+    </tr>`).join('');
+}
+
+async function loadBodies() {
+  const data = await ATCA.api.get('/mod35/bodies');
+  allBodies = Array.isArray(data) ? data : (data.items || []);
+  const sel = document.getElementById('fBodyId');
+  allBodies.forEach(b => {
+    sel.innerHTML += `<option value="${b.body_id}">${b.body_name}</option>`;
+  });
+}
+
+function populateCertSelect() {
+  const sel = document.getElementById('fActionCert');
+  sel.innerHTML = '<option value="">Select…</option>';
+  allCerts.forEach(c => {
+    sel.innerHTML += `<option value="${c.cert_id}">${c.cert_name}</option>`;
+  });
+}
+
+async function saveCert() {
+  const payload = {
+    cert_name:         document.getElementById('fCertName').value.trim(),
+    cert_number:       document.getElementById('fCertNumber').value.trim(),
+    cert_type:         document.getElementById('fCertType').value,
+    body_id:           document.getElementById('fBodyId').value || null,
+    issue_date:        document.getElementById('fIssueDate').value || null,
+    expiry_date:       document.getElementById('fExpiryDate').value,
+    renewal_lead_days: parseInt(document.getElementById('fLeadDays').value) || 90,
+    scope:             document.getElementById('fScope').value.trim(),
+    cert_doc_ref:      document.getElementById('fDocRef').value.trim(),
+    status:            document.getElementById('fStatus').value,
+  };
+  if (!payload.cert_name || !payload.cert_type || !payload.expiry_date) {
+    return alert('Certificate Name, Type, and Expiry Date are required.');
+  }
+  try {
+    await ATCA.api.post('/mod35/certs', payload);
+    bootstrap.Modal.getInstance(document.getElementById('modalCert')).hide();
+    await Promise.all([loadKpis(), loadCerts()]);
+  } catch (e) { alert('Error: ' + e.message); }
+}
+
+async function saveAction() {
+  const payload = {
+    cert_id:     document.getElementById('fActionCert').value,
+    action_type: document.getElementById('fActionType').value,
+    due_date:    document.getElementById('fActionDue').value || null,
+    notes:       document.getElementById('fActionNotes').value.trim(),
+  };
+  if (!payload.cert_id || !payload.action_type) return alert('Certificate and Action Type are required.');
+  try {
+    await ATCA.api.post('/mod35/renewal-actions', payload);
+    bootstrap.Modal.getInstance(document.getElementById('modalAction')).hide();
+    await loadActions();
+  } catch (e) { alert('Error: ' + e.message); }
+}
+
+document.getElementById('filterRag').addEventListener('change',  () => renderCertTable(allCerts));
+document.getElementById('filterType').addEventListener('change', () => renderCertTable(allCerts));
+document.getElementById('btnTabCerts').addEventListener('click',   () => renderCertTable(allCerts));
+document.getElementById('btnTabActions').addEventListener('click', () => loadActions());
+
+(async () => {
+  await ATCA.initPage();
+  await Promise.all([loadKpis(), loadCerts(), loadBodies()]);
+})();
+</script>
+</body>
+</html>

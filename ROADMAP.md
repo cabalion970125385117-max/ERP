@@ -1,6 +1,6 @@
-# ATCA-ERP — Forward Roadmap (Phases 9–12)
+# ATCA-ERP — Forward Roadmap (Phases 9–13)
 **ATC Aviation Pte Ltd | NADCAP special-process + NDT job shop (Singapore)**
-**Authored:** 2026-06-17 | **Status:** PLANNED
+**Authored:** 2026-06-17 | **Last Updated:** 2026-06-21 | **Status:** PHASES 9–12 BUILT
 
 This roadmap turns the structure-driven feature suggestions into sequenced, shippable phases. It is grounded in **ATC's actual structure** as evidenced by `ATC-PCM-001` (bays, tanks, ovens, customers), the SoR, and the 29 modules already built — *not* a generic ERP backlog.
 
@@ -67,12 +67,27 @@ This roadmap turns the structure-driven feature suggestions into sequenced, ship
 
 ---
 
-## Phase 12 — Market Expansion & Group Scale
+## Phase 12 — Compliance Monitoring & Asset Management  ✅ BUILT 2026-06-21
+*Theme: proactive renewal tracking for all government/customer/accreditation certs and structured preventive maintenance for all production equipment.*
+
+> **Built:** MOD-35 (migration 038, api/mod35, modules/mod35-regulatory-certs — RegulatoryBody/CertificationRegister/CertRenewalAction/vw_CertExpiry; 10 regulatory bodies; 12 certs across NADCAP/customer/government/ISO categories; OVERDUE/DUE_SOON/OK RAG; configurable renewal lead days per cert; renewal action workflow INITIATE→SUBMIT_APPLICATION→AUDIT_SCHEDULED→AUDIT_COMPLETE→CERT_RECEIVED; 3-tab UI: Dashboard, Certificate Register, Renewal Actions; demo via tools/mod35_demo.json) and MOD-36 (migration 039, api/mod36, modules/mod36-equipment-ppm — EquipmentAsset/PPMSchedule/PPMChecklist/PPMLog/vw_PPMDue; 15 assets across OVEN/TANK/NDT_EQUIPMENT/COMPRESSOR/RECTIFIER/HVAC/INSTRUMENT categories; 12 PM schedules DAILY→WEEKLY→MONTHLY→QUARTERLY→SEMI_ANNUAL→ANNUAL; auto-advance next_due_date on log; OVERDUE/DUE_SOON/OK RAG on 7-day window; 3-tab UI: Dashboard, Equipment Assets, PM Schedule; demo via tools/mod36_demo.json). Preview-verified: MOD-35 12 certs/3 overdue/4 due-soon/7-item attention list; MOD-36 15 assets/4 overdue PM/3 due-soon/7-item attention list/6 recent log entries.
+
+| Module | Feature | Ties to structure | Compliance | Key build |
+|---|---|---|---|---|
+| **MOD-35** | **Government & Regulatory Certification Renewal Monitoring** | NADCAP accreditations, Boeing/Airbus/P&W/RR customer approvals, MOM/WSHC/CAAS government licenses, AS9100D/ISO registrations | AS9100D §7.1.2, NADCAP (AC7102/AC7108/AC7114), MOM WSH Act, CAAS AMO | Cert register with RAG expiry, configurable renewal lead days per cert, renewal action workflow, body type filtering |
+| **MOD-36** | **Equipment Periodic Preventive Maintenance** | All production assets — AMS 2750H ovens (MOD-30), chemical tanks (MOD-32), NDT equipment, compressors, rectifiers, HVAC | AS9100D §7.1.3, AMS 2750H equipment requirements, NADCAP AC7108 tank maintenance | Asset register with MOD-30 oven cross-ref, PM schedules (Daily→Annual), checklist tasks, log + auto-advance next-due, 7-day DUE_SOON window |
+
+**Why this phase:** two of the highest operational risks in an aerospace shop are (1) an expired NADCAP accreditation causing a production stop and (2) unplanned equipment downtime from deferred maintenance. Both are now proactively managed with RAG dashboards and workflow.
+**Dependencies:** MOD-30 (oven refs), MOD-34 (chemical tank refs), MOD-04 (personnel). **Est:** ~20h.
+
+---
+
+## Phase 13 — Market Expansion & Group Scale
 *Theme: serve the semiconductor segment properly and prepare for multi-entity scale.*
 
 | Module | Feature | Ties to structure | Compliance | Key build |
 |---|---|---|---|---|
-| **MOD-35** | **Semiconductor Segment** | Cleanroom + ~9 semicon customers (ASML, LAM, Applied Materials…) run to *different* requirements than aerospace | SEMI standards, RoHS/REACH, ultrapure cleanliness | Cleanliness/ionic certs, particle counts, RoHS/REACH declarations, PVD/CVD (upcoming) capability, semicon-specific CoC |
+| **MOD-37** | **Semiconductor Segment** | Cleanroom + ~9 semicon customers (ASML, LAM, Applied Materials…) run to *different* requirements than aerospace | SEMI standards, RoHS/REACH, ultrapure cleanliness | Cleanliness/ionic certs, particle counts, RoHS/REACH declarations, PVD/CVD (upcoming) capability, semicon-specific CoC |
 | *(x-cut)* | **Multi-entity Data Isolation** | Group operations / future legal entities | — | Every record tagged to legal entity; row-level scoping |
 | *(x-cut)* | **Document Template & Rule Engine** | Auto-generate CoC, FAI, traveler forms with clause injection | AS9100D §7.5 | Template engine with compliance-clause injection feeding MOD-24/MOD-29/MOD-30 outputs |
 
@@ -85,18 +100,19 @@ This roadmap turns the structure-driven feature suggestions into sequenced, ship
 
 | Phase | Modules | New module IDs | Theme | Est |
 |---|---|---|---|---|
-| **9** | Pyrometry/Heat-Treat · Operator Competency+PIN · E-Sign | MOD-30, MOD-31 | Special-process compliance core | ~22h |
+| **9**  | Pyrometry/Heat-Treat · Operator Competency+PIN · E-Sign | MOD-30, MOD-31 | Special-process compliance core | ~22h |
 | **10** | Bay Scheduler · Frozen Process/Flowdown · ECN · AAM | MOD-32, MOD-33 | Capacity & process control | ~26h |
 | **11** | Chemical/Hazmat · Alert Escalation | MOD-34 | Chemicals, safety & escalation | ~18h |
-| **12** | Semiconductor Segment · Multi-entity · Template engine | MOD-35 | Market expansion & group scale | ~30h |
+| **12** | Regulatory Cert Renewal · Equipment PPM | MOD-35, MOD-36 | Compliance monitoring & asset management | ~20h |
+| **13** | Semiconductor Segment · Multi-entity · Template engine | MOD-37 | Market expansion & group scale | ~30h |
 
 **Recommended start:** Phase 9 → **MOD-30 Pyrometry & Heat-Treat** (largest compliance gap; data already in the PCM Equipment sheet), then **MOD-31 Operator Competency & PIN**.
 
 ## Notes & open inputs
-- This roadmap assumes the structure inferred from `ATC-PCM-001` + SoR + built modules. **If the company-structure presentation slides exist, share them** — they may reorder priorities (e.g. if semiconductor is a nearer-term growth target, Phase 12 moves up).
+- This roadmap assumes the structure inferred from `ATC-PCM-001` + SoR + built modules. **If the company-structure presentation slides exist, share them** — they may reorder priorities (e.g. if semiconductor is a nearer-term growth target, Phase 13 moves up).
 - Each phase is independently shippable and follows the project's build pattern: dev plan `.md` → migration → backend → frontend → demo/preview data → home/sidebar wiring → docs → preview-verify → deploy.
 - Cross-cutting items (E-Sign, ECN, AAM, escalation, multi-entity, template engine) were carried over from the prior "Phase 9 backlog" and slotted where they best support a module phase.
 
 ---
 
-*End of ATCA-ERP Roadmap (Phases 9–12).*
+*End of ATCA-ERP Roadmap (Phases 9–13).*

@@ -1,9 +1,10 @@
 # ATCA-ERP System Test Plan
-**Version:** 1.8  
+**Version:** 1.9  
 **Date:** 2026-06-21  
 **Prepared by:** QA / Development  
 **Standards:** AS9100D · NADCAP AC7102 · AC7108 · AC7110 · AC7114 · NAS410 · AMS 2750  
 
+> **v1.9 change (2026-06-21):** **Phase 12 built** — added **MOD-35 Government & Regulatory Certification Renewal Monitoring** (§3.24, AS9100D §7.1.2, NADCAP AC7102/AC7108/AC7114 — cert RAG OVERDUE/DUE_SOON/OK tests, renewal action workflow, body-type filtering, configurable lead days) and **MOD-36 Equipment Periodic Preventive Maintenance** (§3.25, AS9100D §7.1.3, AMS 2750H — PM schedule CRUD, auto-advance next_due_date, checklist tests, asset-status update); §7 alert contracts for MOD-35/36. Module-page count now **39**. See ROADMAP.md.  
 > **v1.8 change (2026-06-21):** **Phase 11 built** — added **MOD-34 Chemical & Hazmat Control + Alert Escalation Engine** (§3.23, AC7108/AC7110, WSH/SDS, REACH/RoHS, AS9100D §9.1 — SDS OVERDUE/controlled-substance tests, bath make-up calculator, replenishment workflow, escalation-rule CRUD + acknowledge tests); §7 alert contract for MOD-34. Module-page count now **37**. See ROADMAP.md.  
 > **v1.7 change (2026-06-20):** **Phase 10 built** — added **MOD-32 Bay Load Scheduler + Tank-Fit** (§3.21, AS9100D §8.1, tank-fit check + oversize flag tests) and **MOD-33 Spec & Flowdown / Frozen Process** (§3.22, NADCAP frozen-process, ECN state-machine + AAM tests); §7 alert contracts for MOD-32/33. Module-page count now **36**. See ROADMAP.md.  
 > **v1.6 change (2026-06-17):** **Phase 9 built** — added **MOD-30 Pyrometry & Heat-Treat** (§3.19, NADCAP AC7102 / AMS 2750H, routing-gate tests) and **MOD-31 Operator Competency & PIN Sign-off** (§3.20, PIN = electronic signature, competency-gate + invalid-PIN tests); §7 alert contracts for MOD-30/31. Module-page count now **34**. See ROADMAP.md.  
@@ -23,7 +24,7 @@
               ┌──────────────┐
               │   E2E / UAT  │  ← 15 critical workflows, browser-driven
               ├──────────────┤
-              │ Integration  │  ← All 39 write endpoints + RBAC boundaries
+              │ Integration  │  ← All 41 write endpoints + RBAC boundaries
               ├──────────────┤
               │  Unit Tests  │  ← Business logic, calculations, validators
               └──────────────┘
@@ -520,6 +521,78 @@ Read-only module. All endpoints `requireMinRole('NDT_INSPECTOR')`.
 
 ---
 
+### 3.24 MOD-35 Government & Regulatory Certification Renewal Monitoring
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-CERT-01 | `GET /mod35/alerts/summary` | any auth | 200, `{total_certs, active_certs, expired_certs, renewal_in_progress, overdue_certs, due_soon_certs, total}` all numeric |
+| I-CERT-02 | `GET /mod35/certs` | any auth | 12 cert rows; ordered OVERDUE→DUE_SOON→OK; each row includes `expiry_rag`, `days_to_expiry`, `body_type` |
+| I-CERT-03 | `GET /mod35/certs` `?rag=OVERDUE` | any auth | only OVERDUE rows (3 seeded); no DUE_SOON or OK rows |
+| I-CERT-04 | `GET /mod35/certs` `?body_type=NADCAP` | any auth | only NADCAP certs; correct body_type filter applied |
+| I-CERT-05 | `GET /mod35/certs/:id` | any auth | 200, cert row + `renewal_actions` array joined |
+| I-CERT-06 | `POST /mod35/certs` NDT_INSPECTOR | — | 403 (ENGINEER+ required) |
+| I-CERT-07 | `POST /mod35/certs` ENGINEER | valid payload `{cert_name, body_id, cert_type, issue_date, expiry_date, renewal_lead_days}` | 201; `cert_id` returned; appears in GET list |
+| I-CERT-08 | `PUT /mod35/certs/:id` ENGINEER | partial update `{status:'RENEWAL_IN_PROGRESS'}` | 200; COALESCE preserves other fields; status updated |
+| I-CERT-09 | `GET /mod35/bodies` | any auth | 10 regulatory body rows; each includes `body_type`, `country`, `website` |
+| I-CERT-10 | `POST /mod35/bodies` QA_MANAGER | valid payload `{body_name, body_type, country}` | 201; `body_id` returned |
+| I-CERT-11 | `POST /mod35/bodies` ENGINEER | — | 403 (QA_MANAGER+ required) |
+| I-CERT-12 | `GET /mod35/renewal-actions` | any auth | 8 action rows; each includes `action_type`, `status`, `due_date`, `cert_id` |
+| I-CERT-13 | `GET /mod35/renewal-actions?cert_id=1` | any auth | only actions for cert_id=1; filter applied correctly |
+| I-CERT-14 | `POST /mod35/renewal-actions` NDT_INSPECTOR | — | 403 (SUPERVISOR+ required) |
+| I-CERT-15 | `POST /mod35/renewal-actions` SUPERVISOR | valid payload `{cert_id, action_type:'INITIATE', due_date, assigned_to}` | 201; `action_id` returned |
+| I-CERT-16 | `PUT /mod35/renewal-actions/:id` SUPERVISOR | `{status:'COMPLETED', completed_at}` | 200; `completed_at` updated; `status=COMPLETED` in GET |
+| I-CERT-17 | `vw_CertExpiry` logic | cert `expiry_date < today` | `expiry_rag = 'OVERDUE'`; `days_to_expiry` is negative |
+| I-CERT-18 | `vw_CertExpiry` logic | cert `expiry_date` within `renewal_lead_days` from today | `expiry_rag = 'DUE_SOON'` |
+| I-CERT-19 | CANCELLED cert | status=CANCELLED | excluded from vw_CertExpiry (WHERE NOT IN CANCELLED) |
+| I-CERT-20 | `GET /mod35/certs` | any auth | `cert_type` values constrained to ACCREDITATION/APPROVAL/LICENSE/PERMIT/QUALIFICATION/REGISTRATION |
+| UX-CERT-01 | Dashboard tab | load | KPI tiles: total_certs=12, overdue_certs=3, due_soon_certs=4; attention list ≥7 items |
+| UX-CERT-02 | Certificate Register tab | load | 12 rows; OVERDUE rows shown with red badge; DUE_SOON rows with orange; OK rows with green |
+| UX-CERT-03 | Cert Register | filter by rag=OVERDUE | only 3 rows visible; no OK or DUE_SOON rows |
+| UX-CERT-04 | Cert Register | filter by body_type=NADCAP | only NADCAP certs visible; type badge shows purple NADCAP |
+| UX-CERT-05 | Add Certificate modal | submit | modal closes; new row appears in list; KPI tiles refresh |
+| UX-CERT-06 | Renewal Actions tab | load | 8 action rows; action_type and status shown correctly; due_date formatted |
+| UX-CERT-07 | Log Renewal Action modal | submit | 201 response; action appears in tab; cert details auto-populate |
+
+---
+
+### 3.25 MOD-36 Equipment Periodic Preventive Maintenance
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-PPM-01 | `GET /mod36/alerts/summary` | any auth | 200, `{total_assets, overdue_pm, due_soon_pm, under_maintenance, pm_completed_this_month, total_schedules, total}` all numeric |
+| I-PPM-02 | `GET /mod36/assets` | any auth | 15 asset rows; each includes `schedule_count`, `last_pm_date`, `asset_category`, `status` |
+| I-PPM-03 | `GET /mod36/assets?category=OVEN` | any auth | only OVEN assets returned; category filter applied |
+| I-PPM-04 | `GET /mod36/assets/:id` | any auth | 200; asset row + `schedules` array + `recent_logs` array |
+| I-PPM-05 | `POST /mod36/assets` NDT_INSPECTOR | — | 403 (ENGINEER+ required) |
+| I-PPM-06 | `POST /mod36/assets` ENGINEER | valid payload `{asset_name, asset_tag, asset_category, location}` | 201; `asset_id` returned; appears in GET list |
+| I-PPM-07 | `PUT /mod36/assets/:id/status` NDT_INSPECTOR | — | 403 (SUPERVISOR+ required) |
+| I-PPM-08 | `PUT /mod36/assets/:id/status` SUPERVISOR | `{status:'UNDER_MAINTENANCE'}` | 200; status updated; reflected in GET /mod36/assets |
+| I-PPM-09 | `GET /mod36/schedules` | any auth | 12 schedule rows from vw_PPMDue; each includes `pm_rag`, `days_until_due`, `frequency` |
+| I-PPM-10 | `GET /mod36/schedules?rag=OVERDUE` | any auth | only OVERDUE schedules (4 seeded); DUE_SOON and OK excluded |
+| I-PPM-11 | `GET /mod36/schedules/:id/checklist` | any auth | checklist tasks for that schedule; `task_order` sorted ascending |
+| I-PPM-12 | `POST /mod36/schedules` NDT_INSPECTOR | — | 403 (ENGINEER+ required) |
+| I-PPM-13 | `POST /mod36/schedules` ENGINEER | valid payload `{asset_id, task_name, frequency:'MONTHLY', next_due_date}` | 201; `schedule_id` returned |
+| I-PPM-14 | `GET /mod36/log` | any auth | ≥6 log rows; each includes `performed_date`, `status`, `performed_by_name`, `asset_name` |
+| I-PPM-15 | `POST /mod36/log` NDT_INSPECTOR | — | 403 (SUPERVISOR+ required) |
+| I-PPM-16 | `POST /mod36/log` SUPERVISOR | MONTHLY schedule; `{schedule_id, performed_date, status:'COMPLETED'}` | 201; `log_id` returned; `next_due_date` auto-advanced by 1 month |
+| I-PPM-17 | Auto-advance: DAILY | `performed_date = 2026-06-21` | `next_due_date = 2026-06-22` (DATEADD DAY 1) |
+| I-PPM-18 | Auto-advance: QUARTERLY | `performed_date = 2026-06-21` | `next_due_date = 2026-09-21` (DATEADD MONTH 3) |
+| I-PPM-19 | Auto-advance: SEMI_ANNUAL | `performed_date = 2026-06-21` | `next_due_date = 2026-12-21` (DATEADD MONTH 6) |
+| I-PPM-20 | Auto-advance: ANNUAL | `performed_date = 2026-06-21` | `next_due_date = 2027-06-21` (DATEADD YEAR 1) |
+| I-PPM-21 | `vw_PPMDue` logic | `next_due_date < today` | `pm_rag = 'OVERDUE'`; `days_until_due` is negative |
+| I-PPM-22 | `vw_PPMDue` logic | `next_due_date` within 7 days | `pm_rag = 'DUE_SOON'` |
+| I-PPM-23 | `vw_PPMDue` logic | `next_due_date` > 7 days away | `pm_rag = 'OK'` |
+| UX-PPM-01 | Dashboard tab | load | KPI tiles: total_assets=15, overdue_pm=4, due_soon_pm=3; attention list ≥7 items |
+| UX-PPM-02 | Equipment Assets tab | load | 15 rows; OPERATIONAL rows green badge; UNDER_MAINTENANCE rows amber |
+| UX-PPM-03 | Assets | filter by category=OVEN | only OVEN assets; OVEN badge displayed |
+| UX-PPM-04 | PM Schedule tab | load | 12 schedule rows; OVERDUE shown in red; DUE_SOON in orange; OK in green |
+| UX-PPM-05 | PM Schedule | filter by rag=OVERDUE | only 4 overdue rows |
+| UX-PPM-06 | PM Schedule | filter by frequency=MONTHLY | only MONTHLY schedules visible |
+| UX-PPM-07 | Log PM Completion modal | select schedule | asset field auto-populates from `data-asset` attribute on option |
+| UX-PPM-08 | Log PM Completion | submit COMPLETED | 201; schedule row `next_due_date` updated; log tab gains new row |
+
+---
+
 ## 4. Compliance-Critical Test Cases
 
 ### 4.1 AS9100D
@@ -845,6 +918,8 @@ Every module exposes `GET /api/v1/modXX/alerts/summary`. Test that each returns 
 | MOD-32 | `scheduled_today`, `oversize_flagged`, `pending_confirmation`, `in_progress`, `total` |
 | MOD-33 | `active_specs`, `frozen_specs`, `ecn_pending`, `ecn_overdue`, `aam_entries`, `frozen_recipes`, `total` |
 | MOD-34 | `sds_active`, `sds_expiring_30d`, `controlled_substances`, `replenishment_pending`, `escalation_rules_active`, `unacknowledged_alerts`, `low_stock_chemicals`, `total` |
+| MOD-35 | `total_certs`, `active_certs`, `expired_certs`, `renewal_in_progress`, `overdue_certs`, `due_soon_certs`, `total` |
+| MOD-36 | `total_assets`, `overdue_pm`, `due_soon_pm`, `under_maintenance`, `pm_completed_this_month`, `total_schedules`, `total` |
 | BUGREPORT | `open_bugs`, `critical_bugs`, `resolved_this_month`, `avg_resolution_days` |
 
 **Test pattern (backend):** Call endpoint, assert 200, assert all fields present and numeric (not undefined/null).
