@@ -1,0 +1,47 @@
+{
+ "/mod30/alerts/summary": { "total_ovens": 10, "overdue_pyrometry": 1, "due_soon": 1, "tc_expiring": 2, "aerospace_ovens": 3, "total": 2 },
+ "/mod30/ovens": { "items": [
+   { "oven_id": 1, "oven_code": "ATCT OVEN 8", "oven_name": "Baking & Heat Treatment Oven 8", "function_type": "BAKE_HEATTREAT", "standard_ref": "AMS 2750H", "furnace_class": "2", "instrument_type": "C", "temp_min_c": 85, "temp_max_c": 300, "aerospace_only": 1, "area": "Production", "tus_interval_days": 90, "sat_interval_days": 30, "last_tus": "2026-04-10", "last_sat": "2026-06-02", "rag_status": "AMBER" },
+   { "oven_id": 2, "oven_code": "ATCT OVEN 9", "oven_name": "Baking & Heat Treatment Oven 9", "function_type": "BAKE_HEATTREAT", "standard_ref": "AMS 2750H", "furnace_class": "2", "instrument_type": "C", "temp_min_c": 125, "temp_max_c": 400, "aerospace_only": 1, "area": "Production", "tus_interval_days": 90, "sat_interval_days": 30, "last_tus": "2026-05-15", "last_sat": "2026-06-10", "rag_status": "GREEN" },
+   { "oven_id": 3, "oven_code": "ATCT OVEN 16", "oven_name": "Muffle Furnace 16", "function_type": "MUFFLE", "standard_ref": "AMS 2750H", "furnace_class": "3", "instrument_type": "D", "temp_min_c": 40, "temp_max_c": 1200, "aerospace_only": 1, "area": "Production", "tus_interval_days": 90, "sat_interval_days": 30, "last_tus": "2026-02-20", "last_sat": "2026-04-01", "rag_status": "RED" },
+   { "oven_id": 4, "oven_code": "ATCT OVEN 12", "oven_name": "Drying Oven 12 (Honeywell Ti/Steel/Mg)", "function_type": "DRYING", "standard_ref": "AMS 2750H", "furnace_class": "4", "instrument_type": "D", "temp_min_c": 111, "temp_max_c": 131, "aerospace_only": 1, "area": "Production", "tus_interval_days": 180, "sat_interval_days": 60, "last_tus": "2026-05-01", "last_sat": "2026-06-05", "rag_status": "GREEN" },
+   { "oven_id": 5, "oven_code": "ATCT OVEN 4", "oven_name": "Drying Oven 4 (Honeywell Al/Carbon Fibre)", "function_type": "DRYING", "standard_ref": null, "furnace_class": null, "instrument_type": null, "temp_min_c": 50, "temp_max_c": 70, "aerospace_only": 0, "area": "Production", "tus_interval_days": 180, "sat_interval_days": 60, "last_tus": "2026-05-20", "last_sat": "2026-06-12", "rag_status": "GREEN" },
+   { "oven_id": 6, "oven_code": "ATCT OVEN 5", "oven_name": "Drying Oven 5", "function_type": "DRYING", "standard_ref": null, "furnace_class": null, "instrument_type": null, "temp_min_c": 50, "temp_max_c": 70, "aerospace_only": 0, "area": "Production", "tus_interval_days": 180, "sat_interval_days": 60, "last_tus": "2026-05-20", "last_sat": "2026-06-12", "rag_status": "GREEN" },
+   { "oven_id": 7, "oven_code": "ATCT OVEN 10", "oven_name": "Drying Oven 10", "function_type": "DRYING", "standard_ref": null, "furnace_class": null, "instrument_type": null, "temp_min_c": 50, "temp_max_c": 70, "aerospace_only": 0, "area": "Production", "tus_interval_days": 180, "sat_interval_days": 60, "last_tus": "2026-05-22", "last_sat": "2026-06-12", "rag_status": "GREEN" },
+   { "oven_id": 8, "oven_code": "ATCT OVEN 11", "oven_name": "Drying Oven 11", "function_type": "DRYING", "standard_ref": null, "furnace_class": null, "instrument_type": null, "temp_min_c": 50, "temp_max_c": 70, "aerospace_only": 0, "area": "Production", "tus_interval_days": 180, "sat_interval_days": 60, "last_tus": "2026-05-22", "last_sat": "2026-06-12", "rag_status": "GREEN" },
+   { "oven_id": 9, "oven_code": "ATCT OVEN 13", "oven_name": "Drying Oven 13 (N2, small parts)", "function_type": "DRYING", "standard_ref": null, "furnace_class": null, "instrument_type": null, "temp_min_c": 30, "temp_max_c": 150, "aerospace_only": 0, "area": "Cleanroom", "tus_interval_days": 180, "sat_interval_days": 60, "last_tus": "2026-05-25", "last_sat": "2026-06-14", "rag_status": "GREEN" },
+   { "oven_id": 10, "oven_code": "ATCT OVEN 14", "oven_name": "Drying Oven 14 (N2, large parts)", "function_type": "DRYING", "standard_ref": null, "furnace_class": null, "instrument_type": null, "temp_min_c": 30, "temp_max_c": 200, "aerospace_only": 0, "area": "Cleanroom", "tus_interval_days": 180, "sat_interval_days": 60, "last_tus": "2026-05-25", "last_sat": "2026-06-14", "rag_status": "GREEN" }
+ ], "total": 10 },
+ "/mod30/ovens/1": {
+   "oven_id": 1, "oven_code": "ATCT OVEN 8", "oven_name": "Baking & Heat Treatment Oven 8", "function_type": "BAKE_HEATTREAT",
+   "standard_ref": "AMS 2750H", "furnace_class": "2", "instrument_type": "C", "temp_min_c": 85, "temp_max_c": 300,
+   "aerospace_only": 1, "area": "Production", "tus_interval_days": 90, "sat_interval_days": 30, "rag_status": "AMBER",
+   "tests": [
+     { "test_id": 1, "test_ref": "PYR-2026-0007", "test_type": "SAT", "test_date": "2026-06-02", "set_point_c": 300, "max_dev_c": 1.2, "tolerance_c": 2.0, "result": "PASS", "next_due": "2026-07-02" },
+     { "test_id": 2, "test_ref": "PYR-2026-0003", "test_type": "TUS", "test_date": "2026-04-10", "set_point_c": 200, "max_dev_c": 4.1, "tolerance_c": 8.0, "result": "PASS", "next_due": "2026-07-09" }
+   ],
+   "thermocouples": [
+     { "tc_id": 1, "tc_code": "TC-008-CTL", "tc_type": "K", "tc_class": "Control", "expiry_date": "2026-09-01", "status": "IN_USE" },
+     { "tc_id": 2, "tc_code": "TC-008-LD1", "tc_type": "K", "tc_class": "Load", "expiry_date": "2026-07-05", "status": "IN_USE" }
+   ]
+ },
+ "/mod30/ovens/3": {
+   "oven_id": 3, "oven_code": "ATCT OVEN 16", "oven_name": "Muffle Furnace 16", "function_type": "MUFFLE",
+   "standard_ref": "AMS 2750H", "furnace_class": "3", "instrument_type": "D", "temp_min_c": 40, "temp_max_c": 1200,
+   "aerospace_only": 1, "area": "Production", "tus_interval_days": 90, "sat_interval_days": 30, "rag_status": "RED",
+   "tests": [
+     { "test_id": 3, "test_ref": "PYR-2026-0001", "test_type": "TUS", "test_date": "2026-02-20", "set_point_c": 600, "max_dev_c": 7.5, "tolerance_c": 10.0, "result": "PASS", "next_due": "2026-05-21" }
+   ],
+   "thermocouples": []
+ },
+ "/mod30/thermocouples": { "items": [
+   { "tc_id": 1, "tc_code": "TC-008-CTL", "oven_code": "ATCT OVEN 8", "tc_type": "K", "tc_class": "Control", "install_date": "2026-03-01", "expiry_date": "2026-09-01", "uses_count": 12, "uses_max": 90, "status": "IN_USE", "expiry_status": "OK" },
+   { "tc_id": 2, "tc_code": "TC-008-LD1", "oven_code": "ATCT OVEN 8", "tc_type": "K", "tc_class": "Load", "install_date": "2026-01-05", "expiry_date": "2026-07-05", "uses_count": 78, "uses_max": 90, "status": "IN_USE", "expiry_status": "EXPIRING" },
+   { "tc_id": 3, "tc_code": "TC-009-CTL", "oven_code": "ATCT OVEN 9", "tc_type": "N", "tc_class": "Control", "install_date": "2026-04-01", "expiry_date": "2026-10-01", "uses_count": 8, "uses_max": 90, "status": "IN_USE", "expiry_status": "OK" },
+   { "tc_id": 4, "tc_code": "TC-016-TEST", "oven_code": "ATCT OVEN 16", "tc_type": "R", "tc_class": "Test/SAT", "install_date": "2025-12-01", "expiry_date": "2026-07-01", "uses_count": 40, "uses_max": 45, "status": "IN_USE", "expiry_status": "EXPIRING" }
+ ], "total": 4 },
+ "/mod30/routing": { "items": [
+   { "oven_id": 2, "oven_code": "ATCT OVEN 9", "oven_name": "Baking & Heat Treatment Oven 9", "temp_min_c": 125, "temp_max_c": 400, "aerospace_only": 1, "rag_status": "GREEN" },
+   { "oven_id": 1, "oven_code": "ATCT OVEN 8", "oven_name": "Baking & Heat Treatment Oven 8", "temp_min_c": 85, "temp_max_c": 300, "aerospace_only": 1, "rag_status": "AMBER" }
+ ], "eligible": 2, "total": 2 }
+}

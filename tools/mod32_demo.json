@@ -1,0 +1,128 @@
+{
+  "/mod32/alerts/summary": {
+    "scheduled_today": 9,
+    "oversize_flagged": 1,
+    "pending_confirmation": 3,
+    "in_progress": 2,
+    "total": 4
+  },
+  "/mod32/schedule": {
+    "items": [
+      {
+        "schedule_id": 1, "schedule_ref": "SCH-0001",
+        "job_description": "GRN-2026-0101 — Sulfuric anodize Boeing brackets (Lot A)",
+        "customer_code": "Boeing", "process_area": "Anodizing",
+        "bay": "BAY2", "line_code": "BAY2-ANOD", "shift": "SHIFT_1",
+        "part_len_cm": 45.0, "part_wid_cm": 20.0, "part_dep_cm": 10.0, "part_qty": 12,
+        "fit_checked": true, "fit_result": "PASS", "oversize_flagged": false, "fit_notes": null,
+        "is_manual": false, "priority": 2, "status": "CONFIRMED",
+        "scheduled_date": "2026-06-20", "created_at": "2026-06-19T08:00:00Z",
+        "tank_code": "BATH-PLT-001", "tank_type": "ANODIZE_SULFURIC",
+        "tank_len": 120.0, "tank_wid": 60.0, "tank_dep": 80.0
+      },
+      {
+        "schedule_id": 2, "schedule_ref": "SCH-0002",
+        "job_description": "GRN-2026-0102 — EN plating P&W turbine components",
+        "customer_code": "P&W", "process_area": "Electroless Nickel",
+        "bay": "BAY2", "line_code": "BAY2-EN", "shift": "SHIFT_1",
+        "part_len_cm": 30.0, "part_wid_cm": 15.0, "part_dep_cm": 8.0, "part_qty": 5,
+        "fit_checked": true, "fit_result": "PASS", "oversize_flagged": false, "fit_notes": null,
+        "is_manual": false, "priority": 3, "status": "IN_PROGRESS",
+        "scheduled_date": "2026-06-20", "created_at": "2026-06-19T09:00:00Z",
+        "tank_code": null, "tank_type": null, "tank_len": null, "tank_wid": null, "tank_dep": null
+      },
+      {
+        "schedule_id": 3, "schedule_ref": "SCH-0003",
+        "job_description": "GRN-2026-0103 — Cadmium plating Airbus fasteners (OVERSIZE)",
+        "customer_code": "Airbus", "process_area": "Cadmium Plating",
+        "bay": "BAY4", "line_code": "BAY4-CAD", "shift": "SHIFT_2",
+        "part_len_cm": 200.0, "part_wid_cm": 80.0, "part_dep_cm": 50.0, "part_qty": 3,
+        "fit_checked": true, "fit_result": "FAIL", "oversize_flagged": true,
+        "fit_notes": "Part 200×80×50 cm exceeds tank envelope 150×60×40 cm.",
+        "is_manual": true, "priority": 1, "status": "OVERSIZE",
+        "scheduled_date": "2026-06-20", "created_at": "2026-06-19T10:30:00Z",
+        "tank_code": "BATH-PLT-005", "tank_type": "CADMIUM",
+        "tank_len": 150.0, "tank_wid": 60.0, "tank_dep": 40.0
+      },
+      {
+        "schedule_id": 4, "schedule_ref": "SCH-0004",
+        "job_description": "GRN-2026-0104 — Passivation SIA Engineering parts",
+        "customer_code": "SIA Engineering", "process_area": "Passivation",
+        "bay": "BAY5", "line_code": "BAY5-PASS", "shift": "SHIFT_1",
+        "part_len_cm": 60.0, "part_wid_cm": 30.0, "part_dep_cm": 20.0, "part_qty": 20,
+        "fit_checked": true, "fit_result": "PASS", "oversize_flagged": false, "fit_notes": null,
+        "is_manual": false, "priority": 3, "status": "PENDING",
+        "scheduled_date": "2026-06-20", "created_at": "2026-06-19T11:00:00Z",
+        "tank_code": null, "tank_type": null, "tank_len": null, "tank_wid": null, "tank_dep": null
+      },
+      {
+        "schedule_id": 5, "schedule_ref": "SCH-0005",
+        "job_description": "GRN-2026-0105 — FPI Honeywell turbine blades",
+        "customer_code": "Honeywell", "process_area": "FPI",
+        "bay": "NDT", "line_code": "NDT-FPI", "shift": "SHIFT_1",
+        "part_len_cm": null, "part_wid_cm": null, "part_dep_cm": null, "part_qty": 8,
+        "fit_checked": false, "fit_result": "N/A", "oversize_flagged": false, "fit_notes": null,
+        "is_manual": false, "priority": 2, "status": "IN_PROGRESS",
+        "scheduled_date": "2026-06-20", "created_at": "2026-06-19T06:00:00Z",
+        "tank_code": null, "tank_type": null, "tank_len": null, "tank_wid": null, "tank_dep": null
+      },
+      {
+        "schedule_id": 6, "schedule_ref": "SCH-0006",
+        "job_description": "GRN-2026-0106 — Heat treat Meggitt brackets (AMS 2750H)",
+        "customer_code": "Meggitt", "process_area": "Heat Treatment",
+        "bay": "HEAT", "line_code": "HEAT-OVEN", "shift": "SHIFT_2",
+        "part_len_cm": 80.0, "part_wid_cm": 40.0, "part_dep_cm": 30.0, "part_qty": 6,
+        "fit_checked": true, "fit_result": "PASS", "oversize_flagged": false, "fit_notes": null,
+        "is_manual": false, "priority": 2, "status": "PENDING",
+        "scheduled_date": "2026-06-20", "created_at": "2026-06-19T12:00:00Z",
+        "tank_code": null, "tank_type": null, "tank_len": null, "tank_wid": null, "tank_dep": null
+      }
+    ],
+    "total": 6,
+    "date": "2026-06-20"
+  },
+  "/mod32/tank-fit": {
+    "part_dims": { "len": 80.0, "wid": 40.0, "dep": 30.0 },
+    "eligible_tanks": [
+      {
+        "bath_id": 1, "bath_code": "BATH-PLT-001", "bath_name": "Sulfuric Anodize Tank 1",
+        "bath_type": "ANODIZE_SULFURIC", "bay": "BAY2", "process_category": "ELECTROPLATING",
+        "max_len_cm": 120.0, "max_wid_cm": 60.0, "max_dep_cm": 80.0,
+        "rag_status": "GREEN", "status": "IN_SERVICE"
+      },
+      {
+        "bath_id": 3, "bath_code": "BATH-PLT-003", "bath_name": "Passivation Tank A",
+        "bath_type": "PASSIVATION", "bay": "BAY5", "process_category": "ELECTROPLATING",
+        "max_len_cm": 100.0, "max_wid_cm": 50.0, "max_dep_cm": 60.0,
+        "rag_status": "GREEN", "status": "IN_SERVICE"
+      }
+    ],
+    "total": 2
+  },
+  "/mod32/bay-load": {
+    "items": [
+      { "scheduled_date": "2026-06-20", "bay": "BAY2", "shift": "SHIFT_1", "total_slots": 2, "oversize_count": 0, "pending_count": 0, "confirmed_count": 1, "inprogress_count": 1, "completed_count": 0 },
+      { "scheduled_date": "2026-06-20", "bay": "BAY4", "shift": "SHIFT_2", "total_slots": 1, "oversize_count": 1, "pending_count": 0, "confirmed_count": 0, "inprogress_count": 0, "completed_count": 0 },
+      { "scheduled_date": "2026-06-20", "bay": "BAY5", "shift": "SHIFT_1", "total_slots": 1, "oversize_count": 0, "pending_count": 1, "confirmed_count": 0, "inprogress_count": 0, "completed_count": 0 },
+      { "scheduled_date": "2026-06-20", "bay": "NDT",  "shift": "SHIFT_1", "total_slots": 1, "oversize_count": 0, "pending_count": 0, "confirmed_count": 0, "inprogress_count": 1, "completed_count": 0 },
+      { "scheduled_date": "2026-06-20", "bay": "HEAT", "shift": "SHIFT_2", "total_slots": 1, "oversize_count": 0, "pending_count": 1, "confirmed_count": 0, "inprogress_count": 0, "completed_count": 0 }
+    ],
+    "date": "2026-06-20"
+  },
+  "/mod32/lines": {
+    "items": [
+      { "line_id": 1, "bay": "BAY2", "line_code": "BAY2-ANOD", "line_name": "Bay 2 — Anodizing Line", "process_area": "Anodizing", "max_slots_per_shift": 2, "is_active": true },
+      { "line_id": 2, "bay": "BAY2", "line_code": "BAY2-EN",   "line_name": "Bay 2 — Electroless Nickel Line", "process_area": "Electroless Nickel", "max_slots_per_shift": 2, "is_active": true },
+      { "line_id": 3, "bay": "BAY3", "line_code": "BAY3-ANC",  "line_name": "Bay 3 — Chromic Anodize Line", "process_area": "Chromic Anodize", "max_slots_per_shift": 2, "is_active": true },
+      { "line_id": 4, "bay": "BAY3", "line_code": "BAY3-PHOS", "line_name": "Bay 3 — Phosphate Line", "process_area": "Phosphating", "max_slots_per_shift": 2, "is_active": true },
+      { "line_id": 5, "bay": "BAY4", "line_code": "BAY4-CAD",  "line_name": "Bay 4 — Cadmium Plating Line", "process_area": "Cadmium Plating", "max_slots_per_shift": 1, "is_active": true },
+      { "line_id": 6, "bay": "BAY4", "line_code": "BAY4-SILV", "line_name": "Bay 4 — Silver/Gold Plating", "process_area": "Silver Plating", "max_slots_per_shift": 1, "is_active": true },
+      { "line_id": 7, "bay": "BAY5", "line_code": "BAY5-PASS", "line_name": "Bay 5 — Passivation Line", "process_area": "Passivation", "max_slots_per_shift": 3, "is_active": true },
+      { "line_id": 8, "bay": "BAY5", "line_code": "BAY5-BOX",  "line_name": "Bay 5 — Black Oxide Line", "process_area": "Black Oxide", "max_slots_per_shift": 2, "is_active": true },
+      { "line_id": 9, "bay": "NDT",  "line_code": "NDT-FPI",   "line_name": "NDT — FPI Line (ApolloFlow)", "process_area": "FPI", "max_slots_per_shift": 4, "is_active": true },
+      { "line_id": 10, "bay": "NDT", "line_code": "NDT-MPT",   "line_name": "NDT — MPT Line", "process_area": "MPT", "max_slots_per_shift": 4, "is_active": true },
+      { "line_id": 11, "bay": "HEAT","line_code": "HEAT-OVEN", "line_name": "Heat-Treat — Oven Bay", "process_area": "Heat Treatment", "max_slots_per_shift": 3, "is_active": true }
+    ],
+    "total": 11
+  }
+}

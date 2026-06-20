@@ -368,6 +368,12 @@ apiRouter.use('/chat',       require('./api/chat/index'));                   // 
 apiRouter.use('/mod25',   require('./api/mod25/index'));              // User & Role Management
 // apiRouter.use('/mod26', require('./api/mod26/index'));   // System Configuration
 apiRouter.use('/mod27',   require('./api/mod27/index'));              // Value Flow Tracker (AS9100D §8.5)
+apiRouter.use('/mod28',   require('./api/mod28/index'));              // Process Capability Master (PCM)
+apiRouter.use('/mod29',   require('./api/mod29/index'));              // Customer Qualification (lifecycle)
+apiRouter.use('/mod30',   require('./api/mod30/index'));              // Pyrometry & Heat-Treat (AMS 2750)
+apiRouter.use('/mod31',   require('./api/mod31/index'));              // Operator Competency & PIN Sign-off
+apiRouter.use('/mod32',   require('./api/mod32/index'));              // Bay Load Scheduler + Tank-Fit Check
+apiRouter.use('/mod33',   require('./api/mod33/index'));              // Spec & Flowdown / Frozen Process + ECN + AAM
 
 app.use('/api/v1', apiRouter);
 

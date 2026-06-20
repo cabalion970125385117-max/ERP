@@ -191,19 +191,26 @@ STUBS = {
         {"bath_id":3,"bath_code":"FPI-DV-001","bath_name":"Developer Tank #1","status":"IN_SPEC"},
     ],
     "GET /api/v1/mod06/alerts/summary": {
-        "out_of_spec": 2, "overdue_sample": 2, "due_soon": 4, "total_baths": 9, "total": 9
+        "fpi":     {"out_of_spec": 1, "overdue_sample": 0, "due_soon": 1, "total_baths": 4},
+        "plating": {"out_of_spec": 1, "overdue_sample": 1, "due_soon": 2, "total_baths": 8},
+        "out_of_spec": 2, "overdue_sample": 1, "due_soon": 3, "total_baths": 12, "total": 3
     },
     "GET /api/v1/mod06/baths": {"items": [
-        {"bath_id":1,"bath_code":"FPI-PT-001","bath_name":"Penetrant Tank #1","bath_type":"PT_PENETRANT","process_area":"FPI","chemical_product":"Magnaflux ZL-60D","spec_ref":"ASTM E1417","concentration_min":None,"concentration_max":None,"temp_min_c":16,"temp_max_c":52,"current_temp_c":22,"last_test_date":"2025-05-20","next_test_due":"2025-05-27","status":"IN_SPEC","active":True},
-        {"bath_id":2,"bath_code":"FPI-EM-001","bath_name":"Emulsifier Tank #1","bath_type":"PT_EMULSIFIER","process_area":"FPI","chemical_product":"Magnaflux ZR-10B","spec_ref":"ASTM E1417","concentration_min":5,"concentration_max":35,"temp_min_c":16,"temp_max_c":52,"current_temp_c":21,"last_test_date":"2025-05-18","next_test_due":"2025-05-25","status":"OUT_OF_SPEC","active":True},
-        {"bath_id":3,"bath_code":"FPI-DV-001","bath_name":"Developer Tank #1","bath_type":"PT_DEVELOPER","process_area":"FPI","chemical_product":"Magnaflux ZP-4B","spec_ref":"ASTM E1417","concentration_min":10,"concentration_max":30,"temp_min_c":16,"temp_max_c":52,"current_temp_c":20,"last_test_date":"2025-05-15","next_test_due":"2025-05-22","status":"IN_SPEC","active":True},
-        {"bath_id":4,"bath_code":"MPT-WF-001","bath_name":"Wet Fluorescent Bath","bath_type":"MT_WET_FLUORESCENT","process_area":"MPT","chemical_product":"Magnaflux 14HF","spec_ref":"ASTM E1444 / AMS 2641","concentration_min":0.1,"concentration_max":0.4,"temp_min_c":10,"temp_max_c":40,"current_temp_c":19,"last_test_date":"2025-05-19","next_test_due":"2025-05-26","status":"IN_SPEC","active":True},
-        {"bath_id":5,"bath_code":"ANO-SA-001","bath_name":"Sulfuric Acid Anodize Tank","bath_type":"ANODIZE_SULFURIC","process_area":"ANODIZE","chemical_product":"H2SO4 (Sulfuric Acid)","spec_ref":"MIL-A-8625 Type II / AMS 2471","concentration_min":165,"concentration_max":210,"temp_min_c":18,"temp_max_c":22,"current_temp_c":20,"last_test_date":"2026-06-13","next_test_due":"2026-06-14","status":"IN_SPEC","active":True},
-        {"bath_id":6,"bath_code":"ANO-DG-001","bath_name":"Alkaline Degreaser Tank","bath_type":"DEGREASE_ALKALINE","process_area":"ANODIZE","chemical_product":"Turco 4215-S","spec_ref":"ATCA-WI-ANO-001","concentration_min":30,"concentration_max":60,"temp_min_c":60,"temp_max_c":75,"current_temp_c":68,"last_test_date":"2026-06-13","next_test_due":"2026-06-14","status":"IN_SPEC","active":True},
-        {"bath_id":7,"bath_code":"ANO-ET-001","bath_name":"Acid Etch / Deox Tank","bath_type":"ACID_ETCH","process_area":"ANODIZE","chemical_product":"Nitric Acid 70% (HNO3)","spec_ref":"MIL-A-8625 §3.3.1","concentration_min":25,"concentration_max":35,"temp_min_c":15,"temp_max_c":30,"current_temp_c":22,"last_test_date":"2026-06-12","next_test_due":"2026-06-15","status":"IN_SPEC","active":True},
-        {"bath_id":8,"bath_code":"ANO-SL-001","bath_name":"Hot Water Seal Tank","bath_type":"ANODIZE_SEAL","process_area":"ANODIZE","chemical_product":"DI Water (Seal)","spec_ref":"MIL-A-8625 §3.4 / AMS 2471","concentration_min":None,"concentration_max":None,"temp_min_c":96,"temp_max_c":100,"current_temp_c":98,"last_test_date":"2026-06-14","next_test_due":"2026-06-14","status":"IN_SPEC","active":True},
-        {"bath_id":9,"bath_code":"ANO-BK-001","bath_name":"Black Anodize Tank","bath_type":"ANODIZE_BLACK","process_area":"ANODIZE","chemical_product":"Sanodal Deep Black MLW","spec_ref":"MIL-A-8625 Type II","concentration_min":5,"concentration_max":15,"temp_min_c":18,"temp_max_c":22,"current_temp_c":21,"last_test_date":"2026-06-11","next_test_due":"2026-06-14","status":"OUT_OF_SPEC","active":True},
-    ], "total": 9},
+        # ── FPI Process Tanks (NDT) ──
+        {"bath_id":1,"bath_code":"FPI-PT-001","bath_name":"Penetrant Tank A — Type I FPI","bath_type":"PENETRANT","process_category":"NDT_FPI","process_area":"FPI Bay 1","bay":None,"spec_ref":"AMS 2644 / ASTM E1417","sample_frequency_days":7,"max_len_cm":None,"max_wid_cm":None,"max_dep_cm":None,"last_sampled_at":"2026-06-14T08:00:00","days_since_sample":3,"last_status":"PASS","last_sampled_by_name":"James Tan Wei Liang","rag_status":"GREEN"},
+        {"bath_id":2,"bath_code":"FPI-EM-001","bath_name":"Hydrophilic Emulsifier — Method D","bath_type":"EMULSIFIER","process_category":"NDT_FPI","process_area":"FPI Bay 1","bay":None,"spec_ref":"AMS 2644 §5.3","sample_frequency_days":7,"max_len_cm":None,"max_wid_cm":None,"max_dep_cm":None,"last_sampled_at":"2026-06-10T08:00:00","days_since_sample":7,"last_status":"FAIL","last_sampled_by_name":"Hendrich Lim Jun Wei","rag_status":"RED"},
+        {"bath_id":3,"bath_code":"FPI-DV-001","bath_name":"Wet Developer Tank","bath_type":"DEVELOPER","process_category":"NDT_FPI","process_area":"FPI Bay 1","bay":None,"spec_ref":"AMS 2644 / ASTM E1417 §6.4","sample_frequency_days":7,"max_len_cm":None,"max_wid_cm":None,"max_dep_cm":None,"last_sampled_at":"2026-06-11T08:00:00","days_since_sample":6,"last_status":"PASS","last_sampled_by_name":"James Tan Wei Liang","rag_status":"AMBER"},
+        {"bath_id":4,"bath_code":"FPI-RN-001","bath_name":"Rinse Water Tank","bath_type":"RINSE","process_category":"NDT_FPI","process_area":"FPI Bay 1","bay":None,"spec_ref":"ASTM E1417 §6.3.4","sample_frequency_days":3,"max_len_cm":None,"max_wid_cm":None,"max_dep_cm":None,"last_sampled_at":"2026-06-16T08:00:00","days_since_sample":1,"last_status":"PASS","last_sampled_by_name":"Cabal Lo Wen Xin","rag_status":"GREEN"},
+        # ── Electroplating / Chemical Processing ──
+        {"bath_id":5,"bath_code":"EP-AN2-001","bath_name":"Type II Sulfuric Acid Anodize (Auto Line)","bath_type":"ANODIZE","process_category":"ELECTROPLATING","process_area":"Anodizing","bay":"Bay 5","spec_ref":"AMS2470 / MIL-PRF-8625F Type II","sample_frequency_days":1,"max_len_cm":160,"max_wid_cm":50,"max_dep_cm":128,"last_sampled_at":"2026-06-16T07:30:00","days_since_sample":1,"last_status":"PASS","last_sampled_by_name":"Ahmad Bin Rashid","rag_status":"GREEN"},
+        {"bath_id":6,"bath_code":"EP-AN3-001","bath_name":"Type III Hard Anodize (Manual)","bath_type":"ANODIZE","process_category":"ELECTROPLATING","process_area":"Anodizing","bay":"Bay 5","spec_ref":"MIL-PRF-8625F Type III","sample_frequency_days":1,"max_len_cm":119,"max_wid_cm":60,"max_dep_cm":100,"last_sampled_at":"2026-06-16T07:30:00","days_since_sample":1,"last_status":"PASS","last_sampled_by_name":"Ahmad Bin Rashid","rag_status":"AMBER"},
+        {"bath_id":7,"bath_code":"EP-EN-001","bath_name":"Electroless Nickel — High Phosphorus (HPEN P&W)","bath_type":"ELECTROLESS_NICKEL","process_category":"ELECTROPLATING","process_area":"Electroless Nickel","bay":"Bay 2","spec_ref":"ASTM B733 / SPOP-311","sample_frequency_days":1,"max_len_cm":95,"max_wid_cm":45,"max_dep_cm":90,"last_sampled_at":"2026-06-13T07:30:00","days_since_sample":4,"last_status":"PASS","last_sampled_by_name":"Ahmad Bin Rashid","rag_status":"RED"},
+        {"bath_id":8,"bath_code":"EP-ZN-001","bath_name":"Zinc Plating — Yellow Chromate","bath_type":"ZINC_PLATE","process_category":"ELECTROPLATING","process_area":"Zinc Plating","bay":"Bay 3","spec_ref":"ASTM B633 Type II / SEP014","sample_frequency_days":1,"max_len_cm":84,"max_wid_cm":84,"max_dep_cm":110,"last_sampled_at":"2026-06-16T07:30:00","days_since_sample":1,"last_status":"PASS","last_sampled_by_name":"Kevin Raj Kumar","rag_status":"GREEN"},
+        {"bath_id":9,"bath_code":"EP-CU-001","bath_name":"Copper Trim (SIA) — Acidic Copper","bath_type":"COPPER_PLATE","process_category":"ELECTROPLATING","process_area":"Copper Plating","bay":"Bay 2","spec_ref":"SIA 12DDR-25-8174","sample_frequency_days":1,"max_len_cm":100,"max_wid_cm":33,"max_dep_cm":45,"last_sampled_at":"2026-06-16T07:30:00","days_since_sample":1,"last_status":"PASS","last_sampled_by_name":"Kevin Raj Kumar","rag_status":"GREEN"},
+        {"bath_id":10,"bath_code":"EP-PH-001","bath_name":"Phosphating — Zinc + Manganese","bath_type":"PHOSPHATING","process_category":"ELECTROPLATING","process_area":"Phosphating","bay":"Bay 2","spec_ref":"DOD-P-16232 / TT-C-490","sample_frequency_days":1,"max_len_cm":60,"max_wid_cm":50,"max_dep_cm":82,"last_sampled_at":"2026-06-16T07:30:00","days_since_sample":1,"last_status":"PASS","last_sampled_by_name":"Ahmad Bin Rashid","rag_status":"AMBER"},
+        {"bath_id":11,"bath_code":"EP-PA-001","bath_name":"Passivation — Citric Acid","bath_type":"PASSIVATION","process_category":"ELECTROPLATING","process_area":"Passivation","bay":"Bay 4","spec_ref":"ASTM A967 / AMS2700","sample_frequency_days":7,"max_len_cm":80,"max_wid_cm":60,"max_dep_cm":82,"last_sampled_at":"2026-06-12T07:30:00","days_since_sample":5,"last_status":"PASS","last_sampled_by_name":"James Tan Wei Liang","rag_status":"GREEN"},
+        {"bath_id":12,"bath_code":"EP-BO-001","bath_name":"Black Oxide — Alkaline","bath_type":"BLACK_OXIDE","process_category":"ELECTROPLATING","process_area":"Black Oxide","bay":"Bay 2","spec_ref":"MIL-DTL-13924 / AMS2485","sample_frequency_days":7,"max_len_cm":55,"max_wid_cm":33,"max_dep_cm":45,"last_sampled_at":"2026-06-10T07:30:00","days_since_sample":7,"last_status":"FAIL","last_sampled_by_name":"Ahmad Bin Rashid","rag_status":"RED"},
+    ], "total": 12},
     "GET /api/v1/mod06/logs": {"items": [
         {"log_id":1,"bath_id":2,"bath_code":"FPI-EM-001","bath_name":"Emulsifier Tank #1","test_date":"2025-05-18","tested_by_name":"James Tan Wei Liang","temp_c":21,"concentration_pct":38,"fluorescent_brightness":None,"contamination_check":"PASS","result":"FAIL","notes":"Concentration 38% exceeds max 35% — bath flagged OUT_OF_SPEC","ncr_raised":True,"ncr_ref":"NCR-2025-001"},
         {"log_id":2,"bath_id":4,"bath_code":"MPT-WF-001","bath_name":"Wet Fluorescent Bath","test_date":"2025-05-19","tested_by_name":"Hendrich Lim Jun Wei","temp_c":19,"concentration_pct":0.22,"fluorescent_brightness":"ACCEPTABLE","contamination_check":"PASS","result":"PASS","notes":"All readings within spec","ncr_raised":False,"ncr_ref":None},
@@ -464,6 +471,18 @@ STUBS = {
     # ── Signature ─────────────────────────────────────────────────
     "GET /api/v1/auth/signature": {"signature_data": None, "signature_updated_at": None},
 }
+
+# ── MOD-28 PCM + MOD-29 Qualification demo data (external JSON, kept in sync
+#    with atca-demo.js). pcm_demo.json is generated by tools/import_pcm.py. ──
+try:
+    import json as _json, os as _os
+    import glob as _glob
+    _tools = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'tools')
+    for _fp in sorted(_glob.glob(_os.path.join(_tools, '*_demo.json'))):
+        for _ep, _val in _json.load(open(_fp, encoding='utf-8')).items():
+            STUBS['GET /api/v1' + _ep] = _val
+except Exception as _e:
+    print('[preview] PCM/qualification demo load skipped:', _e)
 
 
 class ATCAHandler(SimpleHTTPRequestHandler):

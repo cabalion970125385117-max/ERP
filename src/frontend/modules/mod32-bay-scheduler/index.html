@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-32 Bay Load Scheduler + Tank-Fit Check
+  AS9100D §8.1 | ATC Aviation Pte Ltd
+  LAN-Only: All assets local — no CDN
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Bay Scheduler — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    .shift-col { min-width: 140px; }
+    .bay-header { font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+                  letter-spacing: 0.06em; color: var(--atca-muted); margin-bottom: 0.4rem; }
+    .slot-card { border: 1px solid var(--atca-border); border-radius: 5px; padding: 0.5rem 0.6rem;
+                 margin-bottom: 0.4rem; font-size: 0.78rem; cursor: pointer; }
+    .slot-card:hover { border-color: var(--atca-blue); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .slot-PENDING    { border-left: 3px solid #ffc107; }
+    .slot-CONFIRMED  { border-left: 3px solid #198754; }
+    .slot-IN_PROGRESS{ border-left: 3px solid #1F6BAE; }
+    .slot-COMPLETED  { border-left: 3px solid #6c757d; opacity: 0.6; }
+    .slot-OVERSIZE   { border-left: 3px solid #dc3545; background: rgba(220,53,69,0.05); }
+    .fit-badge-PASS  { background: #d1e7dd; color: #0a3622; border-radius: 3px; padding: 1px 5px;
+                       font-size: 0.65rem; font-weight: 700; }
+    .fit-badge-FAIL  { background: #f8d7da; color: #58151c; border-radius: 3px; padding: 1px 5px;
+                       font-size: 0.65rem; font-weight: 700; }
+    .fit-badge-NA    { background: var(--atca-light); color: var(--atca-muted); border-radius: 3px;
+                       padding: 1px 5px; font-size: 0.65rem; }
+    .load-bar { height: 6px; border-radius: 3px; background: var(--atca-light); margin-top: 0.25rem; }
+    .load-bar-fill { height: 100%; border-radius: 3px; }
+    .tank-fit-result { border: 1px solid var(--atca-border); border-radius: 5px; padding: 0.5rem 0.6rem;
+                       margin-bottom: 0.4rem; font-size: 0.78rem; }
+    .tank-fit-ok   { border-left: 3px solid #198754; }
+    .tank-fit-none { color: var(--atca-muted); text-align: center; padding: 1rem; }
+  </style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod10-production-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-gear-wide-connected"></i></span>Production</a>
+  <a href="/modules/mod13-work-order/" class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+  <a href="/modules/mod32-bay-scheduler/" class="nav-link active"><span class="nav-icon"><i class="bi bi-layout-split"></i></span>Bay Scheduler</a>
+  <a href="/modules/mod33-spec-flowdown/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Spec &amp; Flowdown</a>
+  <div class="nav-section-label">Special Process</div>
+  <a href="/modules/mod06-bath-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+  <a href="/modules/mod28-pcm/" class="nav-link"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>PCM</a>
+  <a href="/modules/mod30-pyrometry/" class="nav-link"><span class="nav-icon"><i class="bi bi-thermometer-half"></i></span>Pyrometry</a>
+  <a href="/modules/mod31-operator-competency/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-check"></i></span>Operator Competency</a>
+  <div class="nav-section-label">System</div>
+  <a href="/" class="nav-link"><span class="nav-icon"><i class="bi bi-house"></i></span>Home</a>
+</nav>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-layout-split me-1"></i>MOD-32 — Bay Load Scheduler</p>
+      <p class="topbar-subtitle mb-0">AS9100D §8.1 · Bay / shift capacity · Tank-fit validation · Over-size flagging</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn"><i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- KPI Row -->
+    <div class="kpi-grid mb-4" id="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Scheduled Today</div><div class="kpi-value" id="kpi-today">—</div><div class="kpi-sub">Active slots</div></div>
+      <div class="kpi-card" id="kpi-card-oversize"><div class="kpi-label">Oversize Flagged</div><div class="kpi-value text-danger" id="kpi-oversize">—</div><div class="kpi-sub">Exceeds tank envelope</div></div>
+      <div class="kpi-card"><div class="kpi-label">Pending Confirmation</div><div class="kpi-value text-warning" id="kpi-pending">—</div><div class="kpi-sub">Awaiting supervisor confirm</div></div>
+      <div class="kpi-card"><div class="kpi-label">In Progress</div><div class="kpi-value text-primary" id="kpi-inprogress">—</div><div class="kpi-sub">Currently processing</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="mod32-tabs" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-schedule">
+        <i class="bi bi-calendar3 me-1"></i>Bay Schedule</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-tankfit">
+        <i class="bi bi-rulers me-1"></i>Tank-Fit Check</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-load">
+        <i class="bi bi-bar-chart me-1"></i>Bay Load</button></li>
+    </ul>
+
+    <!-- Tab: Bay Schedule -->
+    <div class="tab-content">
+    <div class="tab-pane fade show active" id="tab-schedule">
+      <div class="atca-card">
+        <div class="atca-card-header">
+          <span class="module-badge">SCH</span>
+          <h5>Bay Schedule</h5>
+          <div class="ms-auto d-flex gap-2 align-items-center">
+            <input type="date" class="form-control form-control-sm" id="sched-date" style="width:160px;">
+            <select class="form-select form-select-sm" id="sched-bay-filter" style="width:140px;">
+              <option value="">All Bays</option>
+              <option>BAY2</option><option>BAY3</option><option>BAY4</option>
+              <option>BAY5</option><option>NDT</option><option>HEAT</option>
+            </select>
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadSchedule()"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="btn btn-sm btn-atca-primary" onclick="openAddSlot()"><i class="bi bi-plus-lg me-1"></i>Add Slot</button>
+          </div>
+        </div>
+        <div class="atca-card-body">
+          <div class="row g-3" id="schedule-grid">
+            <div class="col-12 text-center text-muted py-4">Loading schedule…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Tank-Fit Check -->
+    <div class="tab-pane fade" id="tab-tankfit">
+      <div class="atca-card">
+        <div class="atca-card-header">
+          <span class="module-badge">FIT</span>
+          <h5>Tank-Fit Check</h5>
+        </div>
+        <div class="atca-card-body">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <div class="atca-card mb-0 p-3" style="background:var(--atca-light);">
+                <div class="row g-2 align-items-end">
+                  <div class="col-sm-3">
+                    <label class="form-label form-label-sm">Part Length (cm)</label>
+                    <input type="number" class="form-control form-control-sm" id="fit-len" placeholder="e.g. 80" min="0" step="0.1">
+                  </div>
+                  <div class="col-sm-3">
+                    <label class="form-label form-label-sm">Part Width (cm)</label>
+                    <input type="number" class="form-control form-control-sm" id="fit-wid" placeholder="e.g. 40" min="0" step="0.1">
+                  </div>
+                  <div class="col-sm-3">
+                    <label class="form-label form-label-sm">Part Depth (cm)</label>
+                    <input type="number" class="form-control form-control-sm" id="fit-dep" placeholder="e.g. 20" min="0" step="0.1">
+                  </div>
+                  <div class="col-sm-3">
+                    <label class="form-label form-label-sm">Bay (optional)</label>
+                    <select class="form-select form-select-sm" id="fit-bay">
+                      <option value="">Any Bay</option>
+                      <option>BAY2</option><option>BAY3</option><option>BAY4</option>
+                      <option>BAY5</option><option>NDT</option><option>HEAT</option>
+                    </select>
+                  </div>
+                  <div class="col-12 mt-2">
+                    <button class="btn btn-atca-primary btn-sm" onclick="checkTankFit()">
+                      <i class="bi bi-rulers me-1"></i>Check Fit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div style="font-size:0.72rem;color:var(--atca-muted);">
+                <i class="bi bi-info-circle me-1"></i>
+                Tank envelopes sourced from <strong>ATC-PCM-001</strong> (Chemical Bath Register).
+                A <strong>FAIL</strong> means the part's L×W×D exceeds the tank's maximum dimensions.
+                Over-size parts require alternative routing or customer waiver.
+              </div>
+            </div>
+          </div>
+          <div id="fit-results" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Bay Load -->
+    <div class="tab-pane fade" id="tab-load">
+      <div class="atca-card">
+        <div class="atca-card-header">
+          <span class="module-badge">LOAD</span>
+          <h5>Bay Load View</h5>
+          <div class="ms-auto d-flex gap-2 align-items-center">
+            <input type="date" class="form-control form-control-sm" id="load-date" style="width:160px;">
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadBayLoad()"><i class="bi bi-arrow-clockwise"></i></button>
+          </div>
+        </div>
+        <div class="atca-card-body">
+          <div id="load-table-wrap">
+            <table class="table table-sm table-bordered align-middle" id="load-table" style="display:none;">
+              <thead class="table-light">
+                <tr>
+                  <th>Bay</th>
+                  <th>Shift 1</th>
+                  <th>Shift 2</th>
+                  <th>Shift 3</th>
+                </tr>
+              </thead>
+              <tbody id="load-tbody"></tbody>
+            </table>
+            <div class="text-center text-muted py-4" id="load-empty">Loading bay load…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div><!-- /tab-content -->
+
+  </main>
+</div>
+
+<!-- Add Slot Modal -->
+<div class="modal fade" id="addSlotModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Schedule Processing Slot</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <label class="form-label form-label-sm">Job Description *</label>
+            <input type="text" class="form-control form-control-sm" id="sl-desc" placeholder="e.g. GRN-2026-0123 — Cadmium plating Boeing brackets">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-label-sm">Customer</label>
+            <input type="text" class="form-control form-control-sm" id="sl-cust" placeholder="Boeing">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-label-sm">Process Area *</label>
+            <select class="form-select form-select-sm" id="sl-proc">
+              <option value="">— select —</option>
+              <option>Anodizing</option><option>Chromic Anodize</option>
+              <option>Electroless Nickel</option><option>Cadmium Plating</option>
+              <option>Silver Plating</option><option>Phosphating</option>
+              <option>Passivation</option><option>Black Oxide</option>
+              <option>FPI</option><option>MPT</option><option>Heat Treatment</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Bay *</label>
+            <select class="form-select form-select-sm" id="sl-bay">
+              <option value="">— select —</option>
+              <option>BAY2</option><option>BAY3</option><option>BAY4</option>
+              <option>BAY5</option><option>NDT</option><option>HEAT</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Line</label>
+            <select class="form-select form-select-sm" id="sl-line">
+              <option value="">— auto —</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label form-label-sm">Shift *</label>
+            <select class="form-select form-select-sm" id="sl-shift">
+              <option value="SHIFT_1">Shift 1</option>
+              <option value="SHIFT_2">Shift 2</option>
+              <option value="SHIFT_3">Shift 3</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Scheduled Date</label>
+            <input type="date" class="form-control form-control-sm" id="sl-date">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label form-label-sm">Priority</label>
+            <select class="form-select form-select-sm" id="sl-pri">
+              <option value="1">1 — Urgent</option>
+              <option value="2">2 — High</option>
+              <option value="3" selected>3 — Normal</option>
+              <option value="4">4 — Low</option>
+              <option value="5">5 — Flex</option>
+            </select>
+          </div>
+          <div class="col-md-1">
+            <label class="form-label form-label-sm">Qty</label>
+            <input type="number" class="form-control form-control-sm" id="sl-qty" value="1" min="1">
+          </div>
+          <!-- Part dimensions for tank-fit -->
+          <div class="col-12">
+            <small class="text-muted">Part dimensions (cm) — optional; used for automatic tank-fit check</small>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label form-label-sm">Length (cm)</label>
+            <input type="number" class="form-control form-control-sm" id="sl-len" placeholder="L" step="0.1" min="0">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label form-label-sm">Width (cm)</label>
+            <input type="number" class="form-control form-control-sm" id="sl-wid" placeholder="W" step="0.1" min="0">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label form-label-sm">Depth (cm)</label>
+            <input type="number" class="form-control form-control-sm" id="sl-dep" placeholder="D" step="0.1" min="0">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">Notes</label>
+            <input type="text" class="form-control form-control-sm" id="sl-notes">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-atca-primary btn-sm" onclick="submitSlot()">
+          <i class="bi bi-check-lg me-1"></i>Schedule Slot
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slot Detail Modal -->
+<div class="modal fade" id="slotDetailModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detail-title">Slot Detail</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detail-body"></div>
+      <div class="modal-footer" id="detail-footer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6></div>
+      <div class="modal-body text-center py-3">
+        <p class="mb-1">Your session expires in <strong id="timeout-countdown">5:00</strong></p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=5"></script>
+<script>
+'use strict';
+
+const TODAY = new Date().toISOString().slice(0, 10);
+let scheduleData = [];
+
+/* ── KPI ─────────────────────────────────────────────────────── */
+async function loadKpis() {
+  const d = await ATCA.api.request('GET', '/mod32/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-today').textContent = d.scheduled_today ?? '—';
+  document.getElementById('kpi-oversize').textContent = d.oversize_flagged ?? '—';
+  document.getElementById('kpi-pending').textContent = d.pending_confirmation ?? '—';
+  document.getElementById('kpi-inprogress').textContent = d.in_progress ?? '—';
+}
+
+/* ── Schedule ────────────────────────────────────────────────── */
+async function loadSchedule() {
+  const date = document.getElementById('sched-date').value || TODAY;
+  const bay = document.getElementById('sched-bay-filter').value;
+  let url = `/mod32/schedule?date=${encodeURIComponent(date)}`;
+  if (bay) url += `&bay=${encodeURIComponent(bay)}`;
+  const d = await ATCA.api.request('GET', url);
+  scheduleData = d?.items || [];
+  renderScheduleGrid(scheduleData);
+}
+
+function renderScheduleGrid(items) {
+  const grid = document.getElementById('schedule-grid');
+  const SHIFTS = ['SHIFT_1','SHIFT_2','SHIFT_3'];
+  const SHIFT_LABELS = { SHIFT_1: 'Shift 1', SHIFT_2: 'Shift 2', SHIFT_3: 'Shift 3' };
+  const BAYS = ['BAY2','BAY3','BAY4','BAY5','NDT','HEAT'];
+
+  // Group by bay → shift
+  const byBayShift = {};
+  BAYS.forEach(b => { byBayShift[b] = {}; SHIFTS.forEach(s => byBayShift[b][s] = []); });
+  items.forEach(it => {
+    const b = it.bay, s = it.shift;
+    if (byBayShift[b] && byBayShift[b][s]) byBayShift[b][s].push(it);
+  });
+
+  // Only show bays with data (or all if no filter)
+  const bayFilter = document.getElementById('sched-bay-filter').value;
+  const baysToShow = bayFilter ? [bayFilter] : BAYS.filter(b =>
+    SHIFTS.some(s => byBayShift[b][s].length > 0));
+
+  if (!baysToShow.length) {
+    grid.innerHTML = '<div class="col-12 text-center text-muted py-4">No slots scheduled for this date / bay combination.</div>';
+    return;
+  }
+
+  grid.innerHTML = baysToShow.map(bay => `
+    <div class="col-md-6 col-xl-4">
+      <div class="bay-header"><i class="bi bi-building me-1"></i>${bay}</div>
+      ${SHIFTS.map(shift => {
+        const slots = byBayShift[bay][shift];
+        if (!slots.length && !bayFilter) return '';
+        return `
+          <div class="mb-2">
+            <div style="font-size:0.68rem;color:var(--atca-muted);margin-bottom:0.3rem;">${SHIFT_LABELS[shift]}</div>
+            ${slots.length ? slots.map(s => slotCard(s)).join('') :
+              '<div style="font-size:0.72rem;color:var(--atca-muted);padding:0.3rem 0;">— empty —</div>'}
+          </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+function slotCard(s) {
+  const fitBadge = s.fit_checked
+    ? `<span class="fit-badge-${s.fit_result}">${s.fit_result}</span>`
+    : `<span class="fit-badge-NA">No fit check</span>`;
+  const oversizeBadge = s.oversize_flagged
+    ? '<span class="badge bg-danger ms-1" style="font-size:0.6rem;">OVERSIZE</span>' : '';
+  return `
+    <div class="slot-card slot-${s.status}" onclick="showSlotDetail(${s.schedule_id})">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <strong style="font-size:0.8rem;">${escHtml(s.schedule_ref || '')}</strong>
+          ${oversizeBadge}
+        </div>
+        <span class="badge bg-secondary" style="font-size:0.6rem;">${s.status}</span>
+      </div>
+      <div style="color:var(--atca-navy);margin-top:0.2rem;">${escHtml(s.job_description)}</div>
+      <div class="d-flex gap-2 align-items-center mt-1" style="font-size:0.68rem;color:var(--atca-muted);">
+        <span>${escHtml(s.process_area || '')}</span>
+        ${s.customer_code ? `· <span>${escHtml(s.customer_code)}</span>` : ''}
+        · ${fitBadge}
+      </div>
+    </div>`;
+}
+
+function showSlotDetail(id) {
+  const s = scheduleData.find(x => x.schedule_id === id);
+  if (!s) return;
+  document.getElementById('detail-title').innerHTML = `<i class="bi bi-layout-split me-2"></i>${s.schedule_ref || 'Slot'} — ${s.bay} ${s.shift}`;
+  const fit = s.fit_checked
+    ? `<span class="fit-badge-${s.fit_result}">${s.fit_result}</span>${s.fit_notes ? `<div class="text-muted mt-1" style="font-size:0.72rem;">${escHtml(s.fit_notes)}</div>` : ''}`
+    : `<span class="fit-badge-NA">Not checked</span>`;
+  document.getElementById('detail-body').innerHTML = `
+    <dl class="row mb-0" style="font-size:0.82rem;">
+      <dt class="col-5">Job</dt><dd class="col-7">${escHtml(s.job_description)}</dd>
+      <dt class="col-5">Customer</dt><dd class="col-7">${escHtml(s.customer_code || '—')}</dd>
+      <dt class="col-5">Process</dt><dd class="col-7">${escHtml(s.process_area || '—')}</dd>
+      <dt class="col-5">Bay / Line</dt><dd class="col-7">${escHtml(s.bay)} / ${escHtml(s.line_code || '—')}</dd>
+      <dt class="col-5">Shift</dt><dd class="col-7">${escHtml(s.shift)}</dd>
+      <dt class="col-5">Date</dt><dd class="col-7">${s.scheduled_date}</dd>
+      <dt class="col-5">Status</dt><dd class="col-7"><span class="badge bg-secondary">${s.status}</span></dd>
+      <dt class="col-5">Part Dims (cm)</dt><dd class="col-7">${s.part_len_cm != null ? `${s.part_len_cm} × ${s.part_wid_cm} × ${s.part_dep_cm}` : '—'}</dd>
+      <dt class="col-5">Tank-Fit</dt><dd class="col-7">${fit}</dd>
+      <dt class="col-5">Priority</dt><dd class="col-7">${s.priority}</dd>
+      ${s.notes ? `<dt class="col-5">Notes</dt><dd class="col-7">${escHtml(s.notes)}</dd>` : ''}
+    </dl>`;
+  const allowedNext = {
+    PENDING: ['CONFIRMED','CANCELLED'],
+    CONFIRMED: ['IN_PROGRESS','CANCELLED'],
+    IN_PROGRESS: ['COMPLETED','CANCELLED'],
+    OVERSIZE: ['CANCELLED'],
+  }[s.status] || [];
+  document.getElementById('detail-footer').innerHTML = `
+    ${allowedNext.map(st => `
+      <button class="btn btn-sm ${st==='CANCELLED'?'btn-outline-danger':'btn-atca-primary'}"
+              onclick="updateSlotStatus(${s.schedule_id},'${st}')">
+        → ${st}
+      </button>`).join('')}
+    <button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-dismiss="modal">Close</button>`;
+  new bootstrap.Modal(document.getElementById('slotDetailModal')).show();
+}
+
+async function updateSlotStatus(id, status) {
+  const ok = await ATCA.api.request('PUT', `/mod32/schedule/${id}`, { status });
+  if (ok) {
+    bootstrap.Modal.getInstance(document.getElementById('slotDetailModal')).hide();
+    ATCA.toast('Status updated to ' + status, 'success');
+    loadSchedule();
+    loadKpis();
+  }
+}
+
+/* ── Add Slot ────────────────────────────────────────────────── */
+function openAddSlot() {
+  document.getElementById('sl-date').value = document.getElementById('sched-date').value || TODAY;
+  document.getElementById('sl-desc').value = '';
+  document.getElementById('sl-cust').value = '';
+  new bootstrap.Modal(document.getElementById('addSlotModal')).show();
+}
+
+async function submitSlot() {
+  const desc = document.getElementById('sl-desc').value.trim();
+  const proc = document.getElementById('sl-proc').value;
+  const bay  = document.getElementById('sl-bay').value;
+  const shift = document.getElementById('sl-shift').value;
+  if (!desc || !proc || !bay) { ATCA.toast('Job description, process area and bay are required.', 'danger'); return; }
+  const body = {
+    job_description: desc,
+    customer_code: document.getElementById('sl-cust').value.trim() || null,
+    process_area: proc,
+    bay,
+    line_code: document.getElementById('sl-line').value || null,
+    scheduled_date: document.getElementById('sl-date').value || TODAY,
+    shift,
+    priority: parseInt(document.getElementById('sl-pri').value),
+    part_qty: parseInt(document.getElementById('sl-qty').value) || 1,
+    part_len_cm: parseFloat(document.getElementById('sl-len').value) || null,
+    part_wid_cm: parseFloat(document.getElementById('sl-wid').value) || null,
+    part_dep_cm: parseFloat(document.getElementById('sl-dep').value) || null,
+    is_manual: true,
+    notes: document.getElementById('sl-notes').value.trim() || null,
+  };
+  const res = await ATCA.api.request('POST', '/mod32/schedule', body);
+  if (res) {
+    bootstrap.Modal.getInstance(document.getElementById('addSlotModal')).hide();
+    const msg = res.oversize_flagged
+      ? `Slot created (${res.schedule_ref}) — OVERSIZE: ${res.fit_notes}`
+      : `Slot created: ${res.schedule_ref}`;
+    ATCA.toast(msg, res.oversize_flagged ? 'warning' : 'success');
+    loadSchedule();
+    loadKpis();
+  }
+}
+
+/* ── Tank-Fit Check ──────────────────────────────────────────── */
+async function checkTankFit() {
+  const len = document.getElementById('fit-len').value;
+  const wid = document.getElementById('fit-wid').value;
+  const dep = document.getElementById('fit-dep').value;
+  const bay = document.getElementById('fit-bay').value;
+  if (!len || !wid || !dep) { ATCA.toast('Enter part L × W × D dimensions.', 'warning'); return; }
+  let url = `/mod32/tank-fit?len=${encodeURIComponent(len)}&wid=${encodeURIComponent(wid)}&dep=${encodeURIComponent(dep)}`;
+  if (bay) url += `&bay=${encodeURIComponent(bay)}`;
+  const d = await ATCA.api.request('GET', url);
+  const el = document.getElementById('fit-results');
+  if (!d) { el.innerHTML = '<div class="text-danger">Error checking tank fit.</div>'; return; }
+  if (!d.eligible_tanks?.length) {
+    el.innerHTML = `<div class="tank-fit-none"><i class="bi bi-exclamation-triangle me-1 text-warning"></i>
+      No tanks found that can accommodate ${len} × ${wid} × ${dep} cm.<br>
+      <small class="text-muted">Consider an alternative process route or customer waiver.</small></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="mb-2" style="font-size:0.78rem;"><strong>${d.eligible_tanks.length} eligible tank(s)</strong> for ${len}×${wid}×${dep} cm:</div>` +
+    d.eligible_tanks.map(t => `
+      <div class="tank-fit-result tank-fit-ok">
+        <div class="d-flex justify-content-between">
+          <strong>${escHtml(t.bath_code)}</strong>
+          <span class="badge" style="background:#d1e7dd;color:#0a3622;">FITS</span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--atca-muted);">
+          ${escHtml(t.bath_name || t.bath_type)} · ${escHtml(t.bay)} ·
+          Max: ${t.tank_len||'?'}×${t.tank_wid||'?'}×${t.tank_dep||'?'} cm ·
+          <span class="rag-${(t.rag_status||'GREY').toLowerCase()}">${t.rag_status||'—'}</span>
+        </div>
+      </div>`).join('');
+}
+
+/* ── Bay Load ────────────────────────────────────────────────── */
+async function loadBayLoad() {
+  const date = document.getElementById('load-date').value || TODAY;
+  const d = await ATCA.api.request('GET', `/mod32/bay-load?date=${encodeURIComponent(date)}`);
+  const tbody = document.getElementById('load-tbody');
+  const table = document.getElementById('load-table');
+  const empty = document.getElementById('load-empty');
+  if (!d?.items?.length) {
+    table.style.display = 'none';
+    empty.textContent = 'No scheduling data for this date.';
+    return;
+  }
+  const BAYS = ['BAY2','BAY3','BAY4','BAY5','NDT','HEAT'];
+  const byBay = {};
+  d.items.forEach(r => {
+    if (!byBay[r.bay]) byBay[r.bay] = {};
+    byBay[r.bay][r.shift] = r;
+  });
+  tbody.innerHTML = BAYS.map(bay => {
+    const row = [1,2,3].map(i => {
+      const s = byBay[bay]?.[`SHIFT_${i}`];
+      if (!s) return '<td class="text-muted" style="font-size:0.72rem;">—</td>';
+      const pct = Math.min(100, (s.total_slots / 4) * 100);
+      const color = pct >= 75 ? '#dc3545' : pct >= 50 ? '#ffc107' : '#198754';
+      return `<td>
+        <div style="font-size:0.75rem;">${s.total_slots} slots</div>
+        ${s.oversize_count ? `<span class="badge bg-danger" style="font-size:0.6rem;">${s.oversize_count} oversize</span>` : ''}
+        <div class="load-bar"><div class="load-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+      </td>`;
+    });
+    return `<tr><td><strong style="font-size:0.8rem;">${bay}</strong></td>${row.join('')}</tr>`;
+  }).join('');
+  empty.style.display = 'none';
+  table.style.display = '';
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── Init ────────────────────────────────────────────────────── */
+document.getElementById('sched-date').value = TODAY;
+document.getElementById('load-date').value = TODAY;
+
+document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
+  btn.addEventListener('shown.bs.tab', () => {
+    if (btn.dataset.bsTarget === '#tab-load') loadBayLoad();
+  });
+});
+
+(async () => {
+  await ATCA.initPage();
+  await Promise.all([loadKpis(), loadSchedule()]);
+})();
+</script>
+</body>
+</html>

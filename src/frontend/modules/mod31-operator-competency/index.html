@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-31: Operator Competency & PIN Sign-off
+  NAS410 | AS9100D §7.2 | NADCAP operator approval | ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Operator Competency — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod04-ndt-personnel/"     class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <div class="nav-section-label">NDT &amp; Special Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Electroplating</a>
+  <a href="/modules/mod30-pyrometry/"         class="nav-link"><span class="nav-icon"><i class="bi bi-thermometer-half"></i></span>Pyrometry &amp; Heat-Treat</a>
+  <a href="/modules/mod31-operator-competency/" class="nav-link active"><span class="nav-icon"><i class="bi bi-person-check"></i></span>Operator Competency</a>
+  <div class="nav-section-label">Capability &amp; Qualification</div>
+  <a href="/modules/mod28-pcm/"               class="nav-link"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>Capability Master</a>
+  <a href="/modules/mod29-qualification/"     class="nav-link"><span class="nav-icon"><i class="bi bi-patch-check"></i></span>Customer Qualification</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-person-check me-1"></i>MOD-31 — Operator Competency &amp; PIN Sign-off</p>
+      <p class="topbar-subtitle mb-0">NAS410 · AS9100D §7.2 · operator × process × customer · PIN = electronic signature</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i><span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-31 Operator Competency</span>
+    </div>
+
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-comp"><div class="kpi-label">Active Competencies</div><div class="kpi-value" id="val-comp">—</div><div class="kpi-sub">operator × process × customer</div></div>
+      <div class="kpi-card" id="kpi-ops"><div class="kpi-label">Approved Operators</div><div class="kpi-value" id="val-ops">—</div><div class="kpi-sub">across all processes</div></div>
+      <div class="kpi-card" id="kpi-exp"><div class="kpi-label">Expiring (90d)</div><div class="kpi-value" id="val-exp">—</div><div class="kpi-sub">approval renewal due</div></div>
+      <div class="kpi-card" id="kpi-susp"><div class="kpi-label">Suspended / Expired</div><div class="kpi-value" id="val-susp">—</div><div class="kpi-sub">not cleared to sign</div></div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" id="oc-tabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-matrix">Competency Matrix</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-signoffs">Sign-off Log (e-signature)</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-pin">PIN Sign-off</a></li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="tab-matrix">
+        <div class="d-flex gap-2 mb-3">
+          <select class="form-select form-select-sm" id="f-process" style="width:220px" onchange="loadMatrix()"><option value="">All Processes</option></select>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead><tr><th>Operator</th><th>Process</th><th>Customer</th><th>Bay</th><th>Level</th><th>Approved</th><th>Expiry</th><th>Status</th></tr></thead>
+            <tbody id="tbody-matrix"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="tab-signoffs">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead><tr><th>Signed By</th><th>Action</th><th>Module</th><th>Record</th><th>Process</th><th>Signed At</th><th>LAN IP</th></tr></thead>
+            <tbody id="tbody-signoffs"><tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="tab-pin">
+        <div class="card" style="max-width:560px"><div class="card-body">
+          <h6 class="mb-3"><i class="bi bi-pen me-1"></i>Electronic Sign-off (operator PIN)</h6>
+          <p class="text-muted small">Records a non-repudiable, timestamped signature. The PIN is verified and the operator must be an <strong>approved competency</strong> for that process — otherwise the sign-off is refused.</p>
+          <div class="mb-2"><label class="form-label small">Operator</label>
+            <select class="form-select form-select-sm" id="s-operator"></select></div>
+          <div class="mb-2"><label class="form-label small">Process</label>
+            <select class="form-select form-select-sm" id="s-process"></select></div>
+          <div class="mb-2"><label class="form-label small">Action / record</label>
+            <input class="form-control form-control-sm" id="s-action" placeholder="FPI step 7 sign-off · FPI-2026-0001"></div>
+          <div class="mb-3"><label class="form-label small">PIN</label>
+            <input type="password" class="form-control form-control-sm" id="s-pin" inputmode="numeric" placeholder="4–8 digits" style="width:160px"></div>
+          <button class="btn btn-primary btn-sm" onclick="doSignoff()"><i class="bi bi-check2-circle me-1"></i>Sign</button>
+          <div id="s-result" class="mt-3"></div>
+        </div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast-msg" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="toast-body"></div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=5"></script>
+<script>
+'use strict';
+let toast, matrix = [];
+(async () => {
+  await ATCA.initPage();
+  toast = new bootstrap.Toast(document.getElementById('toast-msg'));
+  await Promise.all([loadKpis(), loadMatrix(), loadSignoffs()]);
+})();
+function showToast(m, ok=true){ const e=document.getElementById('toast-msg'); e.className=`toast align-items-center text-bg-${ok?'success':'danger'} border-0`; document.getElementById('toast-body').textContent=m; toast.show(); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function d(s){ return s ? String(s).slice(0,10) : '—'; }
+function lvlBadge(l){ return l==='SIGNATORY'?'success':l==='TRAINER'?'primary':l==='TRAINEE'?'secondary':'info'; }
+
+async function loadKpis(){
+  const a = await ATCA.api.get('/mod31/alerts/summary'); if(!a) return;
+  document.getElementById('val-comp').textContent = a.total_competencies;
+  document.getElementById('val-ops').textContent = a.approved_operators;
+  document.getElementById('val-exp').textContent = a.expiring_90d;
+  document.getElementById('val-susp').textContent = a.suspended;
+  document.getElementById('kpi-exp').classList.toggle('rag-amber', a.expiring_90d>0);
+  document.getElementById('kpi-susp').classList.toggle('rag-red', a.suspended>0);
+}
+
+async function loadMatrix(){
+  const process = document.getElementById('f-process').value;
+  const d2 = await ATCA.api.get(`/mod31/competencies?process=${encodeURIComponent(process)}`); if(!d2) return;
+  let items = d2.items;
+  if(process) items = items.filter(x=>x.process_area===process);
+  matrix = d2.items;
+  // populate filter + PIN selects once
+  if(document.getElementById('f-process').options.length<=1){
+    const procs=[...new Set(d2.items.map(x=>x.process_area))].sort();
+    document.getElementById('f-process').innerHTML='<option value="">All Processes</option>'+procs.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+    document.getElementById('s-process').innerHTML=procs.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+    const ops=[...new Map(d2.items.map(x=>[x.personnel_id,x.full_name])).entries()];
+    document.getElementById('s-operator').innerHTML=ops.map(([id,n])=>`<option value="${id}">${esc(n)}</option>`).join('');
+  }
+  ATCA.table.render('tbody-matrix', items, c => `
+    <tr><td>${esc(c.full_name)} <small class="text-muted">${esc(c.employee_id||'')}</small></td>
+    <td>${esc(c.process_area)}</td><td>${esc(c.customer_category||'General')}</td><td>${esc(c.bay||'—')}</td>
+    <td><span class="badge bg-${lvlBadge(c.approval_level)}">${esc(c.approval_level)}</span></td>
+    <td>${d(c.approved_date)}</td>
+    <td>${d(c.expiry_date)} ${c.expiry_flag==='EXPIRING'?'<span class="badge bg-warning text-dark">soon</span>':c.expiry_flag==='EXPIRED'?'<span class="badge bg-danger">expired</span>':''}</td>
+    <td><span class="badge bg-${c.status==='ACTIVE'?'success':c.status==='SUSPENDED'?'warning text-dark':'danger'}">${esc(c.status)}</span></td></tr>`);
+}
+
+async function loadSignoffs(){
+  const d2 = await ATCA.api.get('/mod31/signoffs'); if(!d2) return;
+  ATCA.table.render('tbody-signoffs', d2.items, s => `
+    <tr><td><i class="bi bi-pen text-success me-1"></i>${esc(s.full_name)}</td><td>${esc(s.action)}</td>
+    <td>${esc(s.module_id||'—')}</td><td><code>${esc(s.record_ref||'—')}</code></td><td>${esc(s.process_area||'—')}</td>
+    <td>${esc((s.signed_at||'').replace('T',' ').slice(0,16))}</td><td><small>${esc(s.lan_ip||'—')}</small></td></tr>`);
+}
+
+async function doSignoff(){
+  const body = {
+    personnel_id: parseInt(document.getElementById('s-operator').value),
+    process_area: document.getElementById('s-process').value,
+    action: document.getElementById('s-action').value.trim() || 'Process step sign-off',
+    pin: document.getElementById('s-pin').value.trim(),
+    module_id: 'MOD-31',
+  };
+  if(!body.personnel_id||!body.process_area||!body.pin){ return showToast('Operator, process and PIN are required.', false); }
+  const r = await ATCA.api.post('/mod31/signoff', body);
+  const el = document.getElementById('s-result');
+  if(r && (r.signoff_id || r.demo)){
+    el.innerHTML = `<div class="alert alert-success py-2 mb-0"><i class="bi bi-patch-check me-1"></i>Signed by <strong>${esc(r.signed_by||'operator')}</strong> at ${esc((r.signed_at||new Date().toISOString()).replace('T',' ').slice(0,16))} — non-repudiable e-signature recorded.</div>`;
+    document.getElementById('s-pin').value='';
+    showToast('Sign-off recorded.');
+    loadSignoffs(); loadKpis();
+  } else {
+    el.innerHTML = `<div class="alert alert-danger py-2 mb-0"><i class="bi bi-x-octagon me-1"></i>Sign-off refused (invalid PIN or operator not approved for this process).</div>`;
+  }
+}
+</script>
+</body>
+</html>

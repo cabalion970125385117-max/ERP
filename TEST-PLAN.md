@@ -1,9 +1,12 @@
 # ATCA-ERP System Test Plan
-**Version:** 1.4  
-**Date:** 2026-06-17  
+**Version:** 1.7  
+**Date:** 2026-06-20  
 **Prepared by:** QA / Development  
-**Standards:** AS9100D · NADCAP AC7108 · NADCAP AC7110 · NADCAP AC7114 · NAS410  
+**Standards:** AS9100D · NADCAP AC7102 · AC7108 · AC7110 · AC7114 · NAS410 · AMS 2750  
 
+> **v1.7 change (2026-06-20):** **Phase 10 built** — added **MOD-32 Bay Load Scheduler + Tank-Fit** (§3.21, AS9100D §8.1, tank-fit check + oversize flag tests) and **MOD-33 Spec & Flowdown / Frozen Process** (§3.22, NADCAP frozen-process, ECN state-machine + AAM tests); §7 alert contracts for MOD-32/33. Module-page count now **36**. See ROADMAP.md.  
+> **v1.6 change (2026-06-17):** **Phase 9 built** — added **MOD-30 Pyrometry & Heat-Treat** (§3.19, NADCAP AC7102 / AMS 2750H, routing-gate tests) and **MOD-31 Operator Competency & PIN Sign-off** (§3.20, PIN = electronic signature, competency-gate + invalid-PIN tests); §7 alert contracts for MOD-30/31. Module-page count now **34**. See ROADMAP.md.  
+> **v1.5 change (2026-06-17):** Added MOD-06 FPI/Electroplating split (§3.16), **MOD-28 Process Capability Master** (§3.17) and **MOD-29 Customer Qualification** (§3.18, lifecycle state-machine guards); §7 alert contracts extended (MOD-06 split / MOD-28 / MOD-29). Built from customer file `ATC-PCM-001 Rev A`. Module-page count is now **32** (was 30); demo sweep (§15) covers all 32.  
 > **v1.4 change (2026-06-17):** Added **two deployment targets** to the strategy (§1.5): the LAN backend (`192.168.1.10`) and the **static demo host** (`https://atca-erp.vercel.app`, no backend — frontend falls back to bundled demo data). New **§15 — Static Deployment & Demo-Mode Protocol** (executable iframe-sweep of all 30 module pages). §7 alert-contract table extended (MOD-09/10/19/20) + demo field-name parity assertion. §8 regression extended (R-07 pagination, R-08 demo KPI field-name parity, R-09 fallback trigger, R-10 demo writes). §13 scope updated to 30 module pages and `atca-core.js?v=5` + `atca-demo.js`. §14 adds the 2026-06-17 full-site Vercel sweep results.  
 > **v1.3 change (2026-06-16):** MOD-27 Value Flow Tracker built (§3.15 integration + UX tests, §7 alert contract, §12 closed-as-built). Read-only 8-stage traceability diagram (PO→GRN→WO→NDT→CoC→DO) + GRN lookup; migration 028 adds `WorkOrder.grn_id` FK. Preview-verified end-to-end.  
 > **v1.2 change (2026-06-15):** MOD-25 User Management backend complete (§3.14, §5.2 RBAC, §7 alert contract added). MOD-25/26 closed as built in §12 — all 26 SoR modules now complete. §13 UX-NAV criteria updated to 29 pages (28 module pages + home). §14 run footnote added.  
@@ -377,6 +380,115 @@ Read-only module. All endpoints `requireMinRole('NDT_INSPECTOR')`.
 
 ---
 
+### 3.16 MOD-06 FPI / Electroplating split
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-BS-01 | `GET /mod06/alerts/summary` | any auth | 200; nested `fpi{...}` + `plating{...}` + top-level combined totals |
+| I-BS-02 | `GET /mod06/baths?category=NDT_FPI` | any auth | only `process_category='NDT_FPI'` baths |
+| I-BS-03 | `GET /mod06/baths?category=ELECTROPLATING` | any auth | only electroplating baths; include `bay`, `max_len/wid/dep_cm` |
+| I-BS-04 | `POST /mod06/baths` type=`ANODIZE`,bay,dims | ENGINEER+ | 201; `process_category` auto = `ELECTROPLATING` |
+| I-BS-05 | `POST /mod06/baths` type=`PENETRANT` | ENGINEER+ | 201; `process_category` auto = `NDT_FPI` |
+| UX-BS-01 | Page two tabs | load | tabs "FPI Process Tanks" + "Electroplating / Chemical Processing"; KPIs reflect active tab |
+| UX-BS-02 | Switch to Electroplating tab | click | envelope column shown; rows = electroplating baths only |
+
+### 3.17 MOD-28 Process Capability Master
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-PCM-01 | `GET /mod28/alerts/summary` | NDT_INSPECTOR+ | 200, `{total_capabilities, processes, customers, upcoming_services, total}` |
+| I-PCM-02 | `GET /mod28/processes` | NDT_INSPECTOR+ | grouped process list + `capability_count` + envelope |
+| I-PCM-03 | `GET /mod28/capabilities?process=&customer=&q=` | NDT_INSPECTOR+ | filtered `{items,total}` (process × customer × spec) |
+| I-PCM-04 | `GET /mod28/capabilities/:id` | NDT_INSPECTOR+ | full record incl. tier1–4 + dims |
+| I-PCM-05 | `POST /mod28/capabilities` | READONLY/NDT_INSPECTOR | 403 (ENGINEER+ required) |
+| I-PCM-06 | `GET /mod28/revisions` | NDT_INSPECTOR+ | PCM rev history (Rev A) |
+| UX-PCM-01 | Page tabs | load | Capability Matrix (101 rows), Processes (22 cards), Revision History |
+
+### 3.18 MOD-29 Customer Qualification (lifecycle state machine)
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-QL-01 | `GET /mod29/alerts/summary` | NDT_INSPECTOR+ | 200, `{in_gap_analysis, gaps_open, in_qualification, awarded_active, audits_due, expiring_90d, total}` |
+| I-QL-02 | `POST /mod29/qualifications` | ENGINEER+ | 201 `{qual_ref}`; starts at `GAP_ANALYSIS` |
+| I-QL-03 | `POST /:id/advance` with open gaps (from GAP_CLOSURE) | ENGINEER+ | **400** "gap(s) still open" (no-advance guard) |
+| I-QL-04 | `POST /:id/advance` from QUALIFICATION, no PASS activity | ENGINEER+ | **400** "no qualification activity with a PASS result" |
+| I-QL-05 | `POST /:id/award` without cert/validity | QA_MANAGER+ | 400 (required fields) |
+| I-QL-06 | `POST /:id/award` by ENGINEER | ENGINEER | 403 (QA_MANAGER+ only) |
+| I-QL-07 | `POST /:id/award` valid | QA_MANAGER+ | 200; status→`PERIODIC_AUDIT`; `next_audit_due = valid_from + interval` |
+| I-QL-08 | `POST /:id/periodic-audits` with actual_date | SUPERVISOR+ | 201; rolls `next_audit_due` by interval |
+| I-QL-09 | `POST /:id/gaps` then `PUT /gaps/:gid` status=CLOSED | ENGINEER+ | gap closed; `closed_date` set |
+| UX-QL-01 | Detail 5-stage tracker | open awarded qual | 5 steps; completed=green, current highlighted; award banner |
+
+---
+
+### 3.19 MOD-30 Pyrometry & Heat-Treat
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-PYR-01 | `GET /mod30/alerts/summary` | any auth | 200, `{total_ovens, overdue_pyrometry, due_soon, tc_expiring, aerospace_ovens, total}` |
+| I-PYR-02 | `GET /mod30/ovens` | any auth | oven register with `rag_status`, `last_tus`, `last_sat`, `aerospace_only` |
+| I-PYR-03 | `GET /mod30/ovens/:id` | any auth | oven + `tests[]` + `thermocouples[]` |
+| I-PYR-04 | `POST /mod30/pyrometry-tests` TUS | ENGINEER+ | 201; `next_due = test_date + tus_interval_days` |
+| I-PYR-05 | `POST /mod30/pyrometry-tests` | READONLY | 403 |
+| I-PYR-06 | `GET /mod30/routing?temp=200&aerospace=1` | any auth | only ovens whose range covers 200°C **and** `aerospace_only=1` |
+| I-PYR-07 | `GET /mod30/routing?temp=1100&aerospace=1` | any auth | only the muffle furnace (40–1200°C) qualifies |
+| UX-PYR-01 | Page | load | 10 ovens; KPIs; Routing Check returns eligible ovens by temp/aerospace |
+
+### 3.20 MOD-31 Operator Competency & PIN Sign-off
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-OC-01 | `GET /mod31/alerts/summary` | any auth | 200, `{total_competencies, approved_operators, expiring_90d, suspended, signoffs_today, total}` |
+| I-OC-02 | `GET /mod31/competencies?process=` | any auth | matrix rows (operator × process × customer × bay + expiry flag) |
+| I-OC-03 | `POST /mod31/competencies` | NDT_INSPECTOR | 403 (SUPERVISOR+ to approve) |
+| I-OC-04 | `GET /mod31/check?personnel_id=&process_area=&customer=` | any auth | `{competent:bool, approval_level}` |
+| I-OC-05 | `POST /mod31/set-pin` self | any auth | 200 (bcrypt hash stored) |
+| I-OC-06 | `POST /mod31/set-pin` for another op | NDT_INSPECTOR | 403 (SUPERVISOR+) |
+| I-OC-07 | `POST /mod31/signoff` wrong PIN | any auth | **401** "Invalid PIN" |
+| I-OC-08 | `POST /mod31/signoff` valid PIN, **not** competent for process | any auth | **403** "not an approved operator" (competency gate) |
+| I-OC-09 | `POST /mod31/signoff` valid PIN + competent | any auth | 201; e-signature recorded with `signed_at` + `lan_ip` + audit (`action:SIGNOFF`) |
+| UX-OC-01 | PIN Sign-off tab | sign with PIN | non-repudiable e-signature banner; appears in Sign-off Log |
+
+### 3.21 MOD-32 Bay Load Scheduler + Tank-Fit
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-SCH-01 | `GET /mod32/alerts/summary` | any auth | 200, `{scheduled_today, oversize_flagged, pending_confirmation, in_progress, total}` |
+| I-SCH-02 | `GET /mod32/schedule` | any auth | slot cards grouped by bay/shift; `oversize_flagged` slots have `status=OVERSIZE` |
+| I-SCH-03 | `POST /mod32/schedule` NDT_INSPECTOR | — | 403 (SUPERVISOR+ required) |
+| I-SCH-04 | `POST /mod32/schedule` SUPERVISOR, dims fit tank | — | 201; `fit_result=PASS`; `status=PENDING` |
+| I-SCH-05 | `POST /mod32/schedule` SUPERVISOR, dims exceed tank | part L>tank `max_len_cm` | 201; `fit_result=FAIL`; `status=OVERSIZE`; `oversize_flagged=1` |
+| I-SCH-06 | `GET /mod32/tank-fit` with L,W,D params | eligible tanks | returns tanks where all three dims ≤ part dims; FAIL tanks excluded |
+| I-SCH-07 | `PUT /mod32/schedule/:id` SUPERVISOR | status transition PENDING→CONFIRMED | 200; `status=CONFIRMED`; audit logged |
+| I-SCH-08 | `GET /mod32/bay-load` | any auth | daily load per bay/shift; `slot_count`, `confirmed_count`, `in_progress_count` |
+| I-SCH-09 | `GET /mod32/lines` | any auth | 11 bay lines with `max_slots_per_shift`; BAY2-ANOD … HEAT-OVEN present |
+| UX-SCH-01 | Bay Schedule tab | load | slot cards by bay column × shift row; OVERSIZE slot has red background; KPIs populate |
+| UX-SCH-02 | Tank-Fit Check tab | enter L×W×D | eligible tanks listed with FITS badge; ineligible tanks absent |
+
+### 3.22 MOD-33 Spec & Flowdown / Frozen Process
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-SPEC-01 | `GET /mod33/alerts/summary` | any auth | 200, `{active_specs, frozen_specs, ecn_pending, ecn_overdue, aam_entries, frozen_recipes, total}` |
+| I-SPEC-02 | `GET /mod33/specs` | any auth | spec list; `is_frozen=1` rows include `frozen_badge` marker |
+| I-SPEC-03 | `POST /mod33/specs` NDT_INSPECTOR | — | 403 (ENGINEER+ required) |
+| I-SPEC-04 | `PUT /mod33/specs/:id` ENGINEER on frozen spec | `is_frozen=1` row | 403 `{message:'…Raise an ECN…', is_frozen:true}` |
+| I-SPEC-05 | `PUT /mod33/specs/:id` QA_MANAGER on frozen spec | — | 200 (QA_MANAGER+ bypass allowed) |
+| I-SPEC-06 | `POST /mod33/ecn` ENGINEER | valid payload | 201; `status=DRAFT`; `ecn_ref` in `ECN-YYYY-NNNN` format |
+| I-SPEC-07 | `PUT /mod33/ecn/:id` ENGINEER | status transition | 403 (QA_MANAGER+ required for ECN transitions) |
+| I-SPEC-08 | `PUT /mod33/ecn/:id` QA_MANAGER | DRAFT→PENDING_REVIEW | 200; transition logged to Mod33Sequence |
+| I-SPEC-09 | `PUT /mod33/ecn/:id` QA_MANAGER | PENDING_CUSTOMER→CUSTOMER_APPROVED | 200; `customer_approved_at` populated |
+| I-SPEC-10 | `PUT /mod33/ecn/:id` QA_MANAGER | PENDING_REVIEW→REJECTED | 200; `status=REJECTED` |
+| I-SPEC-11 | `GET /mod33/aam` | any auth | 10+ entries; `two_person_required`, `requires_operator_pin`, `requires_qam_approval`, `is_irreversible` booleans present |
+| I-SPEC-12 | `GET /mod33/recipes` | any auth | recipes with `is_frozen` flag; `parameter_snapshot` valid JSON |
+| UX-SPEC-01 | Spec Library tab | load | 10 spec rows; frozen rows show lock-icon badge; KPIs: 10 active/5 frozen |
+| UX-SPEC-02 | Spec row click | showSpecDetail | parameters panel shows; frozen params highlighted; critical params bold |
+| UX-SPEC-03 | Raise ECN modal | open | warning alert about frozen-process customer approval displayed |
+| UX-SPEC-04 | ECN Register tab | load | 3 ECN rows; first = ECN-2026-0001 PENDING_CUSTOMER |
+| UX-SPEC-05 | Authority Matrix tab | load | 10 AAM rows; 2-person/PIN/QAM/irreversible icons rendered |
+
+---
+
 ## 4. Compliance-Critical Test Cases
 
 ### 4.1 AS9100D
@@ -694,6 +806,13 @@ Every module exposes `GET /api/v1/modXX/alerts/summary`. Test that each returns 
 | CHANGELOG | `total_entries`, `entries_this_month`, `feature_count`, `bugfix_count` |
 | MOD-25 | `total_users`, `active_users`, `inactive_users`, `elevated_roles` |
 | MOD-27 | `active_jobs`, `grn_pending`, `coc_pending`, `shipped_today`, `total` |
+| MOD-06 *(split)* | nested `fpi{out_of_spec,overdue_sample,due_soon,total_baths}` + `plating{…}` + top-level `out_of_spec,overdue_sample,due_soon,total_baths,total` |
+| MOD-28 | `total_capabilities`, `processes`, `customers`, `upcoming_services`, `total` |
+| MOD-29 | `in_gap_analysis`, `gaps_open`, `in_qualification`, `awarded_active`, `audits_due`, `expiring_90d`, `total` |
+| MOD-30 | `total_ovens`, `overdue_pyrometry`, `due_soon`, `tc_expiring`, `aerospace_ovens`, `total` |
+| MOD-31 | `total_competencies`, `approved_operators`, `expiring_90d`, `suspended`, `signoffs_today`, `total` |
+| MOD-32 | `scheduled_today`, `oversize_flagged`, `pending_confirmation`, `in_progress`, `total` |
+| MOD-33 | `active_specs`, `frozen_specs`, `ecn_pending`, `ecn_overdue`, `aam_entries`, `frozen_recipes`, `total` |
 | BUGREPORT | `open_bugs`, `critical_bugs`, `resolved_this_month`, `avg_resolution_days` |
 
 **Test pattern (backend):** Call endpoint, assert 200, assert all fields present and numeric (not undefined/null).
@@ -774,7 +893,7 @@ Run after go-live on LAN server (192.168.1.10):
 - Performance smoke tests on LAN server
 - QA sign-off by QA_MANAGER
 
-> **Per-deploy gate:** any change pushed to the static host must pass the §15 DEMO-SWEEP (30/30 modules) before sign-off — this is what caught DEF-DEMO-01/02.
+> **Per-deploy gate:** any change pushed to the static host must pass the §15 DEMO-SWEEP (34/34 modules) before sign-off — this is what caught DEF-DEMO-01/02.
 
 ---
 
@@ -824,7 +943,7 @@ The following are acknowledged gaps for future phases:
 | UX-NAV-01 | Home page links to every built module | Enumerate `a.module-card` + `a.nav-link` hrefs; fetch each | All built-module links return HTTP 200 |
 | UX-NAV-02 | No broken (404) navigation links | Fetch every home href | 0 links return 404 |
 | UX-NAV-03 | No built module is greyed `inactive` | Check `.inactive`/`.disabled` class on each card | 0 inactive cards (all 26 SoR modules + Phase 8 pages built) |
-| UX-NAV-04 | Every module page has a Home button | Load each page; query `.atca-home-btn` | `.atca-home-btn` present on all 30 module pages |
+| UX-NAV-04 | Every module page has a Home button | Load each page; query `.atca-home-btn` | `.atca-home-btn` present on all 34 module pages |
 | UX-NAV-05 | Home button returns to dashboard | Click `.atca-home-btn` on a module | Lands on `/`, title = "Home — ATCA-ERP" |
 | UX-NAV-06 | Home button is unique (not duplicated) | Count `.atca-home-btn` per page | Exactly 1 per page (idempotent injection) |
 | UX-NAV-07 | Home/login pages do NOT show a home button | Load `/` and `/login` | `.atca-home-btn` absent |

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'">
-  <title>Bath &amp; Chemical Control — ATCA-ERP</title>
+  <title>Chemical Processing &amp; FPI Tank Control — ATCA-ERP</title>
   <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
   <link rel="stylesheet" href="/assets/css/atca-erp.css">
@@ -22,8 +22,8 @@
   <div id="atca-topbar" class="atca-topbar d-flex align-items-center justify-content-between px-4 py-2">
     <div>
       <span class="badge bg-secondary me-2">MOD-06</span>
-      <strong>Chemical / Bath Control</strong>
-      <small class="text-muted ms-2">NADCAP AC7108 · AC7110 · AC7114 §6.3</small>
+      <strong>Chemical Processing (Electroplating) &amp; FPI Tank Control</strong>
+      <small class="text-muted ms-2">NADCAP AC7108 / AC7110 (Electroplating) · ASTM E1417 / AMS 2644 (FPI/NDT)</small>
     </div>
     <div class="d-flex align-items-center gap-3">
       <button class="btn btn-sm btn-outline-secondary" onclick="loadBaths()"
@@ -40,6 +40,22 @@
       </button>
       <div id="atca-user-chip"></div>
     </div>
+  </div>
+
+  <!-- Process-category tabs (FPI vs Electroplating) -->
+  <div class="px-4 pt-3">
+    <ul class="nav nav-tabs" id="cat-tabs">
+      <li class="nav-item">
+        <button class="nav-link active" id="tab-fpi" onclick="switchCategory('NDT_FPI')">
+          <i class="bi bi-radioactive me-1"></i>FPI Process Tanks <small class="text-muted">(NDT · ASTM E1417)</small>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" id="tab-ep" onclick="switchCategory('ELECTROPLATING')">
+          <i class="bi bi-droplet-half me-1"></i>Electroplating / Chemical Processing <small class="text-muted">(AC7108 / AC7110)</small>
+        </button>
+      </li>
+    </ul>
   </div>
 
   <!-- Alerts KPI row -->
@@ -80,7 +96,7 @@
   <div class="px-4">
     <div class="card shadow-sm">
       <div class="card-header d-flex align-items-center justify-content-between">
-        <span><i class="bi bi-droplet-half me-2"></i>Bath / Tank Register</span>
+        <span id="register-title"><i class="bi bi-droplet-half me-2"></i>Bath / Tank Register</span>
         <div class="d-flex gap-2">
           <select class="form-select form-select-sm" id="filter-type" onchange="loadBaths()" style="width:180px">
             <option value="">All Types</option>
@@ -104,8 +120,9 @@
                 <th>Bath Code</th>
                 <th>Name</th>
                 <th>Type</th>
-                <th>Area</th>
+                <th>Area / Bay</th>
                 <th>Spec Ref</th>
+                <th class="ep-col">Max Envelope (cm)</th>
                 <th>Freq (days)</th>
                 <th>Last Sampled</th>
                 <th>Days Since</th>
@@ -115,7 +132,7 @@
               </tr>
             </thead>
             <tbody id="tbody-baths">
-              <tr><td colspan="11" class="text-center text-muted py-4">Loading…</td></tr>
+              <tr><td colspan="12" class="text-center text-muted py-4">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -196,18 +213,8 @@
           </div>
           <div class="col-md-4">
             <label class="form-label fw-semibold">Type <span class="text-danger">*</span></label>
-            <select class="form-select" id="f-bath-type">
-              <option value="">— Select —</option>
-              <option value="PENETRANT">Penetrant</option>
-              <option value="EMULSIFIER">Emulsifier</option>
-              <option value="DEVELOPER">Developer</option>
-              <option value="RINSE">Rinse</option>
-              <option value="ANODIZE">Anodize</option>
-              <option value="PLATING">Plating</option>
-              <option value="PASSIVATION">Passivation</option>
-              <option value="CONVERSION">Conversion</option>
-              <option value="COATING">Coating</option>
-            </select>
+            <select class="form-select" id="f-bath-type"><option value="">— Select —</option></select>
+            <small class="text-muted" id="f-cat-hint"></small>
           </div>
           <div class="col-md-4">
             <label class="form-label fw-semibold">Process Area</label>
@@ -216,6 +223,23 @@
           <div class="col-md-4">
             <label class="form-label fw-semibold">Sample Frequency (days)</label>
             <input type="number" class="form-control" id="f-freq" value="7" min="1" max="365">
+          </div>
+          <!-- Electroplating-only: Bay + envelope (from PCM Tank Capacity) -->
+          <div class="col-md-3 ep-field">
+            <label class="form-label fw-semibold">Bay</label>
+            <input type="text" class="form-control" id="f-bay" placeholder="Bay 5" maxlength="20">
+          </div>
+          <div class="col-md-3 ep-field">
+            <label class="form-label fw-semibold">Max Length (cm)</label>
+            <input type="number" step="any" class="form-control" id="f-maxlen">
+          </div>
+          <div class="col-md-3 ep-field">
+            <label class="form-label fw-semibold">Max Width (cm)</label>
+            <input type="number" step="any" class="form-control" id="f-maxwid">
+          </div>
+          <div class="col-md-3 ep-field">
+            <label class="form-label fw-semibold">Max Depth (cm)</label>
+            <input type="number" step="any" class="form-control" id="f-maxdep">
           </div>
           <div class="col-12">
             <label class="form-label fw-semibold">Spec Reference</label>
@@ -298,12 +322,25 @@ const ROLE_LEVELS = { READONLY:0, NDT_INSPECTOR:1, SUPERVISOR:2, ENGINEER:3, QA_
 let currentUser = null;
 let activeBathId = null;
 let activeBathParams = [];
+let currentCategory = 'NDT_FPI';   // active tab — 'NDT_FPI' | 'ELECTROPLATING'
 
 const TYPE_BADGES = {
-  PENETRANT:'primary', EMULSIFIER:'info', DEVELOPER:'secondary',
-  RINSE:'light', ANODIZE:'warning', PLATING:'success',
-  PASSIVATION:'dark', CONVERSION:'danger', COATING:'purple',
+  PENETRANT:'primary', EMULSIFIER:'info', DEVELOPER:'secondary', RINSE:'light',
+  ANODIZE:'warning', BLACK_OXIDE:'dark', CHROMATE:'warning', ZINC_PLATE:'success',
+  COPPER_PLATE:'danger', NICKEL_PLATE:'success', ELECTROLESS_NICKEL:'success',
+  SILVER_PLATE:'secondary', GOLD_PLATE:'warning', PHOSPHATING:'info', PASSIVATION:'dark',
+  HARD_CHROME:'primary', CADMIUM:'danger', ELECTROPOLISH:'info', BLUEING:'dark',
+  CONVERSION:'danger', COATING:'purple', PLATING:'success',
 };
+
+// Type options per category (for the filter + Add Bath modal)
+const FPI_TYPE_OPTS = [['PENETRANT','Penetrant'],['EMULSIFIER','Emulsifier'],['DEVELOPER','Developer'],['RINSE','Rinse']];
+const EP_TYPE_OPTS  = [['ANODIZE','Anodize'],['BLACK_OXIDE','Black Oxide'],['CHROMATE','Chromate (Chem Film)'],
+  ['ZINC_PLATE','Zinc Plating'],['COPPER_PLATE','Copper Plating'],['NICKEL_PLATE','Nickel Plating'],
+  ['ELECTROLESS_NICKEL','Electroless Nickel'],['SILVER_PLATE','Silver Plating'],['GOLD_PLATE','Gold Plating'],
+  ['PHOSPHATING','Phosphating'],['PASSIVATION','Passivation'],['HARD_CHROME','Hard Chrome'],
+  ['CADMIUM','Cadmium'],['ELECTROPOLISH','Electropolish'],['BLUEING','Blueing'],
+  ['CONVERSION','Conversion'],['COATING','Coating']];
 
 (async () => {
   await ATCA.initPage();
@@ -311,17 +348,45 @@ const TYPE_BADGES = {
   if (currentUser && ROLE_LEVELS[currentUser.role] >= ROLE_LEVELS['ENGINEER']) {
     document.getElementById('btn-add-bath').style.display = '';
   }
+  applyCategoryUI();
   await loadAlerts();
   await loadBaths();
 })();
 
+function switchCategory(cat) {
+  if (cat === currentCategory) return;
+  currentCategory = cat;
+  document.getElementById('tab-fpi').classList.toggle('active', cat === 'NDT_FPI');
+  document.getElementById('tab-ep').classList.toggle('active', cat === 'ELECTROPLATING');
+  closeBathDetail();
+  applyCategoryUI();
+  loadAlerts();
+  loadBaths();
+}
+
+function applyCategoryUI() {
+  const isEp = currentCategory === 'ELECTROPLATING';
+  // Register title
+  document.getElementById('register-title').innerHTML = isEp
+    ? '<i class="bi bi-droplet-half me-2"></i>Electroplating / Chemical Processing Baths <small class="text-muted">(NADCAP AC7108 / AC7110)</small>'
+    : '<i class="bi bi-radioactive me-2"></i>FPI Process Tanks <small class="text-muted">(NDT · ASTM E1417 / AMS 2644)</small>';
+  // Show/hide the electroplating-only envelope column
+  document.querySelectorAll('.ep-col').forEach(el => el.style.display = isEp ? '' : 'none');
+  // Rebuild the type filter for the active category
+  const opts = isEp ? EP_TYPE_OPTS : FPI_TYPE_OPTS;
+  document.getElementById('filter-type').innerHTML =
+    '<option value="">All Types</option>' + opts.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+}
+
 async function loadAlerts() {
   const data = await ATCA.api.get('/mod06/alerts/summary');
   if (!data) return;
-  setKpi('kpi-out-of-spec', data.out_of_spec, data.out_of_spec > 0 ? 'rag-red' : 'rag-green');
-  setKpi('kpi-overdue',     data.overdue_sample, data.overdue_sample > 0 ? 'rag-red' : 'rag-green');
-  setKpi('kpi-due-soon',    data.due_soon, data.due_soon > 0 ? 'rag-amber' : 'rag-green');
-  document.querySelector('#kpi-total .kpi-value').textContent = data.total_baths ?? '—';
+  // Use the per-category block when present (split summary), else fall back to top-level
+  const c = currentCategory === 'NDT_FPI' ? (data.fpi || data) : (data.plating || data);
+  setKpi('kpi-out-of-spec', c.out_of_spec, c.out_of_spec > 0 ? 'rag-red' : 'rag-green');
+  setKpi('kpi-overdue',     c.overdue_sample, c.overdue_sample > 0 ? 'rag-red' : 'rag-green');
+  setKpi('kpi-due-soon',    c.due_soon, c.due_soon > 0 ? 'rag-amber' : 'rag-green');
+  document.querySelector('#kpi-total .kpi-value').textContent = c.total_baths ?? '—';
 }
 
 function setKpi(id, value, ragClass) {
@@ -331,15 +396,16 @@ function setKpi(id, value, ragClass) {
 }
 
 async function loadBaths() {
+  const isEp = currentCategory === 'ELECTROPLATING';
   const typeFilter = document.getElementById('filter-type').value;
-  const data = await ATCA.api.get('/mod06/baths');
+  const data = await ATCA.api.get(`/mod06/baths?category=${currentCategory}`);
   if (!data) return;
-  let items = data.items;
+  let items = (data.items || []).filter(b => !b.process_category || b.process_category === currentCategory);
   if (typeFilter) items = items.filter(b => b.bath_type === typeFilter);
 
   const tbody = document.getElementById('tbody-baths');
   if (!items.length) {
-    tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4">No baths registered.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="12" class="text-center text-muted py-4">No ${isEp ? 'electroplating' : 'FPI'} baths registered.</td></tr>`;
     return;
   }
 
@@ -348,12 +414,16 @@ async function loadBaths() {
     const ragText  = b.rag_status === 'RED' ? (b.last_status === 'FAIL' ? 'OUT OF SPEC' : 'OVERDUE') :
                      b.rag_status === 'AMBER' ? 'DUE SOON' : 'OK';
     const typeBadge = TYPE_BADGES[b.bath_type] || 'secondary';
+    const area = [b.process_area, b.bay].filter(Boolean).join(' · ') || '—';
+    const env  = (b.max_len_cm || b.max_wid_cm || b.max_dep_cm)
+      ? `${b.max_len_cm ?? '—'} × ${b.max_wid_cm ?? '—'} × ${b.max_dep_cm ?? '—'}` : '—';
     return `<tr style="cursor:pointer" onclick="selectBath(${b.bath_id})">
       <td><code>${b.bath_code}</code></td>
       <td>${b.bath_name}</td>
       <td><span class="badge bg-${typeBadge}">${b.bath_type}</span></td>
-      <td>${b.process_area || '—'}</td>
+      <td>${area}</td>
       <td><small>${b.spec_ref || '—'}</small></td>
+      <td class="text-center ep-col"${isEp ? '' : ' style="display:none"'}><small>${env}</small></td>
       <td class="text-center">${b.sample_frequency_days}</td>
       <td>${b.last_sampled_at ? new Date(b.last_sampled_at).toLocaleDateString() : '<span class="text-danger">Never</span>'}</td>
       <td class="text-center">${b.days_since_sample ?? '—'}</td>
@@ -423,21 +493,36 @@ function closeBathDetail() {
 
 // ── Add Bath ──────────────────────────────────────────────────
 function openAddBathModal() {
-  ['f-bath-code','f-bath-name','f-process-area','f-spec-ref','f-notes'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('f-bath-type').value = '';
+  ['f-bath-code','f-bath-name','f-process-area','f-spec-ref','f-notes','f-bay','f-maxlen','f-maxwid','f-maxdep'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-freq').value = '7';
+  const isEp = currentCategory === 'ELECTROPLATING';
+  // Type options scoped to the active category
+  const opts = isEp ? EP_TYPE_OPTS : FPI_TYPE_OPTS;
+  document.getElementById('f-bath-type').innerHTML =
+    '<option value="">— Select —</option>' + opts.map(([v,l]) => `<option value="${v}">${l}</option>`).join('');
+  document.getElementById('f-cat-hint').textContent = isEp
+    ? 'Electroplating / Chemical Processing (AC7108 / AC7110)'
+    : 'FPI Process Tank (NDT · ASTM E1417)';
+  // Show Bay/envelope fields only for electroplating
+  document.querySelectorAll('.ep-field').forEach(el => el.style.display = isEp ? '' : 'none');
   new bootstrap.Modal(document.getElementById('modal-add-bath')).show();
 }
 
 async function saveBath() {
+  const val = id => document.getElementById(id).value.trim();
+  const num = id => { const v = document.getElementById(id).value; return v === '' ? null : parseFloat(v); };
   const body = {
-    bath_code:            document.getElementById('f-bath-code').value.trim(),
-    bath_name:            document.getElementById('f-bath-name').value.trim(),
+    bath_code:            val('f-bath-code'),
+    bath_name:            val('f-bath-name'),
     bath_type:            document.getElementById('f-bath-type').value,
-    process_area:         document.getElementById('f-process-area').value.trim(),
-    spec_ref:             document.getElementById('f-spec-ref').value.trim(),
+    process_area:         val('f-process-area'),
+    spec_ref:             val('f-spec-ref'),
     sample_frequency_days: parseInt(document.getElementById('f-freq').value) || 7,
-    notes:                document.getElementById('f-notes').value.trim(),
+    notes:                val('f-notes'),
+    bay:                  val('f-bay') || null,
+    max_len_cm:           num('f-maxlen'),
+    max_wid_cm:           num('f-maxwid'),
+    max_dep_cm:           num('f-maxdep'),
   };
   if (!body.bath_code || !body.bath_name || !body.bath_type) {
     return ATCA.toast('Bath code, name and type are required.', 'danger');

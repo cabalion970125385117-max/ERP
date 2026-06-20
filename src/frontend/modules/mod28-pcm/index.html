@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-28: Process Capability Master (PCM)
+  Mirrors ATC-PCM-001 Rev A | AS9100D §8.5 | NADCAP special-process capability
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Process Capability Master — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    .pcm-group { font-size:.6rem; }
+    .pcm-tier { font-size:.72rem; white-space:pre-wrap; }
+    .proc-card { border:1px solid var(--atca-border); border-radius:8px; padding:.75rem; background:var(--atca-white); height:100%; }
+    .proc-card .pg { font-size:.6rem; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod02-document-control/"  class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+  <a href="/modules/mod07-ncr-capa/"          class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <a href="/modules/mod08-audit-management/"  class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <div class="nav-section-label">NDT &amp; Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod17-mpt-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-magnet"></i></span>MPT Process</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Electroplating</a>
+  <a href="/modules/mod04-ndt-personnel/"     class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <div class="nav-section-label">Capability &amp; Qualification</div>
+  <a href="/modules/mod28-pcm/"               class="nav-link active"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>Capability Master</a>
+  <a href="/modules/mod29-qualification/"     class="nav-link"><span class="nav-icon"><i class="bi bi-patch-check"></i></span>Customer Qualification</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod27-value-flow/"        class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-2"></i></span>Value Flow</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-grid-3x3-gap me-1"></i>MOD-28 — Process Capability Master <span class="badge bg-secondary ms-1">ATC-PCM-001 Rev A</span></p>
+      <p class="topbar-subtitle mb-0">AS9100D §8.5 · Process × Customer × Specification capability register</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i><span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-28 Process Capability Master</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-caps"><div class="kpi-label">Total Capabilities</div><div class="kpi-value" id="val-caps">—</div><div class="kpi-sub">Process × customer × spec</div></div>
+      <div class="kpi-card" id="kpi-procs"><div class="kpi-label">Processes</div><div class="kpi-value" id="val-procs">—</div><div class="kpi-sub">Special-process families</div></div>
+      <div class="kpi-card" id="kpi-custs"><div class="kpi-label">Customers / Categories</div><div class="kpi-value" id="val-custs">—</div><div class="kpi-sub">Approved scopes</div></div>
+      <div class="kpi-card" id="kpi-upcoming"><div class="kpi-label">Upcoming Services</div><div class="kpi-value" id="val-upcoming">—</div><div class="kpi-sub">Planned / in development</div></div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="pcm-tabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-matrix">Capability Matrix</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-processes">Processes</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-revisions">Revision History</a></li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- MATRIX -->
+      <div class="tab-pane fade show active" id="tab-matrix">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+          <select class="form-select form-select-sm" id="f-process" style="width:200px" onchange="loadCaps()"><option value="">All Processes</option></select>
+          <select class="form-select form-select-sm" id="f-customer" style="width:200px" onchange="loadCaps()"><option value="">All Customers</option></select>
+          <input class="form-control form-control-sm" id="f-q" style="width:220px" placeholder="Search spec / process…" oninput="debouncedCaps()">
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead><tr><th>Ref</th><th>Process</th><th>Customer / Category</th><th>Specification</th><th>Classification</th><th>Max L×W×D (cm)</th><th></th></tr></thead>
+            <tbody id="tbody-caps"><tr><td colspan="7" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PROCESSES -->
+      <div class="tab-pane fade" id="tab-processes">
+        <div class="row g-3" id="proc-cards"><div class="col-12 text-muted">Loading…</div></div>
+      </div>
+
+      <!-- REVISIONS -->
+      <div class="tab-pane fade" id="tab-revisions">
+        <div class="table-responsive">
+          <table class="table table-sm atca-table">
+            <thead><tr><th>Document</th><th>Rev</th><th>Date</th><th>Originator</th><th>Change Details</th></tr></thead>
+            <tbody id="tbody-revs"><tr><td colspan="5" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Capability detail modal -->
+<div class="modal fade" id="modal-cap" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="cap-title">Capability</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body" id="cap-body"></div>
+  <div class="modal-footer">
+    <a class="btn btn-primary btn-sm" id="cap-qualify"><i class="bi bi-patch-check me-1"></i>Qualify a customer for this</a>
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+  </div>
+</div></div></div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=5"></script>
+<script>
+'use strict';
+const GROUP_BADGE = { ELECTROPLATING:'primary', NDT:'success', CLEANROOM:'info', COATING:'warning', OTHER:'secondary' };
+let allCaps = [];
+(async () => {
+  await ATCA.initPage();
+  await Promise.all([loadKpis(), loadFilters(), loadCaps(), loadProcesses(), loadRevisions()]);
+})();
+
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function dims(c){ return (c.max_len_cm||c.max_wid_cm||c.max_dep_cm) ? `${c.max_len_cm??'—'} × ${c.max_wid_cm??'—'} × ${c.max_dep_cm??'—'}` : '—'; }
+
+async function loadKpis(){
+  const a = await ATCA.api.get('/mod28/alerts/summary'); if(!a) return;
+  document.getElementById('val-caps').textContent = a.total_capabilities;
+  document.getElementById('val-procs').textContent = a.processes;
+  document.getElementById('val-custs').textContent = a.customers;
+  document.getElementById('val-upcoming').textContent = a.upcoming_services;
+  document.getElementById('kpi-upcoming').classList.toggle('rag-amber', a.upcoming_services>0);
+}
+
+async function loadFilters(){
+  const p = await ATCA.api.get('/mod28/processes');
+  const c = await ATCA.api.get('/mod28/capabilities');
+  if(p) document.getElementById('f-process').innerHTML = '<option value="">All Processes</option>' +
+    p.items.map(x=>`<option value="${esc(x.process_name)}">${esc(x.process_name)}</option>`).join('');
+  if(c){
+    const custs = [...new Set(c.items.map(x=>x.customer_category))].sort();
+    document.getElementById('f-customer').innerHTML = '<option value="">All Customers</option>' +
+      custs.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
+  }
+}
+
+let capTimer=null;
+function debouncedCaps(){ clearTimeout(capTimer); capTimer=setTimeout(loadCaps,250); }
+
+async function loadCaps(){
+  const process = document.getElementById('f-process').value;
+  const customer = document.getElementById('f-customer').value;
+  const q = document.getElementById('f-q').value.trim();
+  const d = await ATCA.api.get(`/mod28/capabilities?process=${encodeURIComponent(process)}&customer=${encodeURIComponent(customer)}&q=${encodeURIComponent(q)}`);
+  if(!d) return;
+  // client-side filter too (demo returns all)
+  let items = d.items;
+  if(process)  items = items.filter(x=>x.process_name===process);
+  if(customer) items = items.filter(x=>x.customer_category===customer);
+  if(q){ const lq=q.toLowerCase(); items = items.filter(x=>(x.specification||'').toLowerCase().includes(lq)||(x.process_name||'').toLowerCase().includes(lq)||(x.customer_category||'').toLowerCase().includes(lq)); }
+  allCaps = items;
+  ATCA.table.render('tbody-caps', items, c => `
+    <tr style="cursor:pointer" onclick="openCap(${c.capability_id})">
+      <td><code>${esc(c.capability_ref)}</code></td>
+      <td>${esc(c.process_name)} <span class="badge bg-${GROUP_BADGE[c.process_group]||'secondary'} pcm-group">${esc(c.process_group)}</span></td>
+      <td>${esc(c.customer_category)}</td>
+      <td><small>${esc(c.specification)}</small></td>
+      <td class="pcm-tier"><small>${esc((c.tier1_class||'').slice(0,60))}${c.tier1_class&&c.tier1_class.length>60?'…':''}</small></td>
+      <td><small>${dims(c)}</small></td>
+      <td><a class="btn btn-xs btn-outline-primary" href="/modules/mod29-qualification/?capability_id=${c.capability_id}" onclick="event.stopPropagation()"><i class="bi bi-patch-check"></i></a></td>
+    </tr>`);
+}
+
+function openCap(id){
+  const c = allCaps.find(x=>x.capability_id===id); if(!c) return;
+  document.getElementById('cap-title').textContent = `${c.capability_ref} — ${c.process_name}`;
+  const tier = (label,v)=> v ? `<div class="mb-2"><strong>${label}:</strong><div class="pcm-tier">${esc(v)}</div></div>` : '';
+  document.getElementById('cap-body').innerHTML = `
+    <div class="row mb-2">
+      <div class="col-md-6"><strong>Process:</strong> ${esc(c.process_name)} <span class="badge bg-${GROUP_BADGE[c.process_group]||'secondary'}">${esc(c.process_group)}</span></div>
+      <div class="col-md-6"><strong>Customer / Category:</strong> ${esc(c.customer_category)}</div>
+    </div>
+    <div class="mb-2"><strong>Specification:</strong> ${esc(c.specification)}</div>
+    <div class="mb-2"><strong>Max envelope:</strong> ${dims(c)} cm</div>
+    <hr>${tier('Tier 1',c.tier1_class)}${tier('Tier 2',c.tier2_class)}${tier('Tier 3',c.tier3_class)}${tier('Tier 4',c.tier4_class)}`;
+  document.getElementById('cap-qualify').href = `/modules/mod29-qualification/?capability_id=${c.capability_id}`;
+  new bootstrap.Modal(document.getElementById('modal-cap')).show();
+}
+
+async function loadProcesses(){
+  const d = await ATCA.api.get('/mod28/processes'); if(!d) return;
+  const groups = {};
+  d.items.forEach(p => { (groups[p.process_group] = groups[p.process_group] || []).push(p); });
+  const order = ['ELECTROPLATING','NDT','COATING','CLEANROOM','OTHER'];
+  document.getElementById('proc-cards').innerHTML = order.filter(g=>groups[g]).map(g => `
+    <div class="col-12"><h6 class="text-uppercase text-muted mt-2" style="font-size:.72rem;letter-spacing:.05em">
+      <span class="badge bg-${GROUP_BADGE[g]}">${g}</span></h6></div>` +
+    groups[g].map(p => `
+      <div class="col-md-4 col-lg-3">
+        <div class="proc-card">
+          <div class="fw-semibold">${esc(p.process_name)}</div>
+          <div class="text-muted small">${p.capability_count} capabilities${p.bay?` · ${esc(p.bay)}`:''}</div>
+          <div class="small mt-1">${(p.max_len_cm||p.max_wid_cm||p.max_dep_cm)?`Envelope: ${p.max_len_cm??'—'}×${p.max_wid_cm??'—'}×${p.max_dep_cm??'—'} cm`:''}</div>
+          ${p.is_upcoming?'<span class="badge bg-warning text-dark mt-1">Upcoming</span>':''}
+        </div>
+      </div>`).join('')
+  ).join('');
+}
+
+async function loadRevisions(){
+  const d = await ATCA.api.get('/mod28/revisions'); if(!d) return;
+  ATCA.table.render('tbody-revs', d.items, r => `
+    <tr><td><code>${esc(r.document_no)}</code></td><td><span class="badge bg-primary">${esc(r.revision)}</span></td>
+    <td>${esc((r.rev_date||'').slice(0,10))}</td><td>${esc(r.originator)}</td><td><small>${esc(r.change_details)}</small></td></tr>`);
+}
+</script>
+</body>
+</html>

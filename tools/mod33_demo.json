@@ -1,0 +1,79 @@
+{
+  "/mod33/alerts/summary": {
+    "active_specs": 10,
+    "frozen_specs": 5,
+    "ecn_pending": 2,
+    "ecn_overdue": 1,
+    "aam_entries": 10,
+    "frozen_recipes": 3,
+    "total": 3
+  },
+  "/mod33/specs": {
+    "items": [
+      { "spec_id": 1, "spec_code": "BAC5019", "spec_title": "Boeing Anodize Coating (Chromic/Sulfuric)", "revision": "Rev T", "customer_code": "Boeing", "spec_type": "CUSTOMER", "process_area": "Anodizing", "is_frozen": true, "frozen_since": "2024-01-01", "status": "ACTIVE", "approved_date": "2024-01-01", "param_count": 6, "recipe_count": 2, "open_ecn_count": 1 },
+      { "spec_id": 2, "spec_code": "BAC5719", "spec_title": "Boeing Chemical Film Coating (Alodine)", "revision": "Rev F", "customer_code": "Boeing", "spec_type": "CUSTOMER", "process_area": "Chemical Film", "is_frozen": true, "frozen_since": "2023-06-01", "status": "ACTIVE", "approved_date": "2023-06-01", "param_count": 4, "recipe_count": 1, "open_ecn_count": 0 },
+      { "spec_id": 3, "spec_code": "SEP014",  "spec_title": "Safran Special Electroless Nickel Process", "revision": "Rev 5", "customer_code": "Safran", "spec_type": "CUSTOMER", "process_area": "Electroless Nickel", "is_frozen": true, "frozen_since": "2024-03-01", "status": "ACTIVE", "approved_date": "2024-03-01", "param_count": 8, "recipe_count": 1, "open_ecn_count": 1 },
+      { "spec_id": 4, "spec_code": "SPOP-311","spec_title": "Spirit AeroSystems Passivation Process", "revision": "Rev B", "customer_code": "Spirit", "spec_type": "CUSTOMER", "process_area": "Passivation", "is_frozen": false, "frozen_since": null, "status": "ACTIVE", "approved_date": "2024-05-01", "param_count": 3, "recipe_count": 1, "open_ecn_count": 0 },
+      { "spec_id": 5, "spec_code": "EPRO-7",  "spec_title": "Airbus Electroplating Process Order 7", "revision": "Rev 3", "customer_code": "Airbus", "spec_type": "CUSTOMER", "process_area": "Cadmium Plating", "is_frozen": true, "frozen_since": "2023-09-01", "status": "ACTIVE", "approved_date": "2023-09-01", "param_count": 7, "recipe_count": 2, "open_ecn_count": 0 },
+      { "spec_id": 6, "spec_code": "AMS2470", "spec_title": "Hard Anodizing of Aluminum Alloys (AMS)", "revision": "Rev H", "customer_code": null, "spec_type": "INDUSTRY", "process_area": "Anodizing", "is_frozen": false, "frozen_since": null, "status": "ACTIVE", "approved_date": "2023-01-01", "param_count": 5, "recipe_count": 0, "open_ecn_count": 0 },
+      { "spec_id": 7, "spec_code": "AMS2750", "spec_title": "Pyrometry Requirements for Thermal Processing Equip", "revision": "Rev H", "customer_code": null, "spec_type": "INDUSTRY", "process_area": "Heat Treatment", "is_frozen": true, "frozen_since": "2022-06-01", "status": "ACTIVE", "approved_date": "2022-06-01", "param_count": 12, "recipe_count": 1, "open_ecn_count": 0 },
+      { "spec_id": 8, "spec_code": "MIL-A-8625","spec_title": "Anodic Coatings for Aluminum (MIL-SPEC)", "revision": "Rev F", "customer_code": null, "spec_type": "INDUSTRY", "process_area": "Anodizing", "is_frozen": false, "frozen_since": null, "status": "ACTIVE", "approved_date": "2021-01-01", "param_count": 4, "recipe_count": 0, "open_ecn_count": 0 },
+      { "spec_id": 9, "spec_code": "AMS2480", "spec_title": "Hard Chrome Plating of Steel Parts", "revision": "Rev C", "customer_code": null, "spec_type": "INDUSTRY", "process_area": "Chrome Plating", "is_frozen": false, "frozen_since": null, "status": "ACTIVE", "approved_date": "2023-01-01", "param_count": 6, "recipe_count": 0, "open_ecn_count": 0 },
+      { "spec_id": 10, "spec_code": "ATCA-WI-001","spec_title": "ATCA Internal Work Instruction — FPI Setup", "revision": "Rev 2", "customer_code": null, "spec_type": "INTERNAL", "process_area": "FPI", "is_frozen": false, "frozen_since": null, "status": "ACTIVE", "approved_date": "2025-01-01", "param_count": 3, "recipe_count": 0, "open_ecn_count": 0 }
+    ],
+    "total": 10
+  },
+  "/mod33/specs/1": {
+    "spec_id": 1, "spec_code": "BAC5019", "spec_title": "Boeing Anodize Coating (Chromic/Sulfuric)",
+    "revision": "Rev T", "customer_code": "Boeing", "spec_type": "CUSTOMER", "process_area": "Anodizing",
+    "is_frozen": true, "frozen_since": "2024-01-01", "status": "ACTIVE", "notes": "Boeing-controlled frozen process. Any change requires Boeing Quality Engineering approval via ECN before implementation.",
+    "parameters": [
+      { "param_id": 1, "spec_id": 1, "param_name": "H2SO4 Concentration", "param_category": "Bath Chemistry", "value_nominal": "165", "value_min": "155", "value_max": "175", "unit": "g/L", "tolerance": "±10", "is_frozen": true, "is_critical": true, "test_method": "Titration", "frequency": "Daily" },
+      { "param_id": 2, "spec_id": 1, "param_name": "Bath Temperature", "param_category": "Temperature", "value_nominal": "18", "value_min": "16", "value_max": "21", "unit": "°C", "tolerance": "±2", "is_frozen": true, "is_critical": true, "test_method": "Calibrated thermometer", "frequency": "Every batch" },
+      { "param_id": 3, "spec_id": 1, "param_name": "Current Density", "param_category": "Electrical", "value_nominal": "1.3", "value_min": "1.0", "value_max": "1.6", "unit": "A/dm²", "tolerance": "±0.15", "is_frozen": true, "is_critical": true, "test_method": "Ammeter", "frequency": "Every batch" },
+      { "param_id": 4, "spec_id": 1, "param_name": "Anodize Time", "param_category": "Time", "value_nominal": "30", "value_min": "25", "value_max": "35", "unit": "min", "tolerance": "±5", "is_frozen": false, "is_critical": false, "test_method": "Timer", "frequency": "Every batch" },
+      { "param_id": 5, "spec_id": 1, "param_name": "Aluminium Content (max)", "param_category": "Bath Chemistry", "value_nominal": null, "value_min": null, "value_max": "15", "unit": "g/L", "tolerance": null, "is_frozen": true, "is_critical": true, "test_method": "ICP analysis", "frequency": "Weekly" },
+      { "param_id": 6, "spec_id": 1, "param_name": "Coating Thickness", "param_category": "Output", "value_nominal": "12", "value_min": "8", "value_max": "15", "unit": "µm", "tolerance": null, "is_frozen": false, "is_critical": true, "test_method": "Eddy current gauge", "frequency": "Each lot" }
+    ],
+    "recipes": [
+      { "recipe_id": 1, "recipe_ref": "RCP-0001", "recipe_name": "BAC5019 Standard Sulfuric Anodize", "version": "2.1", "process_area": "Anodizing", "bay": "BAY2", "is_frozen": true, "frozen_at": "2024-01-15T00:00:00Z", "status": "FROZEN", "spec_code": "BAC5019", "spec_title": "Boeing Anodize Coating" },
+      { "recipe_id": 2, "recipe_ref": "RCP-0002", "recipe_name": "BAC5019 Hard Coat Variant", "version": "1.0", "process_area": "Anodizing", "bay": "BAY3", "is_frozen": false, "frozen_at": null, "status": "APPROVED", "spec_code": "BAC5019", "spec_title": "Boeing Anodize Coating" }
+    ],
+    "ecns": [
+      { "ecn_id": 1, "ecn_ref": "ECN-2026-0001", "title": "BAC5019 H2SO4 concentration lower limit adjustment", "change_type": "PARAMETER_CHANGE", "status": "PENDING_CUSTOMER", "risk_level": "HIGH", "submitted_at": "2026-05-01T00:00:00Z", "target_date": "2026-07-01" }
+    ]
+  },
+  "/mod33/ecn": {
+    "items": [
+      { "ecn_id": 1, "ecn_ref": "ECN-2026-0001", "title": "BAC5019 H2SO4 concentration lower limit adjustment", "change_type": "PARAMETER_CHANGE", "risk_level": "HIGH", "status": "PENDING_CUSTOMER", "customer_approval_required": true, "submitted_at": "2026-05-01T00:00:00Z", "target_date": "2026-07-01", "customer_approval_date": null, "implemented_at": null, "days_open": 50, "spec_code": "BAC5019", "spec_title": "Boeing Anodize Coating (Chromic/Sulfuric)", "customer_code": "Boeing" },
+      { "ecn_id": 2, "ecn_ref": "ECN-2026-0002", "title": "SEP014 bath temperature range tightening (±1.5°C)", "change_type": "PARAMETER_CHANGE", "risk_level": "MEDIUM", "status": "PENDING_REVIEW", "customer_approval_required": true, "submitted_at": "2026-06-01T00:00:00Z", "target_date": "2026-08-15", "customer_approval_date": null, "implemented_at": null, "days_open": 19, "spec_code": "SEP014", "spec_title": "Safran Special Electroless Nickel Process", "customer_code": "Safran" },
+      { "ecn_id": 3, "ecn_ref": "ECN-2025-0009", "title": "EPRO-7 cadmium bath current density update", "change_type": "PARAMETER_CHANGE", "risk_level": "HIGH", "status": "IMPLEMENTED", "customer_approval_required": true, "submitted_at": "2025-09-01T00:00:00Z", "target_date": "2025-11-30", "customer_approval_date": "2025-11-01", "implemented_at": "2025-11-15T00:00:00Z", "days_open": null, "spec_code": "EPRO-7", "spec_title": "Airbus Electroplating Process Order 7", "customer_code": "Airbus" }
+    ],
+    "total": 3
+  },
+  "/mod33/aam": {
+    "items": [
+      { "aam_id": 1, "process_area": "All", "action_type": "Approve Certificate of Conformance", "min_role": "QA_MANAGER", "two_person_required": true, "second_role": "ENGINEER", "requires_operator_pin": false, "requires_qam_approval": true, "is_irreversible": false, "effective_date": "2024-01-01", "is_active": true, "notes": "AS9100D §8.6 — QA_MANAGER must sign; ENGINEER counter-signs." },
+      { "aam_id": 2, "process_area": "FPI", "action_type": "Release FPI Lot to Next Operation", "min_role": "SUPERVISOR", "two_person_required": false, "second_role": null, "requires_operator_pin": true, "requires_qam_approval": false, "is_irreversible": false, "effective_date": "2024-01-01", "is_active": true, "notes": "Operator PIN sign-off required on traveler step." },
+      { "aam_id": 3, "process_area": "MPT", "action_type": "Release MPT Lot to Next Operation", "min_role": "SUPERVISOR", "two_person_required": false, "second_role": null, "requires_operator_pin": true, "requires_qam_approval": false, "is_irreversible": false, "effective_date": "2024-01-01", "is_active": true, "notes": "Operator PIN sign-off required." },
+      { "aam_id": 4, "process_area": "Cadmium Plating", "action_type": "Approve Cadmium Bath Make-Up", "min_role": "ENGINEER", "two_person_required": true, "second_role": "QA_MANAGER", "requires_operator_pin": false, "requires_qam_approval": true, "is_irreversible": false, "effective_date": "2024-01-01", "is_active": true, "notes": "2-person required — controlled substance (cyanide cadmium)." },
+      { "aam_id": 5, "process_area": "Heat Treatment", "action_type": "Sign Off TUS/SAT Test Result", "min_role": "ENGINEER", "two_person_required": false, "second_role": null, "requires_operator_pin": false, "requires_qam_approval": false, "is_irreversible": false, "effective_date": "2024-01-01", "is_active": true, "notes": "Engineer records TUS/SAT; QA reviews overdue." },
+      { "aam_id": 6, "process_area": "All", "action_type": "Raise Engineering Change Notice (ECN)", "min_role": "ENGINEER", "two_person_required": false, "second_role": null, "requires_operator_pin": false, "requires_qam_approval": true, "is_irreversible": true, "effective_date": "2024-01-01", "is_active": true, "notes": "Frozen-process change — irreversible until customer approves." },
+      { "aam_id": 7, "process_area": "All", "action_type": "Approve ECN (Internal Release)", "min_role": "QA_MANAGER", "two_person_required": true, "second_role": "ENGINEER", "requires_operator_pin": false, "requires_qam_approval": true, "is_irreversible": true, "effective_date": "2024-01-01", "is_active": true, "notes": "QA_MANAGER + ENGINEER dual approval for frozen-process ECNs." },
+      { "aam_id": 8, "process_area": "NDT", "action_type": "Sign Level III Interpretation Report", "min_role": "ENGINEER", "two_person_required": false, "second_role": null, "requires_operator_pin": true, "requires_qam_approval": false, "is_irreversible": false, "effective_date": "2024-01-01", "is_active": true, "notes": "NAS410 Level III PIN sign-off." },
+      { "aam_id": 9, "process_area": "All", "action_type": "Archive/Withdraw Active Spec", "min_role": "ADMIN", "two_person_required": true, "second_role": "QA_MANAGER", "requires_operator_pin": false, "requires_qam_approval": true, "is_irreversible": true, "effective_date": "2024-01-01", "is_active": true, "notes": "Withdrawal of active spec is irreversible without ECN." },
+      { "aam_id": 10, "process_area": "All", "action_type": "Unlock Frozen Process Recipe", "min_role": "QA_MANAGER", "two_person_required": true, "second_role": "ADMIN", "requires_operator_pin": false, "requires_qam_approval": true, "is_irreversible": true, "effective_date": "2024-01-01", "is_active": true, "notes": "Must have approved ECN. QA_MANAGER + ADMIN dual unlock." }
+    ],
+    "total": 10
+  },
+  "/mod33/recipes": {
+    "items": [
+      { "recipe_id": 1, "recipe_ref": "RCP-0001", "recipe_name": "BAC5019 Standard Sulfuric Anodize", "spec_code": "BAC5019", "spec_title": "Boeing Anodize Coating", "customer_code": "Boeing", "process_area": "Anodizing", "bay": "BAY2", "version": "2.1", "status": "FROZEN", "is_frozen": true, "frozen_at": "2024-01-15T00:00:00Z", "approved_at": "2024-01-10T00:00:00Z" },
+      { "recipe_id": 2, "recipe_ref": "RCP-0002", "recipe_name": "BAC5019 Hard Coat Variant", "spec_code": "BAC5019", "spec_title": "Boeing Anodize Coating", "customer_code": "Boeing", "process_area": "Anodizing", "bay": "BAY3", "version": "1.0", "status": "APPROVED", "is_frozen": false, "frozen_at": null, "approved_at": "2024-02-01T00:00:00Z" },
+      { "recipe_id": 3, "recipe_ref": "RCP-0003", "recipe_name": "SEP014 EN Standard Recipe", "spec_code": "SEP014", "spec_title": "Safran Electroless Nickel", "customer_code": "Safran", "process_area": "Electroless Nickel", "bay": "BAY2", "version": "1.2", "status": "FROZEN", "is_frozen": true, "frozen_at": "2024-03-10T00:00:00Z", "approved_at": "2024-03-05T00:00:00Z" },
+      { "recipe_id": 4, "recipe_ref": "RCP-0004", "recipe_name": "EPRO-7 Cadmium Plating Recipe", "spec_code": "EPRO-7", "spec_title": "Airbus Electroplating Process Order 7", "customer_code": "Airbus", "process_area": "Cadmium Plating", "bay": "BAY4", "version": "2.0", "status": "FROZEN", "is_frozen": true, "frozen_at": "2023-09-15T00:00:00Z", "approved_at": "2023-09-10T00:00:00Z" },
+      { "recipe_id": 5, "recipe_ref": "RCP-0005", "recipe_name": "AMS2750 Oven Process Recipe", "spec_code": "AMS2750", "spec_title": "Pyrometry Thermal Processing", "customer_code": null, "process_area": "Heat Treatment", "bay": "HEAT", "version": "1.0", "status": "DRAFT", "is_frozen": false, "frozen_at": null, "approved_at": null }
+    ],
+    "total": 5
+  }
+}

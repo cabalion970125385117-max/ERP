@@ -33,22 +33,35 @@ async function nextSampleRef() {
 }
 
 /* ── GET /alerts/summary ─────────────────────────────────────── */
+/* Split FPI (NDT) vs Electroplating per the PCM, with backward-compatible
+   top-level totals for MOD-15 dashboard aggregation. */
 router.get('/alerts/summary', async (req, res) => {
   try {
     const rows = await query(`
       SELECT
+        process_category,
         SUM(CASE WHEN rag_status = 'RED'   AND last_status = 'FAIL'  THEN 1 ELSE 0 END) AS out_of_spec,
         SUM(CASE WHEN rag_status = 'RED'   AND (last_status <> 'FAIL' OR last_sample_id IS NULL) THEN 1 ELSE 0 END) AS overdue_sample,
         SUM(CASE WHEN rag_status = 'AMBER' THEN 1 ELSE 0 END) AS due_soon,
         COUNT(*) AS total_baths
       FROM dbo.vw_BathStatus
+      GROUP BY process_category
     `);
-    const r = rows[0];
+    const blank = () => ({ out_of_spec: 0, overdue_sample: 0, due_soon: 0, total_baths: 0 });
+    const fpi = blank(), plating = blank();
+    for (const r of rows) {
+      const t = r.process_category === 'NDT_FPI' ? fpi : plating;
+      t.out_of_spec = r.out_of_spec; t.overdue_sample = r.overdue_sample;
+      t.due_soon = r.due_soon; t.total_baths = r.total_baths;
+    }
     res.json({
-      out_of_spec:    r.out_of_spec,
-      overdue_sample: r.overdue_sample,
-      due_soon:       r.due_soon,
-      total:          r.out_of_spec + r.overdue_sample,
+      fpi, plating,
+      // top-level = combined (kept for §7 contract / dashboard back-compat)
+      out_of_spec:    fpi.out_of_spec    + plating.out_of_spec,
+      overdue_sample: fpi.overdue_sample + plating.overdue_sample,
+      due_soon:       fpi.due_soon       + plating.due_soon,
+      total_baths:    fpi.total_baths    + plating.total_baths,
+      total:          fpi.out_of_spec + plating.out_of_spec + fpi.overdue_sample + plating.overdue_sample,
     });
   } catch (err) {
     console.error('[mod06/alerts/summary]', err.message);
@@ -56,17 +69,20 @@ router.get('/alerts/summary', async (req, res) => {
   }
 });
 
-/* ── GET /baths ───────────────────────────────────────────────── */
+/* ── GET /baths?category=NDT_FPI|ELECTROPLATING ───────────────── */
 router.get('/baths', async (req, res) => {
   try {
+    const category = req.query.category || null;   // null = all
     const rows = await query(`
       SELECT
-        bath_id, bath_code, bath_name, bath_type, process_area, spec_ref,
-        sample_frequency_days, last_sample_ref, last_sampled_at,
+        bath_id, bath_code, bath_name, bath_type, process_category, process_area, spec_ref,
+        sample_frequency_days, bay, max_len_cm, max_wid_cm, max_dep_cm,
+        last_sample_ref, last_sampled_at,
         days_since_sample, last_status, last_sampled_by_name, rag_status
       FROM dbo.vw_BathStatus
-      ORDER BY bath_code
-    `);
+      WHERE (@category IS NULL OR process_category = @category)
+      ORDER BY process_category, bath_code
+    `, [{ name: 'category', type: sql.NVarChar(20), value: category }]);
     res.json({ items: rows, total: rows.length });
   } catch (err) {
     console.error('[mod06/baths]', err.message);
@@ -76,29 +92,42 @@ router.get('/baths', async (req, res) => {
 
 /* ── POST /baths ─────────────────────────────────────────────── */
 router.post('/baths', requireMinRole('ENGINEER'), async (req, res) => {
-  const { bath_code, bath_name, bath_type, process_area, spec_ref, sample_frequency_days, notes } = req.body;
+  const { bath_code, bath_name, bath_type, process_area, spec_ref, sample_frequency_days, notes,
+          bay, max_len_cm, max_wid_cm, max_dep_cm } = req.body;
   if (!bath_code || !bath_name || !bath_type) {
     return res.status(400).json({ message: 'bath_code, bath_name and bath_type are required.' });
   }
-  const validTypes = ['PENETRANT','EMULSIFIER','DEVELOPER','RINSE','ANODIZE','PLATING','PASSIVATION','CONVERSION','COATING'];
+  const FPI_TYPES = ['PENETRANT','EMULSIFIER','DEVELOPER','RINSE'];
+  const EP_TYPES  = ['ANODIZE','BLACK_OXIDE','CHROMATE','ZINC_PLATE','COPPER_PLATE','NICKEL_PLATE',
+                     'ELECTROLESS_NICKEL','SILVER_PLATE','GOLD_PLATE','PHOSPHATING','PASSIVATION',
+                     'HARD_CHROME','CADMIUM','ELECTROPOLISH','BLUEING','CONVERSION','COATING','PLATING'];
+  const validTypes = [...FPI_TYPES, ...EP_TYPES];
   if (!validTypes.includes(bath_type)) {
     return res.status(400).json({ message: `bath_type must be one of: ${validTypes.join(', ')}` });
   }
+  const process_category = FPI_TYPES.includes(bath_type) ? 'NDT_FPI' : 'ELECTROPLATING';
   try {
     const result = await query(`
       INSERT INTO dbo.ChemBath
-        (bath_code, bath_name, bath_type, process_area, spec_ref, sample_frequency_days, notes, created_by)
+        (bath_code, bath_name, bath_type, process_category, process_area, spec_ref, sample_frequency_days,
+         notes, bay, max_len_cm, max_wid_cm, max_dep_cm, created_by)
       OUTPUT INSERTED.bath_id
       VALUES
-        (@bath_code, @bath_name, @bath_type, @process_area, @spec_ref, @freq, @notes, @userId)
+        (@bath_code, @bath_name, @bath_type, @category, @process_area, @spec_ref, @freq,
+         @notes, @bay, @maxlen, @maxwid, @maxdep, @userId)
     `, [
       { name: 'bath_code',   type: sql.NVarChar(20),  value: bath_code },
       { name: 'bath_name',   type: sql.NVarChar(100), value: bath_name },
       { name: 'bath_type',   type: sql.NVarChar(20),  value: bath_type },
+      { name: 'category',    type: sql.NVarChar(20),  value: process_category },
       { name: 'process_area',type: sql.NVarChar(100), value: process_area || null },
       { name: 'spec_ref',    type: sql.NVarChar(200), value: spec_ref || null },
       { name: 'freq',        type: sql.Int,            value: parseInt(sample_frequency_days) || 7 },
       { name: 'notes',       type: sql.NVarChar(sql.MAX), value: notes || null },
+      { name: 'bay',         type: sql.NVarChar(20),   value: bay || null },
+      { name: 'maxlen',      type: sql.Decimal(6,1),   value: max_len_cm != null ? parseFloat(max_len_cm) : null },
+      { name: 'maxwid',      type: sql.Decimal(6,1),   value: max_wid_cm != null ? parseFloat(max_wid_cm) : null },
+      { name: 'maxdep',      type: sql.Decimal(6,1),   value: max_dep_cm != null ? parseFloat(max_dep_cm) : null },
       { name: 'userId',      type: sql.Int,            value: req.user.userId },
     ]);
     const newId = result[0].bath_id;
@@ -119,8 +148,9 @@ router.get('/baths/:id', async (req, res) => {
   try {
     const [bath] = await query(`
       SELECT
-        b.bath_id, b.bath_code, b.bath_name, b.bath_type, b.process_area,
-        b.spec_ref, b.sample_frequency_days, b.notes, b.is_active, b.created_at,
+        b.bath_id, b.bath_code, b.bath_name, b.bath_type, b.process_category, b.process_area,
+        b.spec_ref, b.sample_frequency_days, b.notes, b.bay, b.max_len_cm, b.max_wid_cm, b.max_dep_cm,
+        b.is_active, b.created_at,
         v.rag_status, v.last_sampled_at, v.days_since_sample, v.last_status, v.last_sampled_by_name
       FROM dbo.ChemBath b
       LEFT JOIN dbo.vw_BathStatus v ON v.bath_id = b.bath_id

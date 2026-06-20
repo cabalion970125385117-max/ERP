@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-33 Spec & Flowdown / Frozen Process Control
+  NADCAP Frozen Process | AS9100D §8.1.x, §8.5.6 | ATC Aviation Pte Ltd
+  LAN-Only: All assets local — no CDN
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Spec &amp; Flowdown — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    .frozen-badge { background:#cfe2ff;color:#084298;border-radius:3px;padding:1px 6px;font-size:0.65rem;font-weight:700; }
+    .spec-row td { font-size: 0.8rem; vertical-align: middle; }
+    .ecn-DRAFT           { color: var(--atca-muted); }
+    .ecn-PENDING_REVIEW  { color: #fd7e14; }
+    .ecn-PENDING_CUSTOMER{ color: #0d6efd; }
+    .ecn-CUSTOMER_APPROVED,.ecn-APPROVED { color: #198754; }
+    .ecn-IMPLEMENTED     { color: #6c757d; }
+    .ecn-CUSTOMER_REJECTED,.ecn-REJECTED,.ecn-WITHDRAWN { color: #dc3545; }
+    .risk-CRITICAL { background:#f8d7da; color:#58151c; }
+    .risk-HIGH     { background:#ffe8d1; color:#7c3800; }
+    .risk-MEDIUM   { background:#fff3cd; color:#6b5300; }
+    .risk-LOW      { background:#d1e7dd; color:#0a3622; }
+    .risk-badge { border-radius:3px; padding:1px 6px; font-size:0.65rem; font-weight:700; }
+    .aam-row td { font-size: 0.78rem; vertical-align: middle; }
+    .param-frozen { background: rgba(13,110,253,0.05); }
+    .param-critical { font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Operations</div>
+  <a href="/modules/mod32-bay-scheduler/" class="nav-link"><span class="nav-icon"><i class="bi bi-layout-split"></i></span>Bay Scheduler</a>
+  <a href="/modules/mod33-spec-flowdown/" class="nav-link active"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Spec &amp; Flowdown</a>
+  <div class="nav-section-label">Special Process</div>
+  <a href="/modules/mod28-pcm/" class="nav-link"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>PCM</a>
+  <a href="/modules/mod29-qualification/" class="nav-link"><span class="nav-icon"><i class="bi bi-patch-check"></i></span>Customer Qualification</a>
+  <div class="nav-section-label">System</div>
+  <a href="/" class="nav-link"><span class="nav-icon"><i class="bi bi-house"></i></span>Home</a>
+</nav>
+
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-diagram-3 me-1"></i>MOD-33 — Spec &amp; Flowdown / Frozen Process</p>
+      <p class="topbar-subtitle mb-0">NADCAP Frozen Process · AS9100D §8.5.6 · ECN · Acceptance Authority Matrix</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn"><i class="bi bi-bell"></i>
+        <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <!-- KPI Row -->
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card"><div class="kpi-label">Active Specs</div><div class="kpi-value" id="kpi-active-specs">—</div><div class="kpi-sub">Spec library</div></div>
+      <div class="kpi-card"><div class="kpi-label">Frozen Specs</div><div class="kpi-value text-primary" id="kpi-frozen-specs">—</div><div class="kpi-sub">NADCAP frozen process</div></div>
+      <div class="kpi-card"><div class="kpi-label">ECN Pending</div><div class="kpi-value text-warning" id="kpi-ecn-pending">—</div><div class="kpi-sub">Awaiting review / customer</div></div>
+      <div class="kpi-card"><div class="kpi-label">ECN Overdue</div><div class="kpi-value text-danger" id="kpi-ecn-overdue">—</div><div class="kpi-sub">Past target date</div></div>
+      <div class="kpi-card"><div class="kpi-label">Frozen Recipes</div><div class="kpi-value text-primary" id="kpi-frozen-recipes">—</div><div class="kpi-sub">Locked process recipes</div></div>
+      <div class="kpi-card"><div class="kpi-label">AAM Entries</div><div class="kpi-value" id="kpi-aam">—</div><div class="kpi-sub">Authority matrix rows</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" role="tablist">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-specs">
+        <i class="bi bi-journal-bookmark me-1"></i>Spec Library</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ecn">
+        <i class="bi bi-arrow-left-right me-1"></i>ECN Register</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-aam">
+        <i class="bi bi-shield-lock me-1"></i>Authority Matrix (AAM)</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-recipes">
+        <i class="bi bi-card-list me-1"></i>Process Recipes</button></li>
+    </ul>
+
+    <div class="tab-content">
+
+    <!-- Tab: Spec Library -->
+    <div class="tab-pane fade show active" id="tab-specs">
+      <div class="atca-card">
+        <div class="atca-card-header">
+          <span class="module-badge">SPEC</span>
+          <h5>Specification Library</h5>
+          <div class="ms-auto d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="spec-type-filter" style="width:130px;" onchange="loadSpecs()">
+              <option value="">All Types</option>
+              <option value="CUSTOMER">Customer</option>
+              <option value="INDUSTRY">Industry</option>
+              <option value="INTERNAL">Internal</option>
+            </select>
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadSpecs()"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="btn btn-sm btn-atca-primary" onclick="openAddSpec()"><i class="bi bi-plus-lg me-1"></i>Add Spec</button>
+          </div>
+        </div>
+        <div class="atca-card-body p-0">
+          <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Spec Code</th>
+                <th>Title</th>
+                <th>Rev</th>
+                <th>Type</th>
+                <th>Customer</th>
+                <th>Process Area</th>
+                <th>Frozen</th>
+                <th>Status</th>
+                <th>Params</th>
+                <th>Open ECN</th>
+              </tr>
+            </thead>
+            <tbody id="spec-tbody">
+              <tr><td colspan="10" class="text-center text-muted py-4">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: ECN Register -->
+    <div class="tab-pane fade" id="tab-ecn">
+      <div class="atca-card">
+        <div class="atca-card-header">
+          <span class="module-badge">ECN</span>
+          <h5>Engineering Change Notice Register</h5>
+          <div class="ms-auto d-flex gap-2 align-items-center">
+            <select class="form-select form-select-sm" id="ecn-status-filter" style="width:170px;" onchange="loadECN()">
+              <option value="">All Statuses</option>
+              <option value="DRAFT">Draft</option>
+              <option value="PENDING_REVIEW">Pending Review</option>
+              <option value="PENDING_CUSTOMER">Pending Customer</option>
+              <option value="CUSTOMER_APPROVED">Customer Approved</option>
+              <option value="APPROVED">Approved</option>
+              <option value="IMPLEMENTED">Implemented</option>
+            </select>
+            <button class="btn btn-sm btn-outline-secondary" onclick="loadECN()"><i class="bi bi-arrow-clockwise"></i></button>
+            <button class="btn btn-sm btn-atca-primary" onclick="openRaiseECN()"><i class="bi bi-plus-lg me-1"></i>Raise ECN</button>
+          </div>
+        </div>
+        <div class="atca-card-body p-0">
+          <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>ECN Ref</th>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Affected Spec</th>
+                <th>Risk</th>
+                <th>Status</th>
+                <th>Customer Approval</th>
+                <th>Days Open</th>
+                <th>Target</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ecn-tbody">
+              <tr><td colspan="10" class="text-center text-muted py-4">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: AAM -->
+    <div class="tab-pane fade" id="tab-aam">
+      <div class="atca-card">
+        <div class="atca-card-header">
+          <span class="module-badge">AAM</span>
+          <h5>Acceptance Authority Matrix</h5>
+          <small class="text-muted ms-2">AS9100D §8.6 · NADCAP · Who may approve/accept/release what</small>
+          <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="loadAAM()"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+        <div class="atca-card-body p-0">
+          <table class="table table-sm table-bordered mb-0 aam-row">
+            <thead class="table-light">
+              <tr>
+                <th>Process Area</th>
+                <th>Action / Gate</th>
+                <th>Min. Role</th>
+                <th>2-Person?</th>
+                <th>Second Role</th>
+                <th>PIN Sign-off?</th>
+                <th>QAM Approval?</th>
+                <th>Irreversible?</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody id="aam-tbody">
+              <tr><td colspan="9" class="text-center text-muted py-4">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Process Recipes -->
+    <div class="tab-pane fade" id="tab-recipes">
+      <div class="atca-card">
+        <div class="atca-card-header">
+          <span class="module-badge">RCP</span>
+          <h5>Process Recipes</h5>
+          <small class="text-muted ms-2">Spec → parameter flowdown → frozen recipe</small>
+          <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="loadRecipes()"><i class="bi bi-arrow-clockwise"></i></button>
+        </div>
+        <div class="atca-card-body p-0">
+          <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Recipe Ref</th>
+                <th>Name</th>
+                <th>Spec Code</th>
+                <th>Process Area</th>
+                <th>Bay</th>
+                <th>Version</th>
+                <th>Status</th>
+                <th>Frozen</th>
+              </tr>
+            </thead>
+            <tbody id="recipe-tbody">
+              <tr><td colspan="8" class="text-center text-muted py-4">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /tab-content -->
+  </main>
+</div>
+
+<!-- Spec Detail Modal -->
+<div class="modal fade" id="specDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="spec-modal-title">Spec Detail</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="spec-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-atca-primary btn-sm" id="spec-raise-ecn-btn" onclick="openRaiseECN()">
+          <i class="bi bi-arrow-left-right me-1"></i>Raise ECN
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Spec Modal -->
+<div class="modal fade" id="addSpecModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-journal-plus me-2"></i>Add Specification</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Spec Code *</label>
+            <input type="text" class="form-control form-control-sm" id="ns-code" placeholder="e.g. BAC5019">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">Title *</label>
+            <input type="text" class="form-control form-control-sm" id="ns-title">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Revision</label>
+            <input type="text" class="form-control form-control-sm" id="ns-rev" value="Rev A">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Type</label>
+            <select class="form-select form-select-sm" id="ns-type">
+              <option value="CUSTOMER">Customer</option>
+              <option value="INDUSTRY">Industry</option>
+              <option value="INTERNAL">Internal</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Customer Code</label>
+            <input type="text" class="form-control form-control-sm" id="ns-cust" placeholder="Boeing">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-label-sm">Process Area</label>
+            <input type="text" class="form-control form-control-sm" id="ns-proc" placeholder="Anodizing">
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="ns-frozen">
+              <label class="form-check-label form-label-sm" for="ns-frozen">Mark as Frozen (NADCAP)</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label form-label-sm">Notes</label>
+            <textarea class="form-control form-control-sm" id="ns-notes" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-atca-primary btn-sm" onclick="submitSpec()"><i class="bi bi-check-lg me-1"></i>Create Spec</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Raise ECN Modal -->
+<div class="modal fade" id="raiseECNModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Raise Engineering Change Notice (ECN)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning" style="font-size:0.8rem;">
+          <i class="bi bi-exclamation-triangle me-1"></i>
+          ECNs for frozen specs require <strong>customer approval</strong> before implementation (AS9100D §8.5.6 / NADCAP Frozen Process).
+        </div>
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label form-label-sm">ECN Title *</label>
+            <input type="text" class="form-control form-control-sm" id="ecn-title">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-label-sm">Change Type</label>
+            <select class="form-select form-select-sm" id="ecn-type">
+              <option value="PARAMETER_CHANGE">Parameter Change</option>
+              <option value="SPEC_REVISION">Spec Revision</option>
+              <option value="PROCESS_CHANGE">Process Change</option>
+              <option value="EQUIPMENT_CHANGE">Equipment Change</option>
+              <option value="SUPPLIER_CHANGE">Supplier Change</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-label-sm">Risk Level</label>
+            <select class="form-select form-select-sm" id="ecn-risk">
+              <option value="LOW">Low</option>
+              <option value="MEDIUM" selected>Medium</option>
+              <option value="HIGH">High</option>
+              <option value="CRITICAL">Critical</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-label-sm">Target Date</label>
+            <input type="date" class="form-control form-control-sm" id="ecn-target">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">Old Value / Current State</label>
+            <input type="text" class="form-control form-control-sm" id="ecn-old" placeholder="Current parameter value">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-label-sm">New Value / Proposed Change</label>
+            <input type="text" class="form-control form-control-sm" id="ecn-new" placeholder="Proposed value">
+          </div>
+          <div class="col-12">
+            <label class="form-label form-label-sm">Justification</label>
+            <textarea class="form-control form-control-sm" id="ecn-just" rows="2" placeholder="Why is this change needed?"></textarea>
+          </div>
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="ecn-nadcap" value="">
+              <label class="form-check-label form-label-sm" for="ecn-nadcap">NADCAP notification required</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-atca-primary btn-sm" onclick="submitECN()"><i class="bi bi-check-lg me-1"></i>Raise ECN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ECN Action Modal -->
+<div class="modal fade" id="ecnActionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="ecn-action-title">ECN Action</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="ecn-action-body"></div>
+      <div class="modal-footer" id="ecn-action-footer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6></div>
+      <div class="modal-body text-center py-3">
+        <p class="mb-1">Your session expires in <strong id="timeout-countdown">5:00</strong></p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=5"></script>
+<script>
+'use strict';
+
+let currentEcnId = null;
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── KPI ─────────────────────────────────────────────────────── */
+async function loadKpis() {
+  const d = await ATCA.api.request('GET', '/mod33/alerts/summary');
+  if (!d) return;
+  document.getElementById('kpi-active-specs').textContent = d.active_specs ?? '—';
+  document.getElementById('kpi-frozen-specs').textContent = d.frozen_specs ?? '—';
+  document.getElementById('kpi-ecn-pending').textContent = d.ecn_pending ?? '—';
+  document.getElementById('kpi-ecn-overdue').textContent = d.ecn_overdue ?? '—';
+  document.getElementById('kpi-frozen-recipes').textContent = d.frozen_recipes ?? '—';
+  document.getElementById('kpi-aam').textContent = d.aam_entries ?? '—';
+}
+
+/* ── Spec Library ────────────────────────────────────────────── */
+async function loadSpecs() {
+  const specType = document.getElementById('spec-type-filter').value;
+  let url = '/mod33/specs';
+  if (specType) url += `?spec_type=${encodeURIComponent(specType)}`;
+  const d = await ATCA.api.request('GET', url);
+  const tbody = document.getElementById('spec-tbody');
+  if (!d?.items?.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No specifications found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = d.items.map(s => `
+    <tr class="spec-row" style="cursor:pointer;" onclick="showSpecDetail(${s.spec_id})">
+      <td><strong>${escHtml(s.spec_code)}</strong></td>
+      <td>${escHtml(s.spec_title)}</td>
+      <td>${escHtml(s.revision)}</td>
+      <td><span class="badge bg-secondary" style="font-size:0.65rem;">${s.spec_type}</span></td>
+      <td>${escHtml(s.customer_code || '—')}</td>
+      <td>${escHtml(s.process_area || '—')}</td>
+      <td>${s.is_frozen ? '<span class="frozen-badge"><i class="bi bi-lock-fill me-1"></i>FROZEN</span>' : '—'}</td>
+      <td><span class="badge ${s.status==='ACTIVE'?'bg-success':'bg-secondary'}" style="font-size:0.65rem;">${s.status}</span></td>
+      <td>${s.param_count}</td>
+      <td>${s.open_ecn_count ? `<span class="badge bg-warning text-dark" style="font-size:0.65rem;">${s.open_ecn_count}</span>` : '—'}</td>
+    </tr>`).join('');
+}
+
+async function showSpecDetail(id) {
+  const d = await ATCA.api.request('GET', `/mod33/specs/${id}`);
+  if (!d) return;
+  document.getElementById('spec-modal-title').innerHTML =
+    `${escHtml(d.spec_code)} — ${escHtml(d.spec_title)} ${d.is_frozen ? '<span class="frozen-badge ms-2"><i class="bi bi-lock-fill"></i> FROZEN</span>' : ''}`;
+
+  const paramsHtml = d.parameters?.length ? `
+    <div class="mb-3">
+      <div class="fw-bold mb-2" style="font-size:0.78rem;">Parameters (${d.parameters.length})</div>
+      <table class="table table-sm table-bordered mb-0" style="font-size:0.76rem;">
+        <thead class="table-light"><tr><th>Parameter</th><th>Category</th><th>Min</th><th>Nominal</th><th>Max</th><th>Unit</th><th>Frozen</th><th>Critical</th><th>Frequency</th></tr></thead>
+        <tbody>${d.parameters.map(p => `
+          <tr class="${p.is_frozen?'param-frozen':''} ${p.is_critical?'param-critical':''}">
+            <td>${escHtml(p.param_name)}</td>
+            <td>${escHtml(p.param_category||'—')}</td>
+            <td>${escHtml(p.value_min||'—')}</td>
+            <td>${escHtml(p.value_nominal||'—')}</td>
+            <td>${escHtml(p.value_max||'—')}</td>
+            <td>${escHtml(p.unit||'—')}</td>
+            <td>${p.is_frozen ? '<i class="bi bi-lock-fill text-primary"></i>' : '—'}</td>
+            <td>${p.is_critical ? '<i class="bi bi-exclamation-triangle-fill text-warning"></i>' : '—'}</td>
+            <td>${escHtml(p.frequency||'—')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : '<div class="text-muted mb-3" style="font-size:0.8rem;">No parameters defined yet.</div>';
+
+  const ecnsHtml = d.ecns?.length ? `
+    <div>
+      <div class="fw-bold mb-2" style="font-size:0.78rem;">ECN History (${d.ecns.length})</div>
+      ${d.ecns.map(e => `
+        <div class="d-flex gap-2 align-items-center mb-1" style="font-size:0.76rem;">
+          <strong>${escHtml(e.ecn_ref)}</strong>
+          <span class="ecn-${e.status}">${e.status}</span>
+          <span class="risk-badge risk-${e.risk_level}">${e.risk_level}</span>
+          <span class="text-muted">${escHtml(e.title)}</span>
+        </div>`).join('')}
+    </div>` : '';
+
+  document.getElementById('spec-modal-body').innerHTML = `
+    <div class="row g-2 mb-3" style="font-size:0.8rem;">
+      <div class="col-md-3"><strong>Code:</strong> ${escHtml(d.spec_code)}</div>
+      <div class="col-md-2"><strong>Rev:</strong> ${escHtml(d.revision)}</div>
+      <div class="col-md-2"><strong>Type:</strong> ${d.spec_type}</div>
+      <div class="col-md-2"><strong>Customer:</strong> ${escHtml(d.customer_code||'—')}</div>
+      <div class="col-md-3"><strong>Process:</strong> ${escHtml(d.process_area||'—')}</div>
+      ${d.notes ? `<div class="col-12 text-muted">${escHtml(d.notes)}</div>` : ''}
+    </div>
+    ${paramsHtml}
+    ${ecnsHtml}`;
+
+  if (d.is_frozen) {
+    document.getElementById('spec-raise-ecn-btn').style.display = '';
+  } else {
+    document.getElementById('spec-raise-ecn-btn').style.display = 'none';
+  }
+  new bootstrap.Modal(document.getElementById('specDetailModal')).show();
+}
+
+function openAddSpec() {
+  new bootstrap.Modal(document.getElementById('addSpecModal')).show();
+}
+
+async function submitSpec() {
+  const code = document.getElementById('ns-code').value.trim();
+  const title = document.getElementById('ns-title').value.trim();
+  if (!code || !title) { ATCA.toast('Spec code and title are required.', 'danger'); return; }
+  const res = await ATCA.api.request('POST', '/mod33/specs', {
+    spec_code: code, spec_title: title,
+    revision: document.getElementById('ns-rev').value || 'Rev A',
+    spec_type: document.getElementById('ns-type').value,
+    customer_code: document.getElementById('ns-cust').value.trim() || null,
+    process_area: document.getElementById('ns-proc').value.trim() || null,
+    is_frozen: document.getElementById('ns-frozen').checked,
+    notes: document.getElementById('ns-notes').value.trim() || null,
+  });
+  if (res) {
+    bootstrap.Modal.getInstance(document.getElementById('addSpecModal')).hide();
+    ATCA.toast('Specification created.', 'success');
+    loadSpecs();
+    loadKpis();
+  }
+}
+
+/* ── ECN ─────────────────────────────────────────────────────── */
+async function loadECN() {
+  const status = document.getElementById('ecn-status-filter').value;
+  let url = '/mod33/ecn';
+  if (status) url += `?status=${encodeURIComponent(status)}`;
+  const d = await ATCA.api.request('GET', url);
+  const tbody = document.getElementById('ecn-tbody');
+  if (!d?.items?.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No ECNs found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = d.items.map(e => `
+    <tr style="cursor:pointer;" onclick="showECNAction(${e.ecn_id})">
+      <td><strong>${escHtml(e.ecn_ref||'—')}</strong></td>
+      <td>${escHtml(e.title)}</td>
+      <td style="font-size:0.7rem;">${e.change_type?.replace('_',' ')}</td>
+      <td>${e.spec_code ? `<strong>${escHtml(e.spec_code)}</strong>` : '—'}</td>
+      <td><span class="risk-badge risk-${e.risk_level}">${e.risk_level}</span></td>
+      <td><span class="ecn-${e.status}" style="font-size:0.78rem;">${e.status}</span></td>
+      <td>${e.customer_approval_required ? (e.customer_approval_date ? `<i class="bi bi-check-circle text-success"></i> ${e.customer_approval_date}` : '<i class="bi bi-clock text-warning"></i> Pending') : '—'}</td>
+      <td>${e.days_open ?? '—'}</td>
+      <td>${e.target_date || '—'}</td>
+      <td><button class="btn btn-xs btn-outline-secondary" style="font-size:0.65rem;padding:1px 5px;" onclick="event.stopPropagation();showECNAction(${e.ecn_id})">Action</button></td>
+    </tr>`).join('');
+}
+
+function openRaiseECN() {
+  bootstrap.Modal.getInstance(document.getElementById('specDetailModal'))?.hide();
+  new bootstrap.Modal(document.getElementById('raiseECNModal')).show();
+}
+
+async function submitECN() {
+  const title = document.getElementById('ecn-title').value.trim();
+  if (!title) { ATCA.toast('ECN title is required.', 'danger'); return; }
+  const res = await ATCA.api.request('POST', '/mod33/ecn', {
+    title,
+    change_type: document.getElementById('ecn-type').value,
+    risk_level: document.getElementById('ecn-risk').value,
+    old_value: document.getElementById('ecn-old').value.trim() || null,
+    new_value: document.getElementById('ecn-new').value.trim() || null,
+    justification: document.getElementById('ecn-just').value.trim() || null,
+    target_date: document.getElementById('ecn-target').value || null,
+    nadcap_notification_required: document.getElementById('ecn-nadcap').checked,
+    customer_approval_required: true,
+  });
+  if (res) {
+    bootstrap.Modal.getInstance(document.getElementById('raiseECNModal')).hide();
+    ATCA.toast(`ECN raised: ${res.ecn_ref}`, 'success');
+    loadECN();
+    loadKpis();
+  }
+}
+
+async function showECNAction(id) {
+  currentEcnId = id;
+  const items = (await ATCA.api.request('GET', '/mod33/ecn'))?.items || [];
+  const e = items.find(x => x.ecn_id === id);
+  if (!e) return;
+  document.getElementById('ecn-action-title').textContent = `${e.ecn_ref} — ${e.title}`;
+  document.getElementById('ecn-action-body').innerHTML = `
+    <dl class="row mb-0" style="font-size:0.82rem;">
+      <dt class="col-5">Status</dt><dd class="col-7 ecn-${e.status}">${e.status}</dd>
+      <dt class="col-5">Risk</dt><dd class="col-7"><span class="risk-badge risk-${e.risk_level}">${e.risk_level}</span></dd>
+      <dt class="col-5">Affected Spec</dt><dd class="col-7">${escHtml(e.spec_code||'—')}</dd>
+      <dt class="col-5">Customer Approval</dt><dd class="col-7">${e.customer_approval_required ? (e.customer_approval_date || 'Pending') : 'Not required'}</dd>
+      <dt class="col-5">Days Open</dt><dd class="col-7">${e.days_open ?? '—'}</dd>
+    </dl>
+    <hr>
+    <div style="font-size:0.78rem;">
+      <label class="form-label form-label-sm">Customer Approval Reference</label>
+      <input type="text" class="form-control form-control-sm mb-2" id="ea-custref" placeholder="Customer's approval ref">
+      <label class="form-label form-label-sm">Customer Approver Name</label>
+      <input type="text" class="form-control form-control-sm mb-2" id="ea-custname">
+      <label class="form-label form-label-sm">Customer Approval Date</label>
+      <input type="date" class="form-control form-control-sm mb-2" id="ea-custdate">
+      <label class="form-label form-label-sm">Notes</label>
+      <input type="text" class="form-control form-control-sm" id="ea-notes">
+    </div>`;
+  const actions = {
+    DRAFT: ['PENDING_REVIEW'],
+    PENDING_REVIEW: ['PENDING_CUSTOMER','REJECTED'],
+    PENDING_CUSTOMER: ['CUSTOMER_APPROVED','CUSTOMER_REJECTED'],
+    CUSTOMER_APPROVED: ['APPROVED'],
+    APPROVED: ['IMPLEMENTED','WITHDRAWN'],
+  }[e.status] || [];
+  document.getElementById('ecn-action-footer').innerHTML = `
+    ${actions.map(a => `
+      <button class="btn btn-sm ${a.includes('REJECT')||a==='WITHDRAWN'?'btn-outline-danger':'btn-atca-primary'}"
+              onclick="submitECNAction('${a}')">→ ${a.replace('_',' ')}
+      </button>`).join('')}
+    <button class="btn btn-sm btn-outline-secondary ms-auto" data-bs-dismiss="modal">Close</button>`;
+  new bootstrap.Modal(document.getElementById('ecnActionModal')).show();
+}
+
+async function submitECNAction(status) {
+  const body = { status,
+    customer_ref: document.getElementById('ea-custref')?.value.trim() || null,
+    customer_approved_by: document.getElementById('ea-custname')?.value.trim() || null,
+    customer_approval_date: document.getElementById('ea-custdate')?.value || null,
+    notes: document.getElementById('ea-notes')?.value.trim() || null };
+  const res = await ATCA.api.request('PUT', `/mod33/ecn/${currentEcnId}`, body);
+  if (res) {
+    bootstrap.Modal.getInstance(document.getElementById('ecnActionModal')).hide();
+    ATCA.toast('ECN updated to ' + status.replace('_',' '), 'success');
+    loadECN();
+    loadKpis();
+  }
+}
+
+/* ── AAM ─────────────────────────────────────────────────────── */
+async function loadAAM() {
+  const d = await ATCA.api.request('GET', '/mod33/aam');
+  const tbody = document.getElementById('aam-tbody');
+  if (!d?.items?.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No AAM entries found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = d.items.map(a => `
+    <tr>
+      <td><strong>${escHtml(a.process_area)}</strong></td>
+      <td>${escHtml(a.action_type)}</td>
+      <td><span class="badge bg-primary" style="font-size:0.65rem;">${a.min_role}</span></td>
+      <td class="text-center">${a.two_person_required ? '<i class="bi bi-people-fill text-danger"></i> Yes' : '—'}</td>
+      <td>${a.second_role ? `<span class="badge bg-secondary" style="font-size:0.65rem;">${a.second_role}</span>` : '—'}</td>
+      <td class="text-center">${a.requires_operator_pin ? '<i class="bi bi-key-fill text-primary"></i>' : '—'}</td>
+      <td class="text-center">${a.requires_qam_approval ? '<i class="bi bi-shield-check text-success"></i>' : '—'}</td>
+      <td class="text-center">${a.is_irreversible ? '<span class="badge bg-danger" style="font-size:0.6rem;">YES</span>' : '—'}</td>
+      <td style="font-size:0.72rem;color:var(--atca-muted);">${escHtml(a.notes||'')}</td>
+    </tr>`).join('');
+}
+
+/* ── Recipes ─────────────────────────────────────────────────── */
+async function loadRecipes() {
+  const d = await ATCA.api.request('GET', '/mod33/recipes');
+  const tbody = document.getElementById('recipe-tbody');
+  if (!d?.items?.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No process recipes found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = d.items.map(r => `
+    <tr style="font-size:0.8rem;">
+      <td><strong>${escHtml(r.recipe_ref||'—')}</strong></td>
+      <td>${escHtml(r.recipe_name)}</td>
+      <td>${r.spec_code ? `<strong>${escHtml(r.spec_code)}</strong>` : '—'}</td>
+      <td>${escHtml(r.process_area||'—')}</td>
+      <td>${escHtml(r.bay||'—')}</td>
+      <td>${escHtml(r.version)}</td>
+      <td><span class="badge ${r.status==='APPROVED'?'bg-success':r.status==='FROZEN'?'bg-primary':'bg-secondary'}" style="font-size:0.65rem;">${r.status}</span></td>
+      <td>${r.is_frozen ? '<span class="frozen-badge"><i class="bi bi-lock-fill me-1"></i>FROZEN</span>' : '—'}</td>
+    </tr>`).join('');
+}
+
+/* ── Tab event listeners ─────────────────────────────────────── */
+document.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
+  btn.addEventListener('shown.bs.tab', () => {
+    const t = btn.dataset.bsTarget;
+    if (t === '#tab-ecn') loadECN();
+    if (t === '#tab-aam') loadAAM();
+    if (t === '#tab-recipes') loadRecipes();
+  });
+});
+
+/* ── Init ────────────────────────────────────────────────────── */
+(async () => {
+  await ATCA.initPage();
+  await Promise.all([loadKpis(), loadSpecs()]);
+})();
+</script>
+</body>
+</html>

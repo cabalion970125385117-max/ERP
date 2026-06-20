@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-30: Pyrometry & Heat-Treat
+  NADCAP AC7102 / AMS 2750H | AS9100D §7.1.5 | ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Pyrometry &amp; Heat-Treat — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod08-audit-management/"  class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <a href="/modules/mod05-equipment-calibration/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+  <div class="nav-section-label">NDT &amp; Special Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Electroplating</a>
+  <a href="/modules/mod30-pyrometry/"         class="nav-link active"><span class="nav-icon"><i class="bi bi-thermometer-half"></i></span>Pyrometry &amp; Heat-Treat</a>
+  <a href="/modules/mod31-operator-competency/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-check"></i></span>Operator Competency</a>
+  <div class="nav-section-label">Capability &amp; Qualification</div>
+  <a href="/modules/mod28-pcm/"               class="nav-link"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>Capability Master</a>
+  <a href="/modules/mod29-qualification/"     class="nav-link"><span class="nav-icon"><i class="bi bi-patch-check"></i></span>Customer Qualification</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-thermometer-half me-1"></i>MOD-30 — Pyrometry &amp; Heat-Treat</p>
+      <p class="topbar-subtitle mb-0">NADCAP AC7102 · AMS 2750H · TUS / SAT / Thermocouple control</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i><span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-30 Pyrometry &amp; Heat-Treat</span>
+    </div>
+
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-ovens"><div class="kpi-label">Ovens / Furnaces</div><div class="kpi-value" id="val-ovens">—</div><div class="kpi-sub" id="sub-aero">AMS 2750H register</div></div>
+      <div class="kpi-card" id="kpi-overdue"><div class="kpi-label">Pyrometry Overdue</div><div class="kpi-value" id="val-overdue">—</div><div class="kpi-sub">TUS / SAT past due</div></div>
+      <div class="kpi-card" id="kpi-due"><div class="kpi-label">Due Soon (14d)</div><div class="kpi-value" id="val-due">—</div><div class="kpi-sub">Upcoming survey</div></div>
+      <div class="kpi-card" id="kpi-tc"><div class="kpi-label">Thermocouples Expiring</div><div class="kpi-value" id="val-tc">—</div><div class="kpi-sub">Within 30 days</div></div>
+    </div>
+
+    <ul class="nav nav-tabs mb-3" id="pyr-tabs">
+      <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-ovens">Oven Register</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-tc">Thermocouples</a></li>
+      <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-routing">Routing Check</a></li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="tab-ovens">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead><tr><th>Oven</th><th>Function</th><th>Std / Class</th><th>Temp Range</th><th>Aero-only</th><th>Last TUS</th><th>Last SAT</th><th>Status</th></tr></thead>
+            <tbody id="tbody-ovens"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="tab-tc">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover atca-table">
+            <thead><tr><th>TC Code</th><th>Oven</th><th>Type</th><th>Class</th><th>Install</th><th>Expiry</th><th>Uses</th><th>Status</th></tr></thead>
+            <tbody id="tbody-tc"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="tab-routing">
+        <div class="card"><div class="card-body">
+          <p class="text-muted small mb-2">Find which qualified ovens can run a process at a given temperature (aerospace-only gate per the PCM Equipment rules).</p>
+          <div class="row g-2 align-items-end mb-3">
+            <div class="col-auto"><label class="form-label small mb-0">Process temp (°C)</label><input type="number" class="form-control form-control-sm" id="r-temp" value="200" style="width:140px"></div>
+            <div class="col-auto"><div class="form-check mt-3"><input class="form-check-input" type="checkbox" id="r-aero" checked><label class="form-check-label small" for="r-aero">Aerospace part</label></div></div>
+            <div class="col-auto"><button class="btn btn-sm btn-primary" onclick="checkRouting()"><i class="bi bi-search me-1"></i>Find ovens</button></div>
+          </div>
+          <div id="routing-result" class="text-muted small">—</div>
+        </div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Oven detail modal -->
+<div class="modal fade" id="modal-oven" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="oven-title">Oven</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body" id="oven-body"></div>
+</div></div></div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=5"></script>
+<script>
+'use strict';
+let ovens = [];
+(async () => { await ATCA.initPage(); await Promise.all([loadKpis(), loadOvens(), loadTc()]); })();
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function ragBadge(r){ return r==='RED'?'danger':r==='AMBER'?'warning text-dark':'success'; }
+function d(s){ return s ? String(s).slice(0,10) : '—'; }
+
+async function loadKpis(){
+  const a = await ATCA.api.get('/mod30/alerts/summary'); if(!a) return;
+  document.getElementById('val-ovens').textContent = a.total_ovens;
+  document.getElementById('sub-aero').textContent = `${a.aerospace_ovens} aerospace-only · AMS 2750H`;
+  document.getElementById('val-overdue').textContent = a.overdue_pyrometry;
+  document.getElementById('val-due').textContent = a.due_soon;
+  document.getElementById('val-tc').textContent = a.tc_expiring;
+  document.getElementById('kpi-overdue').classList.toggle('rag-red', a.overdue_pyrometry>0);
+  document.getElementById('kpi-due').classList.toggle('rag-amber', a.due_soon>0);
+  document.getElementById('kpi-tc').classList.toggle('rag-amber', a.tc_expiring>0);
+}
+
+async function loadOvens(){
+  const data = await ATCA.api.get('/mod30/ovens'); if(!data) return;
+  ovens = data.items;
+  ATCA.table.render('tbody-ovens', ovens, o => `
+    <tr style="cursor:pointer" onclick="openOven(${o.oven_id})">
+      <td><code>${esc(o.oven_code)}</code><br><small class="text-muted">${esc(o.area||'')}</small></td>
+      <td>${esc(o.function_type)}</td>
+      <td>${o.standard_ref?esc(o.standard_ref):'—'}${o.furnace_class?` · Cl ${esc(o.furnace_class)}/${esc(o.instrument_type||'')}`:''}</td>
+      <td>${o.temp_min_c??'—'}–${o.temp_max_c??'—'} °C</td>
+      <td>${o.aerospace_only?'<span class="badge bg-primary">Aero</span>':'—'}</td>
+      <td>${d(o.last_tus)}</td>
+      <td>${d(o.last_sat)}</td>
+      <td><span class="badge bg-${ragBadge(o.rag_status)}">${o.rag_status}</span></td>
+    </tr>`);
+}
+
+async function openOven(id){
+  const o = await ATCA.api.get(`/mod30/ovens/${id}`); if(!o) return;
+  document.getElementById('oven-title').textContent = `${o.oven_code} — ${o.oven_name}`;
+  const tests = (o.tests||[]).map(t=>`<tr><td><code>${esc(t.test_ref)}</code></td><td><span class="badge bg-secondary">${esc(t.test_type)}</span></td>
+    <td>${d(t.test_date)}</td><td>${t.set_point_c??'—'}°C</td><td>±${t.max_dev_c??'—'}/${t.tolerance_c??'—'}</td>
+    <td><span class="badge bg-${t.result==='PASS'?'success':'danger'}">${t.result}</span></td><td>${d(t.next_due)}</td></tr>`).join('')
+    || '<tr><td colspan="7" class="text-muted text-center">No pyrometry tests.</td></tr>';
+  const tcs = (o.thermocouples||[]).map(t=>`<tr><td><code>${esc(t.tc_code)}</code></td><td>${esc(t.tc_type||'—')}</td><td>${esc(t.tc_class||'—')}</td><td>${d(t.expiry_date)}</td><td>${esc(t.status)}</td></tr>`).join('')
+    || '<tr><td colspan="5" class="text-muted text-center">No thermocouples.</td></tr>';
+  document.getElementById('oven-body').innerHTML = `
+    <div class="row mb-2"><div class="col-md-4"><strong>Function:</strong> ${esc(o.function_type)}</div>
+      <div class="col-md-4"><strong>Temp:</strong> ${o.temp_min_c??'—'}–${o.temp_max_c??'—'} °C</div>
+      <div class="col-md-4"><strong>Standard:</strong> ${esc(o.standard_ref||'—')}</div></div>
+    <div class="mb-2">${o.aerospace_only?'<span class="badge bg-primary">Aerospace parts only</span>':''} TUS every ${o.tus_interval_days}d · SAT every ${o.sat_interval_days}d</div>
+    <h6 class="text-uppercase text-muted mt-3" style="font-size:.7rem">Pyrometry Tests (TUS / SAT)</h6>
+    <table class="table table-sm"><thead><tr><th>Ref</th><th>Type</th><th>Date</th><th>Set pt</th><th>Dev/Tol</th><th>Result</th><th>Next Due</th></tr></thead><tbody>${tests}</tbody></table>
+    <h6 class="text-uppercase text-muted mt-3" style="font-size:.7rem">Thermocouples</h6>
+    <table class="table table-sm"><thead><tr><th>Code</th><th>Type</th><th>Class</th><th>Expiry</th><th>Status</th></tr></thead><tbody>${tcs}</tbody></table>`;
+  new bootstrap.Modal(document.getElementById('modal-oven')).show();
+}
+
+async function loadTc(){
+  const data = await ATCA.api.get('/mod30/thermocouples'); if(!data) return;
+  ATCA.table.render('tbody-tc', data.items, t => `
+    <tr><td><code>${esc(t.tc_code)}</code></td><td>${esc(t.oven_code||'—')}</td><td>${esc(t.tc_type||'—')}</td><td>${esc(t.tc_class||'—')}</td>
+    <td>${d(t.install_date)}</td><td>${d(t.expiry_date)}</td><td>${t.uses_count??'—'}/${t.uses_max??'—'}</td>
+    <td><span class="badge bg-${t.expiry_status==='EXPIRED'?'danger':t.expiry_status==='EXPIRING'?'warning text-dark':'success'}">${t.expiry_status||t.status}</span></td></tr>`);
+}
+
+async function checkRouting(){
+  const temp = document.getElementById('r-temp').value;
+  const aero = document.getElementById('r-aero').checked ? 1 : 0;
+  const d2 = await ATCA.api.get(`/mod30/routing?temp=${temp}&aerospace=${aero}`); if(!d2) return;
+  const el = document.getElementById('routing-result');
+  if(!d2.items.length){ el.innerHTML = '<div class="alert alert-warning py-2 mb-0">No qualified oven covers this temperature'+(aero?' for aerospace parts':'')+'.</div>'; return; }
+  el.innerHTML = `<div class="mb-2"><strong>${d2.eligible}</strong> of ${d2.total} eligible oven(s):</div>` +
+    d2.items.map(o=>`<div class="border rounded p-2 mb-1 d-flex justify-content-between">
+      <span><code>${esc(o.oven_code)}</code> ${esc(o.oven_name)} · ${o.temp_min_c}–${o.temp_max_c}°C ${o.aerospace_only?'<span class="badge bg-primary">Aero</span>':''}</span>
+      <span class="badge bg-${ragBadge(o.rag_status)}">${o.rag_status}</span></div>`).join('');
+}
+</script>
+</body>
+</html>

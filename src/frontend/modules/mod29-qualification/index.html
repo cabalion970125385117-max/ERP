@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — MOD-29: Customer Qualification
+  Gap Analysis -> Close Gap -> Qualification -> Award -> Periodic Audit
+  AS9100D §8.4 / §9.2 | ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Customer Qualification — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    .ql-track { display:flex; gap:.3rem; flex-wrap:wrap; }
+    .ql-step { flex:1 1 130px; min-width:120px; border:2px solid var(--atca-border); border-radius:8px;
+               padding:.5rem .55rem; background:var(--atca-light); position:relative; }
+    .ql-step .qn { position:absolute; top:-10px; left:-10px; width:20px; height:20px; border-radius:50%;
+                   background:var(--atca-navy); color:#fff; font-size:.65rem; display:flex; align-items:center; justify-content:center; font-weight:700; }
+    .ql-step .ql-label { font-size:.74rem; font-weight:600; }
+    .ql-step .ql-sub { font-size:.65rem; color:var(--atca-muted); }
+    .ql-step--done { border-color:var(--rag-green); background:#eaf6ef; }
+    .ql-step--active { border-color:var(--atca-blue); background:#eaf3fb; }
+    .ql-step--pending { opacity:.7; }
+    .stage-badge-GAP_ANALYSIS{background:#6c757d}.stage-badge-GAP_CLOSURE{background:#fd7e14}
+    .stage-badge-QUALIFICATION{background:#1f6bae}.stage-badge-AWARD{background:#198754}
+    .stage-badge-PERIODIC_AUDIT{background:#0d6efd}.stage-badge-ON_HOLD{background:#ffc107;color:#000}
+    .stage-badge-REJECTED,.stage-badge-EXPIRED{background:#dc3545}
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+  <div class="nav-section-label">Quality Management</div>
+  <a href="/modules/mod01-qms-core/"          class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+  <a href="/modules/mod08-audit-management/"  class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+  <a href="/modules/mod07-ncr-capa/"          class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+  <div class="nav-section-label">NDT &amp; Process</div>
+  <a href="/modules/mod03-fpi-process/"       class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+  <a href="/modules/mod06-bath-control/"      class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Electroplating</a>
+  <a href="/modules/mod04-ndt-personnel/"     class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+  <div class="nav-section-label">Capability &amp; Qualification</div>
+  <a href="/modules/mod28-pcm/"               class="nav-link"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>Capability Master</a>
+  <a href="/modules/mod29-qualification/"     class="nav-link active"><span class="nav-icon"><i class="bi bi-patch-check"></i></span>Customer Qualification</a>
+  <div class="nav-section-label">System</div>
+  <a href="/modules/mod15-dashboard/"         class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+  <a href="/modules/mod27-value-flow/"        class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-2"></i></span>Value Flow</a>
+  <a href="/user-guide.html" class="nav-link" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+  <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>
+</nav>
+
+<!-- MAIN -->
+<div id="main-content">
+  <header id="topbar">
+    <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+    <div>
+      <p class="topbar-title mb-0"><i class="bi bi-patch-check me-1"></i>MOD-29 — Customer Qualification</p>
+      <p class="topbar-subtitle mb-0">Gap Analysis → Close Gap → Qualification → Award → Periodic Audit · AS9100D §8.4 / §9.2</p>
+    </div>
+    <div class="topbar-alerts">
+      <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+        <i class="bi bi-bell"></i><span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+      </div>
+      <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+        <div class="user-avatar" id="user-avatar-initials">??</div>
+        <span id="user-display-name">Loading…</span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="atca-breadcrumb">
+      <a href="/"><i class="bi bi-house"></i> Home</a> <span>/ MOD-29 Customer Qualification</span>
+    </div>
+
+    <!-- KPI ROW -->
+    <div class="kpi-grid mb-4">
+      <div class="kpi-card" id="kpi-gap"><div class="kpi-label">In Gap Analysis</div><div class="kpi-value" id="val-gap">—</div><div class="kpi-sub">Stage 1</div></div>
+      <div class="kpi-card" id="kpi-gaps-open"><div class="kpi-label">Open Gaps</div><div class="kpi-value" id="val-gaps-open">—</div><div class="kpi-sub">Awaiting closure</div></div>
+      <div class="kpi-card" id="kpi-inqual"><div class="kpi-label">In Qualification</div><div class="kpi-value" id="val-inqual">—</div><div class="kpi-sub">Stage 3</div></div>
+      <div class="kpi-card" id="kpi-active"><div class="kpi-label">Active (Awarded)</div><div class="kpi-value" id="val-active">—</div><div class="kpi-sub">Valid qualifications</div></div>
+      <div class="kpi-card" id="kpi-audits"><div class="kpi-label">Audits Due (30d)</div><div class="kpi-value" id="val-audits">—</div><div class="kpi-sub">Periodic surveillance</div></div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <select class="form-select form-select-sm" id="f-status" style="width:200px" onchange="loadList()">
+        <option value="">All Stages</option>
+        <option value="GAP_ANALYSIS">Gap Analysis</option>
+        <option value="GAP_CLOSURE">Close Gap</option>
+        <option value="QUALIFICATION">Qualification</option>
+        <option value="AWARD">Award</option>
+        <option value="PERIODIC_AUDIT">Periodic Audit</option>
+      </select>
+      <button class="btn btn-primary btn-sm" id="btn-new" onclick="openNew()"><i class="bi bi-plus-lg me-1"></i>New Qualification</button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-hover atca-table">
+        <thead><tr><th>Ref</th><th>Customer</th><th>Process</th><th>Specification</th><th>Stage</th><th>Gaps</th><th>Valid To</th><th>Next Audit</th></tr></thead>
+        <tbody id="tbody-list"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- Detail modal -->
+<div class="modal fade" id="modal-detail" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title" id="d-title">Qualification</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body" id="d-body"></div>
+</div></div></div>
+
+<!-- New qualification modal -->
+<div class="modal fade" id="modal-new" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">New Qualification</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div class="mb-2"><label class="form-label">PCM Capability (optional)</label>
+      <select class="form-select form-select-sm" id="n-cap" onchange="capPicked()"><option value="">— pick from Capability Master —</option></select></div>
+    <div class="mb-2"><label class="form-label">Customer / Category <span class="text-danger">*</span></label>
+      <input class="form-control form-control-sm" id="n-customer"></div>
+    <div class="mb-2"><label class="form-label">Process <span class="text-danger">*</span></label>
+      <input class="form-control form-control-sm" id="n-process"></div>
+    <div class="mb-2"><label class="form-label">Specification <span class="text-danger">*</span></label>
+      <input class="form-control form-control-sm" id="n-spec"></div>
+    <div class="mb-2"><label class="form-label">Audit interval (months)</label>
+      <input type="number" class="form-control form-control-sm" id="n-interval" value="12"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+    <button class="btn btn-primary btn-sm" onclick="saveNew()"><i class="bi bi-check-lg me-1"></i>Raise Qualification</button>
+  </div>
+</div></div></div>
+
+<!-- Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast-msg" class="toast align-items-center text-bg-success border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="toast-body"></div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=5"></script>
+<script>
+'use strict';
+const STAGES = ['GAP_ANALYSIS','GAP_CLOSURE','QUALIFICATION','AWARD','PERIODIC_AUDIT'];
+const STAGE_LABEL = { GAP_ANALYSIS:'Gap Analysis', GAP_CLOSURE:'Close Gap', QUALIFICATION:'Qualification', AWARD:'Award', PERIODIC_AUDIT:'Periodic Audit' };
+let toast, caps = [];
+
+(async () => {
+  await ATCA.initPage();
+  toast = new bootstrap.Toast(document.getElementById('toast-msg'));
+  await Promise.all([loadKpis(), loadList(), loadCaps()]);
+  // deep-link from PCM: ?capability_id=
+  const cid = new URLSearchParams(location.search).get('capability_id');
+  if (cid) { openNew(); document.getElementById('n-cap').value = cid; capPicked(); }
+})();
+
+function showToast(m, ok=true){ const e=document.getElementById('toast-msg'); e.className=`toast align-items-center text-bg-${ok?'success':'danger'} border-0`; document.getElementById('toast-body').textContent=m; toast.show(); }
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function stageBadge(s){ return `<span class="badge stage-badge-${s}" style="color:#fff">${STAGE_LABEL[s]||s}</span>`; }
+
+async function loadKpis(){
+  const a = await ATCA.api.get('/mod29/alerts/summary'); if(!a) return;
+  document.getElementById('val-gap').textContent = a.in_gap_analysis;
+  document.getElementById('val-gaps-open').textContent = a.gaps_open;
+  document.getElementById('val-inqual').textContent = a.in_qualification;
+  document.getElementById('val-active').textContent = a.awarded_active;
+  document.getElementById('val-audits').textContent = a.audits_due;
+  document.getElementById('kpi-gaps-open').classList.toggle('rag-amber', a.gaps_open>0);
+  document.getElementById('kpi-audits').classList.toggle('rag-red', a.audits_due>0);
+  document.getElementById('kpi-active').classList.toggle('rag-green', a.awarded_active>0);
+}
+
+async function loadList(){
+  const status = document.getElementById('f-status').value;
+  const d = await ATCA.api.get(`/mod29/qualifications?status=${status}`); if(!d) return;
+  let items = d.items;
+  if(status) items = items.filter(x=>x.status===status);
+  ATCA.table.render('tbody-list', items, q => {
+    const gp = q.gaps_total ? `${q.gaps_closed}/${q.gaps_total}` : '—';
+    return `<tr style="cursor:pointer" onclick="openDetail(${q.qual_id})">
+      <td><code>${esc(q.qual_ref)}</code></td>
+      <td>${esc(q.customer_name)}</td>
+      <td>${esc(q.process_name)}</td>
+      <td><small>${esc(q.specification)}</small></td>
+      <td>${stageBadge(q.status)}</td>
+      <td class="text-center">${gp}</td>
+      <td>${esc((q.valid_to||'').slice(0,10)||'—')}</td>
+      <td>${esc((q.next_audit_due||'').slice(0,10)||'—')}</td>
+    </tr>`;
+  });
+}
+
+async function loadCaps(){
+  const d = await ATCA.api.get('/mod28/capabilities'); if(!d) return;
+  caps = d.items;
+  document.getElementById('n-cap').innerHTML = '<option value="">— pick from Capability Master —</option>' +
+    caps.map(c=>`<option value="${c.capability_id}">${esc(c.process_name)} · ${esc(c.customer_category)} · ${esc((c.specification||'').slice(0,30))}</option>`).join('');
+}
+
+function capPicked(){
+  const id = parseInt(document.getElementById('n-cap').value);
+  const c = caps.find(x=>x.capability_id===id); if(!c) return;
+  document.getElementById('n-customer').value = c.customer_category;
+  document.getElementById('n-process').value = c.process_name;
+  document.getElementById('n-spec').value = c.specification;
+}
+
+function openNew(){
+  ['n-customer','n-process','n-spec'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('n-cap').value=''; document.getElementById('n-interval').value='12';
+  new bootstrap.Modal(document.getElementById('modal-new')).show();
+}
+
+async function saveNew(){
+  const body = {
+    capability_id: parseInt(document.getElementById('n-cap').value)||null,
+    customer_name: document.getElementById('n-customer').value.trim(),
+    process_name: document.getElementById('n-process').value.trim(),
+    specification: document.getElementById('n-spec').value.trim(),
+    audit_interval_months: parseInt(document.getElementById('n-interval').value)||12,
+  };
+  if(!body.customer_name||!body.process_name||!body.specification){ return showToast('Customer, process and specification are required.', false); }
+  const r = await ATCA.api.post('/mod29/qualifications', body); if(!r) return;
+  showToast(`Qualification ${r.qual_ref||''} raised.`);
+  bootstrap.Modal.getInstance(document.getElementById('modal-new')).hide();
+  loadList(); loadKpis();
+}
+
+// ── Detail with 5-stage tracker ──
+async function openDetail(id){
+  const q = await ATCA.api.get(`/mod29/qualifications/${id}`); if(!q) return;
+  document.getElementById('d-title').innerHTML = `${esc(q.qual_ref)} — ${esc(q.customer_name)} · ${esc(q.process_name)}`;
+  const cur = STAGES.indexOf(q.status);
+
+  // stage tracker
+  const track = STAGES.map((s,i)=>{
+    const cls = cur<0 ? 'ql-step--pending' : (i<cur?'ql-step--done':(i===cur?'ql-step--active':'ql-step--pending'));
+    return `<div class="ql-step ${cls}"><div class="qn">${i+1}</div><div class="ql-label">${STAGE_LABEL[s]}</div>
+      <div class="ql-sub">${i<cur?'Complete':i===cur?'Current':'Pending'}</div></div>`;
+  }).join('');
+
+  const gaps = (q.gaps||[]);
+  const gapRows = gaps.length ? gaps.map(g=>`
+    <tr><td>${g.gap_no}</td><td><small>${esc(g.requirement)}</small></td><td><small>${esc(g.gap_desc)}</small></td>
+    <td><span class="badge bg-${g.severity==='CRITICAL'||g.severity==='HIGH'?'danger':g.severity==='MEDIUM'?'warning text-dark':'secondary'}">${g.severity}</span></td>
+    <td>${esc(g.owner_name||'—')}</td><td>${esc((g.due_date||'').slice(0,10)||'—')}</td>
+    <td><span class="badge bg-${g.status==='CLOSED'?'success':g.status==='IN_PROGRESS'?'info':'secondary'}">${g.status}</span></td>
+    <td>${g.status!=='CLOSED'?`<button class="btn btn-xs btn-outline-success" onclick="closeGap(${id},${g.gap_id})">Close</button>`:''}</td></tr>`).join('')
+    : '<tr><td colspan="8" class="text-muted text-center">No gaps logged.</td></tr>';
+
+  const acts = (q.activities||[]);
+  const actRows = acts.length ? acts.map(a=>`
+    <tr><td>${esc(a.activity_type)}</td><td>${esc((a.activity_date||'').slice(0,10))}</td><td>${esc(a.performed_by||'—')}</td>
+    <td>${a.result?`<span class="badge bg-${a.result==='PASS'?'success':a.result==='FAIL'?'danger':'warning text-dark'}">${a.result}</span>`:'—'}</td>
+    <td><small>${esc(a.report_ref||'')}</small></td></tr>`).join('')
+    : '<tr><td colspan="5" class="text-muted text-center">No activities.</td></tr>';
+
+  const auds = (q.periodic_audits||[]);
+  const audRows = auds.length ? auds.map(a=>`
+    <tr><td>#${a.audit_no}</td><td>${esc((a.actual_date||a.scheduled_date||'').slice(0,10))}</td><td>${esc(a.auditor||'—')}</td>
+    <td>${a.result?`<span class="badge bg-${a.result==='PASS'?'success':a.result==='FAIL'?'danger':'warning text-dark'}">${a.result}</span>`:'—'}</td>
+    <td>${esc((a.next_due||'').slice(0,10)||'—')}</td></tr>`).join('')
+    : '<tr><td colspan="5" class="text-muted text-center">No periodic audits yet.</td></tr>';
+
+  const award = q.certificate_no ? `
+    <div class="alert alert-success py-2"><i class="bi bi-patch-check me-1"></i>
+      <strong>Awarded</strong> — Cert ${esc(q.certificate_no)} · ${esc(q.approval_authority||'')} ·
+      valid ${esc((q.valid_from||'').slice(0,10))} → ${esc((q.valid_to||'').slice(0,10))} ·
+      next audit ${esc((q.next_audit_due||'').slice(0,10)||'—')}</div>` : '';
+
+  const canAdvance = cur>=0 && cur<STAGES.length-1 && q.status!=='AWARD';
+  const advBtn = canAdvance ? `<button class="btn btn-sm btn-primary" onclick="advance(${id})"><i class="bi bi-arrow-right me-1"></i>Advance to ${STAGE_LABEL[STAGES[cur+1]]}</button>` : '';
+  const awardBtn = q.status==='AWARD' ? `<button class="btn btn-sm btn-success" onclick="award(${id})"><i class="bi bi-award me-1"></i>Award &amp; Certify</button>` : '';
+  const auditBtn = q.status==='PERIODIC_AUDIT' ? `<button class="btn btn-sm btn-outline-primary" onclick="logAudit(${id})"><i class="bi bi-clipboard-check me-1"></i>Log Periodic Audit</button>` : '';
+  const actBtn = (q.status==='QUALIFICATION') ? `<button class="btn btn-sm btn-outline-secondary" onclick="addActivity(${id})"><i class="bi bi-plus me-1"></i>Record Activity</button>` : '';
+  const gapBtn = (q.status==='GAP_ANALYSIS'||q.status==='GAP_CLOSURE') ? `<button class="btn btn-sm btn-outline-secondary" onclick="addGap(${id})"><i class="bi bi-plus me-1"></i>Add Gap</button>` : '';
+
+  document.getElementById('d-body').innerHTML = `
+    <div class="mb-2"><strong>Specification:</strong> ${esc(q.specification)} &nbsp; ${stageBadge(q.status)}</div>
+    <div class="ql-track mb-3">${track}</div>
+    ${award}
+    <div class="d-flex gap-2 mb-3 flex-wrap">${gapBtn}${actBtn}${advBtn}${awardBtn}${auditBtn}</div>
+    <h6 class="text-uppercase text-muted" style="font-size:.7rem">Stage 1–2 · Gap Analysis &amp; Closure</h6>
+    <table class="table table-sm"><thead><tr><th>#</th><th>Requirement</th><th>Gap</th><th>Sev</th><th>Owner</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody>${gapRows}</tbody></table>
+    <h6 class="text-uppercase text-muted mt-3" style="font-size:.7rem">Stage 3 · Qualification Activities</h6>
+    <table class="table table-sm"><thead><tr><th>Type</th><th>Date</th><th>By</th><th>Result</th><th>Report</th></tr></thead><tbody>${actRows}</tbody></table>
+    <h6 class="text-uppercase text-muted mt-3" style="font-size:.7rem">Stage 5 · Periodic Audits</h6>
+    <table class="table table-sm"><thead><tr><th>#</th><th>Date</th><th>Auditor</th><th>Result</th><th>Next Due</th></tr></thead><tbody>${audRows}</tbody></table>`;
+  new bootstrap.Modal(document.getElementById('modal-detail')).show();
+}
+
+async function refresh(id){ await Promise.all([loadKpis(), loadList()]); openDetail(id); }
+
+async function addGap(id){
+  const requirement = prompt('Requirement / customer clause:'); if(!requirement) return;
+  const gap_desc = prompt('Gap description:'); if(!gap_desc) return;
+  const r = await ATCA.api.post(`/mod29/qualifications/${id}/gaps`, { requirement, gap_desc, severity:'MEDIUM' });
+  if(r){ showToast('Gap added.'); refresh(id); }
+}
+async function closeGap(id, gid){
+  const evidence_ref = prompt('Evidence reference for closing this gap:') || '';
+  const r = await ATCA.api.put(`/mod29/gaps/${gid}`, { status:'CLOSED', evidence_ref });
+  if(r){ showToast('Gap closed.'); refresh(id); }
+}
+async function addActivity(id){
+  const activity_type = (prompt('Activity type (TRIAL / FAI / CUSTOMER_AUDIT / THIRD_PARTY_AUDIT / DOC_REVIEW):','FAI')||'').toUpperCase();
+  if(!activity_type) return;
+  const result = (prompt('Result (PASS / FAIL / CONDITIONAL):','PASS')||'').toUpperCase() || null;
+  const r = await ATCA.api.post(`/mod29/qualifications/${id}/activities`, { activity_type, result, activity_date:new Date().toISOString().slice(0,10) });
+  if(r){ showToast('Activity recorded.'); refresh(id); }
+}
+async function advance(id){
+  const r = await ATCA.api.post(`/mod29/qualifications/${id}/advance`, {});
+  if(r){ showToast(r.message||'Advanced.'); refresh(id); }
+}
+async function award(id){
+  const certificate_no = prompt('Certificate number:'); if(!certificate_no) return;
+  const valid_from = prompt('Valid from (YYYY-MM-DD):', new Date().toISOString().slice(0,10)); if(!valid_from) return;
+  const valid_to = prompt('Valid to (YYYY-MM-DD):'); if(!valid_to) return;
+  const approval_authority = prompt('Approval authority (customer SQE / NADCAP):') || '';
+  const r = await ATCA.api.post(`/mod29/qualifications/${id}/award`, { certificate_no, valid_from, valid_to, approval_authority });
+  if(r){ showToast('Qualification awarded.'); refresh(id); }
+}
+async function logAudit(id){
+  const actual_date = prompt('Audit date (YYYY-MM-DD):', new Date().toISOString().slice(0,10)); if(!actual_date) return;
+  const auditor = prompt('Auditor:') || '';
+  const result = (prompt('Result (PASS / FAIL / CONDITIONAL):','PASS')||'').toUpperCase() || null;
+  const r = await ATCA.api.post(`/mod29/qualifications/${id}/periodic-audits`, { actual_date, auditor, result });
+  if(r){ showToast('Periodic audit logged.'); refresh(id); }
+}
+</script>
+</body>
+</html>

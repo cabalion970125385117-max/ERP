@@ -44,7 +44,7 @@ Six roles in ascending privilege order:
 
 ---
 
-## Modules (26 SoR Modules — All Complete)
+## Modules (28 SoR + Phase 10 Modules — All Complete)
 
 ### Quality Management
 
@@ -63,7 +63,7 @@ Six roles in ascending privilege order:
 | **MOD-03** FPI Process Control | 8-step traveler (ASTM E1417/AMS 2644), sequential sign-off, disposition | AC7114, NAS410 |
 | **MOD-04** Personnel & NAS410 | Certifications (Level I/II/III), eye exams, qualification tracking | NAS410, AS9100D §7.2 |
 | **MOD-05** Equipment & Calibration | Equipment register, calibration records, RAG due alerts, OOT quarantine | AS9100D §7.1.5 |
-| **MOD-06** Chemical Bath Control | Bath register, sample recording, RAG status, out-of-spec workflow | AC7108, AC7110, AC7114 |
+| **MOD-06** Chemical Processing (Electroplating) & FPI Tank Control | Two registers split by `process_category`: **FPI Process Tanks (NDT** · ASTM E1417/AMS 2644) and **Electroplating / Chemical Processing** (anodize, plating, EN, passivation… per the PCM, with Bay + size envelope); per-tab KPIs, sample recording, RAG, out-of-spec workflow | AC7108, AC7110, AC7114, E1417 |
 | **MOD-17** MPT Process Control | 6-step AC7114 traveler (ASTM E1444), UV/ambient light gates | AC7114, NAS410 |
 
 ### Operations
@@ -97,6 +97,12 @@ Six roles in ascending privilege order:
 | **MOD-25** User & Role Management | User register, create/edit/deactivate, password reset (bcrypt), signature upload; ADMIN mutations, QA_MANAGER+ view |
 | **MOD-26** System Maintenance Console | ADMIN-gated superuser console — storage analytics, activity logs, user management, password control, backup & download, maintenance mode toggle |
 | **MOD-27** Value Flow Tracker | Interactive 8-stage PO→GRN→WO→NDT→COC→DO pipeline diagram; GRN lookup shows live job position with colour-coded stage status; clickable stage nodes link to owning module; read-only (NDT_INSPECTOR+); AS9100D §8.5 |
+| **MOD-28** Process Capability Master | Mirrors `ATC-PCM-001` — process × customer × specification capability register (Anodizing, plating, EN, passivation, NDT…), tiered classifications + size envelope, revision history; seeded from the PCM workbook via `tools/import_pcm.py` |
+| **MOD-29** Customer Qualification | Qualification lifecycle — Gap Analysis → Close Gap → Qualification → Award → Periodic Audit; gaps escalatable to NCR, qualification activities (trial/FAI/audit), award (cert + validity, QA_MANAGER-gated), recurring periodic audits; AS9100D §8.4 / §9.2 |
+| **MOD-30** Pyrometry & Heat-Treat | Oven/furnace register (AMS 2750H), TUS & SAT pyrometry schedules, thermocouple expiry/usage, **aerospace-only routing check** (which qualified oven can run a process temp); NADCAP AC7102 |
+| **MOD-31** Operator Competency & PIN Sign-off | Competency matrix (operator × process × customer × bay), approval levels/expiry; **PIN-verified non-repudiable electronic sign-off** with competency gate + audit trail; NAS410, AS9100D §7.2 |
+| **MOD-32** Bay Load Scheduler | Bay/shift scheduling queue; **tank-fit check** (part L×W×D vs PCM tank envelope, OVERSIZE flag); visual slot cards per bay × shift; manual vs auto line; AS9100D §8.1 |
+| **MOD-33** Spec & Flowdown / Frozen Process | Spec library (customer/industry/internal); parameter flowdown spec→recipe; **frozen-process guard** (ENGINEER blocked on frozen specs, must raise ECN); ECN state machine (DRAFT→IMPLEMENTED); Acceptance Authority Matrix (2-person, PIN, QAM co-sign); NADCAP Frozen Process, AS9100D §8.1, §8.5.6 |
 
 ### Phase 8 Utilities
 
@@ -162,11 +168,17 @@ ATCA-ERP/
 │   │       ├── mod25-user-management/
 │   │       ├── mod26-maintenance/
 │   │       ├── mod27-value-flow/
+│   │       ├── mod28-pcm/              # MOD-28 Process Capability Master
+│   │       ├── mod29-qualification/    # MOD-29 Customer Qualification
+│   │       ├── mod30-pyrometry/        # MOD-30 Pyrometry & Heat-Treat
+│   │       ├── mod31-operator-competency/ # MOD-31 Operator Competency & PIN
+│   │       ├── mod32-bay-scheduler/    # MOD-32 Bay Load Scheduler + Tank-Fit
+│   │       ├── mod33-spec-flowdown/    # MOD-33 Spec & Flowdown / Frozen Process
 │   │       ├── mod-changelog/
 │   │       ├── mod-bugreport/
 │   │       └── mod-chat/
 │   └── database/
-│       └── migrations/             # 028 SQL migration scripts
+│       └── migrations/             # 036 SQL migration scripts
 ├── database/migrations/            # Additional migration scripts
 ├── preview_server.py               # Local preview server (no DB required)
 ├── vercel.json                     # Vercel static deployment config
@@ -267,7 +279,7 @@ All frontend files are **UTF-8 no-BOM**. Never save with PowerShell `Set-Content
 
 ## Testing
 
-See [TEST-PLAN.md](TEST-PLAN.md) for the full test plan (v1.2, 170+ test cases).
+See [TEST-PLAN.md](TEST-PLAN.md) for the full test plan (v1.7, 200+ test cases).
 
 **Sections:**
 - §2 Unit tests — auth, sequences, FPI, MPT, bath, calibration, personnel, finance, CoC, purchasing
@@ -280,17 +292,18 @@ See [TEST-PLAN.md](TEST-PLAN.md) for the full test plan (v1.2, 170+ test cases).
 
 ---
 
-## Phase 9 Backlog
+## Roadmap (Phases 9–12)
 
-The following cross-cutting features are planned for Phase 9:
+Forward features are sequenced into four structure-driven phases — see **[ROADMAP.md](ROADMAP.md)** for the full plan. Grounded in ATC's actual structure (process bays, AMS 2750 ovens, aerospace + semiconductor markets) from `ATC-PCM-001` and the SoR.
 
-- **Electronic Signature** — non-transferable, timestamped (required for NADCAP AAM)
-- **AAM (Acceptance Authority Matrix)** — authorisation register with 2-person rule for destructive ops
-- **ECN (Engineering Change Notice)** — change workflow with process impact assessment
-- **Frozen Process Control** — customer approval gate for locked process parameters
-- **Multi-entity Data Isolation** — all records tagged to legal entity for group operations
-- **Alert Escalation Engine** — configurable escalation paths and timeframes per module
-- **Document Template & Rule Engine** — form generation with compliance clause injection
+| Phase | Theme | New modules |
+|---|---|---|
+| **9** Special-Process Compliance Core ✅ **BUILT** | **MOD-30 Pyrometry & Heat-Treat** (AMS 2750 / NADCAP AC7102), **MOD-31 Operator Competency & PIN sign-off** (= Electronic Signature) |
+| **10** Capacity & Process Control ✅ **BUILT** | **MOD-32 Bay Load Scheduler + tank-fit**, **MOD-33 Spec & Flowdown / Frozen Process**, ECN, AAM |
+| **11** Chemicals, Safety & Escalation | **MOD-34 Chemical & Hazmat control** (SDS, bath make-up), Alert Escalation Engine |
+| **12** Market Expansion & Group Scale | **MOD-35 Semiconductor Segment**, Multi-entity isolation, Document Template & Rule Engine |
+
+**Recommended start:** Phase 9 → MOD-30 Pyrometry & Heat-Treat (largest NADCAP gap; data already in the PCM Equipment sheet).
 
 ---
 
