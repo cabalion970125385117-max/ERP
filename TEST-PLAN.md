@@ -1,9 +1,10 @@
 # ATCA-ERP System Test Plan
-**Version:** 1.7  
-**Date:** 2026-06-20  
+**Version:** 1.8  
+**Date:** 2026-06-21  
 **Prepared by:** QA / Development  
 **Standards:** AS9100D · NADCAP AC7102 · AC7108 · AC7110 · AC7114 · NAS410 · AMS 2750  
 
+> **v1.8 change (2026-06-21):** **Phase 11 built** — added **MOD-34 Chemical & Hazmat Control + Alert Escalation Engine** (§3.23, AC7108/AC7110, WSH/SDS, REACH/RoHS, AS9100D §9.1 — SDS OVERDUE/controlled-substance tests, bath make-up calculator, replenishment workflow, escalation-rule CRUD + acknowledge tests); §7 alert contract for MOD-34. Module-page count now **37**. See ROADMAP.md.  
 > **v1.7 change (2026-06-20):** **Phase 10 built** — added **MOD-32 Bay Load Scheduler + Tank-Fit** (§3.21, AS9100D §8.1, tank-fit check + oversize flag tests) and **MOD-33 Spec & Flowdown / Frozen Process** (§3.22, NADCAP frozen-process, ECN state-machine + AAM tests); §7 alert contracts for MOD-32/33. Module-page count now **36**. See ROADMAP.md.  
 > **v1.6 change (2026-06-17):** **Phase 9 built** — added **MOD-30 Pyrometry & Heat-Treat** (§3.19, NADCAP AC7102 / AMS 2750H, routing-gate tests) and **MOD-31 Operator Competency & PIN Sign-off** (§3.20, PIN = electronic signature, competency-gate + invalid-PIN tests); §7 alert contracts for MOD-30/31. Module-page count now **34**. See ROADMAP.md.  
 > **v1.5 change (2026-06-17):** Added MOD-06 FPI/Electroplating split (§3.16), **MOD-28 Process Capability Master** (§3.17) and **MOD-29 Customer Qualification** (§3.18, lifecycle state-machine guards); §7 alert contracts extended (MOD-06 split / MOD-28 / MOD-29). Built from customer file `ATC-PCM-001 Rev A`. Module-page count is now **32** (was 30); demo sweep (§15) covers all 32.  
@@ -487,6 +488,36 @@ Read-only module. All endpoints `requireMinRole('NDT_INSPECTOR')`.
 | UX-SPEC-04 | ECN Register tab | load | 3 ECN rows; first = ECN-2026-0001 PENDING_CUSTOMER |
 | UX-SPEC-05 | Authority Matrix tab | load | 10 AAM rows; 2-person/PIN/QAM/irreversible icons rendered |
 
+### 3.23 MOD-34 Chemical & Hazmat Control + Alert Escalation Engine
+
+| ID | Method + Path | Scenario | Expected |
+|---|---|---|---|
+| I-HAZ-01 | `GET /mod34/alerts/summary` | any auth | 200, `{sds_active, sds_expiring_30d, controlled_substances, replenishment_pending, escalation_rules_active, unacknowledged_alerts, low_stock_chemicals, total}` |
+| I-HAZ-02 | `GET /mod34/sds` | any auth | 12 SDS rows; `is_controlled=true` rows include OVERDUE expiry for expired SDS; `expiry_rag` = OVERDUE/DUE_SOON/OK |
+| I-HAZ-03 | `GET /mod34/sds?is_controlled=1` | any auth | only cyanide/cadmium rows returned (2 controlled substances) |
+| I-HAZ-04 | `POST /mod34/sds` NDT_INSPECTOR | — | 403 (ENGINEER+ required) |
+| I-HAZ-05 | `POST /mod34/sds` ENGINEER | valid payload | 201; `sds_id` returned; entry appears in GET /mod34/sds |
+| I-HAZ-06 | `PUT /mod34/sds/:id` ENGINEER | update expiry/version | 200; `updated_at` refreshed |
+| I-HAZ-07 | `GET /mod34/inventory` | any auth | 12 inventory rows; `stock_rag=LOW` where `quantity < min_stock_kg` (HCl row); `inv_expiry_rag=EXPIRING` for near-expiry items |
+| I-HAZ-08 | `POST /mod34/inventory` NDT_INSPECTOR | — | 403 (SUPERVISOR+ required) |
+| I-HAZ-09 | `GET /mod34/formulas?bath_type=CAD_PLATE` | any auth | 2 formula steps; step 1 `is_controlled=true`; step 2 NaOH; add_sequence ordering correct |
+| I-HAZ-10 | `GET /mod34/replenishment` | any auth | 3 records with status PENDING/IN_PROGRESS; `trigger_type` present |
+| I-HAZ-11 | `POST /mod34/replenishment` NDT_INSPECTOR | — | 403 (SUPERVISOR+ required) |
+| I-HAZ-12 | `POST /mod34/replenishment` SUPERVISOR | valid payload | 201; `replenishment_id` returned |
+| I-HAZ-13 | `PUT /mod34/replenishment/:id` SUPERVISOR | status=COMPLETED | 200; `completed_by` + `completed_at` populated |
+| I-HAZ-14 | `GET /mod34/escalation/rules` | any auth | 10 rules; levels span CRITICAL/ALERT/WARNING; all modules (mod06/07/30/31/33/34/05) covered |
+| I-HAZ-15 | `POST /mod34/escalation/rules` ENGINEER | — | 403 (QA_MANAGER+ required) |
+| I-HAZ-16 | `POST /mod34/escalation/rules` QA_MANAGER | valid payload | 201; rule appears in GET /mod34/escalation/rules |
+| I-HAZ-17 | `PUT /mod34/escalation/rules/:id` QA_MANAGER | `is_active=false` | 200; rule toggle reflected in list |
+| I-HAZ-18 | `GET /mod34/escalation/log` | any auth | log rows; unacknowledged rows have `acknowledged_at=null` |
+| I-HAZ-19 | `PUT /mod34/escalation/log/:id/acknowledge` | any auth | 200; `acknowledged_by` + `acknowledged_at` populated; row no longer in unacknowledged count |
+| UX-HAZ-01 | SDS Register tab | load | 12 rows; CONTROLLED badge + warning icon on cyanide rows; OVERDUE expiry shown in red |
+| UX-HAZ-02 | Bath Make-up Calculator | select CAD_PLATE | CONTROLLED SUBSTANCE danger banner; 2 sequenced steps; correct quantities for 1000L volume |
+| UX-HAZ-03 | Bath Make-up Calculator | change volume to 500L | quantities halve (e.g. 60L cad cyanide, 10kg NaOH) |
+| UX-HAZ-04 | Replenishment Queue | load | 3 cards (REP-0001 PENDING OUT_OF_SPEC, REP-0002 IN_PROGRESS, REP-0003 PENDING LOW_STOCK) |
+| UX-HAZ-05 | Escalation Rules tab | load | 10 rules; unacknowledged-alert banner shows "2 unacknowledged"; CRITICAL rows styled bold red |
+| UX-HAZ-06 | Escalation Log | unacknowledged row | Acknowledge button present; row highlighted yellow; after click = timestamp shown |
+
 ---
 
 ## 4. Compliance-Critical Test Cases
@@ -813,6 +844,7 @@ Every module exposes `GET /api/v1/modXX/alerts/summary`. Test that each returns 
 | MOD-31 | `total_competencies`, `approved_operators`, `expiring_90d`, `suspended`, `signoffs_today`, `total` |
 | MOD-32 | `scheduled_today`, `oversize_flagged`, `pending_confirmation`, `in_progress`, `total` |
 | MOD-33 | `active_specs`, `frozen_specs`, `ecn_pending`, `ecn_overdue`, `aam_entries`, `frozen_recipes`, `total` |
+| MOD-34 | `sds_active`, `sds_expiring_30d`, `controlled_substances`, `replenishment_pending`, `escalation_rules_active`, `unacknowledged_alerts`, `low_stock_chemicals`, `total` |
 | BUGREPORT | `open_bugs`, `critical_bugs`, `resolved_this_month`, `avg_resolution_days` |
 
 **Test pattern (backend):** Call endpoint, assert 200, assert all fields present and numeric (not undefined/null).

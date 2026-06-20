@@ -52,8 +52,10 @@ This roadmap turns the structure-driven feature suggestions into sequenced, ship
 
 ---
 
-## Phase 11 — Chemicals, Safety & Escalation
+## Phase 11 — Chemicals, Safety & Escalation  ✅ BUILT 2026-06-21
 *Theme: the regulated-chemical operation and proactive alerting.*
+
+> **Built:** MOD-34 (migration 037, api/mod34, modules/mod34-chemical-hazmat — ChemicalSDS 12-chemical register/ChemicalInventory/BathMakeupFormula/BathReplenishment/EscalationRule/EscalationLog/vw_SDSExpiry/vw_ReplenishmentQueue; SDS register with OVERDUE/DUE_SOON RAG + controlled-substance flags; bath make-up calculator with sequenced addition steps + CONTROLLED SUBSTANCE warning banner; replenishment queue OUT_OF_SPEC/SCHEDULED/LOW_STOCK/MANUAL triggers; 4-tab UI: SDS/Make-up/Inventory/Escalation; Alert Escalation Engine = 10 cross-module escalation rules covering mod06/07/30/31/33/34/05 with CRITICAL/ALERT/WARNING levels, notify-roles, delay configuration, and acknowledge workflow; demo via tools/mod34_demo.json). Preview-verified: KPIs 12/2/2/3, 12 SDS rows, CONTROLLED badge + OVERDUE on cyanide compounds, CAD_PLATE calculator with 2-step sequence and controlled-substance banner, 3 replenishment cards, 10 escalation rules, 2-alert unacknowledged banner.
 
 | Module | Feature | Ties to structure | Compliance | Key build |
 |---|---|---|---|---|

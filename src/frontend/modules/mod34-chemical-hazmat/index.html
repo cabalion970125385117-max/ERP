@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOD-34 Chemical &amp; Hazmat Control — ATCA-ERP</title>
+<link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
+<link rel="stylesheet" href="/assets/css/atca-erp.css">
+<style>
+  .hazard-badge { font-size:.72rem; font-weight:600; border-radius:4px; padding:2px 7px; letter-spacing:.04em; }
+  .hb-CORROSIVE   { background:#ffc107; color:#000; }
+  .hb-TOXIC       { background:#6f42c1; color:#fff; }
+  .hb-FLAMMABLE   { background:#fd7e14; color:#fff; }
+  .hb-OXIDIZER    { background:#0dcaf0; color:#000; }
+  .hb-CONTROLLED  { background:#dc3545; color:#fff; }
+  .hb-ENVIRONMENTAL{ background:#198754; color:#fff; }
+  .hb-INERT       { background:#6c757d; color:#fff; }
+  .controlled-row { background:rgba(220,53,69,.06) !important; }
+  .controlled-icon { color:#dc3545; }
+  .rag-OVERDUE, .rag-LOW    { color:#dc3545; font-weight:700; }
+  .rag-DUE_SOON, .rag-EXPIRING { color:#fd7e14; font-weight:700; }
+  .rag-OK         { color:#198754; }
+  .level-CRITICAL { color:#dc3545; font-weight:700; }
+  .level-ALERT    { color:#fd7e14; font-weight:600; }
+  .level-WARNING  { color:#0d6efd; }
+  .rep-card { border-left:4px solid #fd7e14; border-radius:6px; background:#fff; padding:14px 16px; margin-bottom:10px; }
+  .rep-card.status-PENDING     { border-color:#ffc107; }
+  .rep-card.status-IN_PROGRESS { border-color:#0d6efd; }
+  .calc-panel { background:#f8f9fa; border:1px solid #dee2e6; border-radius:8px; padding:20px; }
+  .formula-step { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid #dee2e6; }
+  .formula-step:last-child { border-bottom:none; }
+  .step-num { width:28px; height:28px; border-radius:50%; background:#0d6efd; color:#fff;
+              display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<!-- Layout A Topbar -->
+<div id="topbar" class="atca-topbar d-flex align-items-center px-3 gap-3">
+  <span class="topbar-brand">ATCA<span class="topbar-brand-sub">ERP</span></span>
+  <span class="topbar-divider"></span>
+  <span class="topbar-module">MOD-34 — Chemical &amp; Hazmat Control</span>
+  <span class="ms-auto d-flex align-items-center gap-3">
+    <span class="badge bg-warning text-dark">AC7108/AC7110</span>
+    <span class="badge bg-danger">WSH / SDS</span>
+    <span id="userChip" class="topbar-user">—</span>
+  </span>
+</div>
+
+<div class="d-flex" style="min-height:calc(100vh - 52px);margin-top:52px;">
+<!-- Sidebar -->
+<nav id="sidebar" class="atca-sidebar d-flex flex-column p-3 gap-1" style="min-width:210px;">
+  <a href="/" class="sidebar-link"><i class="bi bi-house-fill me-2"></i>Home</a>
+  <div class="sidebar-section">Chemical &amp; Hazmat</div>
+  <a href="#" class="sidebar-link active" onclick="switchTab('sds')"><i class="bi bi-file-earmark-medical me-2"></i>SDS Register</a>
+  <a href="#" class="sidebar-link" onclick="switchTab('makeup')"><i class="bi bi-calculator me-2"></i>Bath Make-up</a>
+  <a href="#" class="sidebar-link" onclick="switchTab('inventory')"><i class="bi bi-boxes me-2"></i>Inventory</a>
+  <a href="#" class="sidebar-link" onclick="switchTab('escalation')"><i class="bi bi-bell-fill me-2"></i>Escalation Rules</a>
+</nav>
+
+<!-- Main -->
+<main class="flex-grow-1 p-4">
+
+  <!-- KPI Row -->
+  <div class="row g-3 mb-4" id="kpiRow">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card">
+        <div class="kpi-label">SDS Active</div>
+        <div class="kpi-value" id="kpiSdsActive">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card rag-red">
+        <div class="kpi-label">SDS Expiring / Overdue</div>
+        <div class="kpi-value" id="kpiSdsExpiring">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card rag-amber">
+        <div class="kpi-label">Controlled Substances</div>
+        <div class="kpi-value" id="kpiControlled">—</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card rag-amber">
+        <div class="kpi-label">Replenishment Pending</div>
+        <div class="kpi-value" id="kpiReplenishment">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4" id="mainTabs">
+    <li class="nav-item"><a class="nav-link active" href="#" onclick="switchTab('sds');return false;"><i class="bi bi-file-earmark-medical me-1"></i>SDS Register</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('makeup');return false;"><i class="bi bi-calculator me-1"></i>Bath Make-up / Replenishment</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('inventory');return false;"><i class="bi bi-boxes me-1"></i>Inventory</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="switchTab('escalation');return false;"><i class="bi bi-bell-fill me-1"></i>Escalation Rules</a></li>
+  </ul>
+
+  <!-- ── Tab: SDS Register ── -->
+  <div id="tab-sds">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex gap-2 flex-wrap">
+        <select id="filterHazard" class="form-select form-select-sm" style="width:160px;" onchange="loadSDS()">
+          <option value="">All Hazard Classes</option>
+          <option value="CORROSIVE">CORROSIVE</option>
+          <option value="TOXIC">TOXIC</option>
+          <option value="FLAMMABLE">FLAMMABLE</option>
+          <option value="OXIDIZER">OXIDIZER</option>
+          <option value="CONTROLLED">CONTROLLED</option>
+          <option value="ENVIRONMENTAL">ENVIRONMENTAL</option>
+          <option value="INERT">INERT</option>
+        </select>
+        <select id="filterControlled" class="form-select form-select-sm" style="width:160px;" onchange="loadSDS()">
+          <option value="">All Chemicals</option>
+          <option value="1">Controlled only</option>
+          <option value="0">Non-controlled</option>
+        </select>
+      </div>
+      <button class="btn btn-sm btn-primary" data-compliance="WSH Act / SDS" onclick="openSdsModal()">
+        <i class="bi bi-plus-lg me-1"></i>Add SDS
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle" id="sdsTable">
+        <thead><tr>
+          <th>Chemical Name</th><th>Common Name</th><th>Hazard Class</th>
+          <th>UN#</th><th>CAS#</th><th>Supplier</th>
+          <th>Version</th><th>Expiry</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody id="sdsTbody"><tr><td colspan="10" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Tab: Bath Make-up / Replenishment ── -->
+  <div id="tab-makeup" style="display:none;">
+    <div class="row g-4">
+      <!-- Bath Make-up Calculator -->
+      <div class="col-md-6">
+        <h5 class="fw-semibold mb-3"><i class="bi bi-calculator me-2 text-primary"></i>Bath Make-up Calculator</h5>
+        <div class="calc-panel">
+          <div class="mb-3">
+            <label class="form-label fw-medium">Bath Type</label>
+            <select id="calcBathType" class="form-select" onchange="loadFormulas()">
+              <option value="">Select bath type…</option>
+              <option value="HARD_ANODIZE">Hard Anodize (BAY2)</option>
+              <option value="EN">Electroless Nickel (BAY2)</option>
+              <option value="CAD_PLATE">Cadmium Plate (BAY4)</option>
+              <option value="SILVER_PLATE">Silver Plate (BAY4)</option>
+              <option value="PHOSPHATE">Phosphating (BAY3)</option>
+              <option value="PASSIVATION">Passivation (BAY5)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Bath Volume (Litres)</label>
+            <input type="number" id="calcVolume" class="form-control" value="1000" min="1" oninput="recalcFormula()">
+          </div>
+          <div id="formulaSteps" class="mt-3"></div>
+        </div>
+      </div>
+      <!-- Replenishment Queue -->
+      <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-semibold mb-0"><i class="bi bi-arrow-repeat me-2 text-warning"></i>Replenishment Queue</h5>
+          <button class="btn btn-sm btn-outline-warning" onclick="openReplenishModal()"><i class="bi bi-plus-lg me-1"></i>New</button>
+        </div>
+        <div id="replenishList"><div class="text-center text-muted py-3">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tab: Inventory ── -->
+  <div id="tab-inventory" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-semibold mb-0">Chemical Inventory</h5>
+      <button class="btn btn-sm btn-primary" onclick="openInventoryModal()"><i class="bi bi-plus-lg me-1"></i>Add Stock</button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead><tr>
+          <th>Chemical</th><th>Hazard</th><th>Location</th>
+          <th>Qty</th><th>Min Stock</th><th>Stock</th>
+          <th>Batch</th><th>Expiry</th>
+        </tr></thead>
+        <tbody id="inventoryTbody"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── Tab: Escalation Rules ── -->
+  <div id="tab-escalation" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="fw-semibold mb-0">Alert Escalation Engine</h5>
+        <small class="text-muted">Configurable rules per module — feeds into MOD-15 KPI Dashboard (AS9100D §9.1)</small>
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="openRuleModal()"><i class="bi bi-plus-lg me-1"></i>Add Rule</button>
+    </div>
+
+    <!-- Unacknowledged alerts banner -->
+    <div id="alertBanner" style="display:none;" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+      <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+      <div><strong id="alertBannerText"></strong> — acknowledge via the log below.</div>
+    </div>
+
+    <div class="table-responsive mb-4">
+      <table class="table table-hover align-middle">
+        <thead><tr>
+          <th>Rule</th><th>Module</th><th>Field</th><th>Condition</th>
+          <th>Level</th><th>Notify</th><th>Delay</th><th>Active</th><th></th>
+        </tr></thead>
+        <tbody id="rulesTbody"><tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+      </table>
+    </div>
+
+    <h6 class="fw-semibold mb-2">Recent Escalation Log</h6>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead><tr>
+          <th>Triggered</th><th>Rule</th><th>Module</th><th>Value</th>
+          <th>Level</th><th>Acknowledged</th>
+        </tr></thead>
+        <tbody id="logTbody"><tr><td colspan="6" class="text-center text-muted py-2">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ── SDS Detail / Edit Modal ── -->
+<div class="modal fade" id="sdsModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sdsModalTitle">SDS Detail</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="sdsModalBody">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Chemical Name *</label>
+            <input id="sdsChemName" class="form-control" type="text">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Common Name</label>
+            <input id="sdsCommonName" class="form-control" type="text">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">UN Number</label>
+            <input id="sdsUn" class="form-control" type="text" placeholder="UN1234">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">CAS Number</label>
+            <input id="sdsCas" class="form-control" type="text">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Hazard Class *</label>
+            <select id="sdsHazardClass" class="form-select">
+              <option value="CORROSIVE">CORROSIVE</option>
+              <option value="TOXIC">TOXIC</option>
+              <option value="FLAMMABLE">FLAMMABLE</option>
+              <option value="OXIDIZER">OXIDIZER</option>
+              <option value="CONTROLLED">CONTROLLED</option>
+              <option value="ENVIRONMENTAL">ENVIRONMENTAL</option>
+              <option value="INERT">INERT</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Controlled Substance?</label>
+            <select id="sdsControlled" class="form-select">
+              <option value="0">No</option>
+              <option value="1">Yes — cyanide / cadmium</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Supplier</label>
+            <input id="sdsSupplier" class="form-control" type="text">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Version</label>
+            <input id="sdsSdsVersion" class="form-control" type="text" placeholder="Rev 1">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Issue Date</label>
+            <input id="sdsIssueDate" class="form-control" type="date">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Expiry Date</label>
+            <input id="sdsExpiryDate" class="form-control" type="date">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Special Handling</label>
+            <textarea id="sdsSpecialHandling" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">PPE Required</label>
+            <textarea id="sdsPpe" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Storage Conditions</label>
+            <textarea id="sdsStorage" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Disposal Method</label>
+            <textarea id="sdsDisposal" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveSdsBtn" onclick="saveSDS()">Save SDS</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Replenishment Modal ── -->
+<div class="modal fade" id="replenishModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New Replenishment Action</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Chemical (SDS)</label>
+          <select id="repSdsId" class="form-select"></select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Trigger Type</label>
+          <select id="repTrigger" class="form-select">
+            <option value="MANUAL">Manual</option>
+            <option value="OUT_OF_SPEC">Out of Spec</option>
+            <option value="SCHEDULED">Scheduled</option>
+            <option value="LOW_STOCK">Low Stock</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Parameter</label>
+          <input id="repParamName" class="form-control" type="text" placeholder="e.g. H2SO4 Concentration">
+        </div>
+        <div class="row g-2">
+          <div class="col-4">
+            <label class="form-label">Current</label>
+            <input id="repCurrent" class="form-control" type="number">
+          </div>
+          <div class="col-4">
+            <label class="form-label">Target</label>
+            <input id="repTarget" class="form-control" type="number">
+          </div>
+          <div class="col-4">
+            <label class="form-label">Add (qty)</label>
+            <input id="repQty" class="form-control" type="number">
+          </div>
+        </div>
+        <div class="mt-2">
+          <label class="form-label">Unit</label>
+          <select id="repUnit" class="form-select">
+            <option value="kg">kg</option>
+            <option value="L">L</option>
+            <option value="g">g</option>
+            <option value="mL">mL</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-warning" onclick="saveReplenishment()">Create Action</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add Escalation Rule Modal ── -->
+<div class="modal fade" id="ruleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Escalation Rule</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Rule Name *</label>
+          <input id="ruleRuleName" class="form-control" type="text">
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label">Module</label>
+            <select id="ruleModuleId" class="form-select">
+              <option value="mod03">MOD-03 FPI</option>
+              <option value="mod05">MOD-05 Calibration</option>
+              <option value="mod06">MOD-06 Bath Control</option>
+              <option value="mod07">MOD-07 NCR/CAPA</option>
+              <option value="mod30">MOD-30 Pyrometry</option>
+              <option value="mod31">MOD-31 Competency</option>
+              <option value="mod32">MOD-32 Bay Schedule</option>
+              <option value="mod33">MOD-33 Spec Flowdown</option>
+              <option value="mod34">MOD-34 Chemical/Hazmat</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Alert Field</label>
+            <input id="ruleAlertField" class="form-control" type="text" placeholder="e.g. out_of_spec">
+          </div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-4">
+            <label class="form-label">Operator</label>
+            <select id="ruleOperator" class="form-select">
+              <option value="GT">GT (&gt;)</option>
+              <option value="GTE">GTE (&ge;)</option>
+              <option value="LT">LT (&lt;)</option>
+              <option value="LTE">LTE (&le;)</option>
+            </select>
+          </div>
+          <div class="col-4">
+            <label class="form-label">Threshold</label>
+            <input id="ruleThreshold" class="form-control" type="number" value="0">
+          </div>
+          <div class="col-4">
+            <label class="form-label">Level</label>
+            <select id="ruleLevel" class="form-select">
+              <option value="WARNING">WARNING</option>
+              <option value="ALERT">ALERT</option>
+              <option value="CRITICAL">CRITICAL</option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Notify Roles (comma-separated)</label>
+          <input id="ruleNotifyRoles" class="form-control" type="text" placeholder="SUPERVISOR,QA_MANAGER">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Escalation Delay (hours)</label>
+          <input id="ruleDelay" class="form-control" type="number" value="0" min="0">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" onclick="saveRule()">Create Rule</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=6"></script>
+<script>
+'use strict';
+
+/* ── State ─────────────────────────────────────────────────── */
+let currentTab    = 'sds';
+let sdsData       = [];
+let formulaData   = [];
+let inventoryData = [];
+let editingSdsId  = null;
+
+/* ── Tab switching ──────────────────────────────────────────── */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('tab-' + tab).style.display = '';
+  document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+  const idx = { sds: 0, makeup: 1, inventory: 2, escalation: 3 }[tab] ?? 0;
+  document.querySelectorAll('#mainTabs .nav-link')[idx]?.classList.add('active');
+  document.querySelectorAll('#sidebar .sidebar-link').forEach((a, i) => {
+    a.classList.toggle('active', i === idx + 1);
+  });
+  if (tab === 'sds')        loadSDS();
+  if (tab === 'makeup')     { loadFormulas(); loadReplenishment(); }
+  if (tab === 'inventory')  loadInventory();
+  if (tab === 'escalation') { loadEscalationRules(); loadEscalationLog(); }
+}
+
+/* ── KPIs ───────────────────────────────────────────────────── */
+async function loadKpis() {
+  const d = await ATCA.api.get('/mod34/alerts/summary');
+  document.getElementById('kpiSdsActive').textContent     = d.sds_active      ?? '—';
+  document.getElementById('kpiSdsExpiring').textContent   = d.sds_expiring_30d ?? '—';
+  document.getElementById('kpiControlled').textContent    = d.controlled_substances ?? '—';
+  document.getElementById('kpiReplenishment').textContent = d.replenishment_pending ?? '—';
+
+  const unack = d.unacknowledged_alerts ?? 0;
+  const banner = document.getElementById('alertBanner');
+  if (unack > 0) {
+    document.getElementById('alertBannerText').textContent =
+      `${unack} unacknowledged escalation alert${unack > 1 ? 's' : ''}`;
+    banner.style.display = '';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+/* ── Hazard badge helper ─────────────────────────────────────── */
+function hazardBadge(cls) {
+  return `<span class="hazard-badge hb-${cls}">${cls}</span>`;
+}
+
+function ragClass(rag) {
+  return rag === 'OVERDUE' ? 'rag-OVERDUE' : rag === 'DUE_SOON' ? 'rag-DUE_SOON' : 'rag-OK';
+}
+
+/* ── SDS Register ────────────────────────────────────────────── */
+async function loadSDS() {
+  const hc   = document.getElementById('filterHazard').value;
+  const ctrl = document.getElementById('filterControlled').value;
+  let path   = '/mod34/sds';
+  const qs   = [];
+  if (hc)   qs.push('hazard_class=' + hc);
+  if (ctrl) qs.push('is_controlled=' + ctrl);
+  if (qs.length) path += '?' + qs.join('&');
+
+  const data = await ATCA.api.get(path);
+  sdsData    = Array.isArray(data) ? data : [];
+  const tbody = document.getElementById('sdsTbody');
+
+  if (!sdsData.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">No records found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sdsData.map(s => `
+    <tr class="${s.is_controlled ? 'controlled-row' : ''}" style="cursor:pointer;" onclick="showSdsDetail(${s.sds_id})">
+      <td>
+        ${s.is_controlled ? '<i class="bi bi-exclamation-triangle-fill text-danger me-1" title="CONTROLLED"></i>' : ''}
+        <strong>${s.chemical_name}</strong>
+      </td>
+      <td class="text-muted small">${s.common_name || '—'}</td>
+      <td>${hazardBadge(s.hazard_class)}</td>
+      <td class="small">${s.un_number || '—'}</td>
+      <td class="small">${s.cas_number || '—'}</td>
+      <td class="small">${s.supplier || '—'}</td>
+      <td class="small">${s.sds_version || '—'}</td>
+      <td class="small ${ragClass(s.expiry_rag)}">
+        ${s.expiry_date ? s.expiry_date.substring(0,10) : '—'}
+        ${s.expiry_rag && s.expiry_rag !== 'OK' ? `<span class="ms-1">(${s.expiry_rag})</span>` : ''}
+      </td>
+      <td><span class="badge ${s.status === 'ACTIVE' ? 'bg-success' : 'bg-secondary'}">${s.status}</span></td>
+      <td>
+        <button class="btn btn-xs btn-outline-primary btn-sm py-0 px-2" onclick="event.stopPropagation();openEditSds(${s.sds_id})">Edit</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function showSdsDetail(sds_id) {
+  const s = sdsData.find(x => x.sds_id === sds_id);
+  if (!s) return;
+  // populate modal as view mode
+  editingSdsId = null;
+  document.getElementById('sdsModalTitle').textContent = s.chemical_name;
+  populateSdsForm(s);
+  document.getElementById('saveSdsBtn').style.display = 'none';
+  new bootstrap.Modal(document.getElementById('sdsModal')).show();
+}
+
+function openSdsModal() {
+  editingSdsId = null;
+  document.getElementById('sdsModalTitle').textContent = 'Add SDS Entry';
+  populateSdsForm({});
+  document.getElementById('saveSdsBtn').style.display = '';
+  new bootstrap.Modal(document.getElementById('sdsModal')).show();
+}
+
+function openEditSds(sds_id) {
+  const s = sdsData.find(x => x.sds_id === sds_id);
+  if (!s) return;
+  editingSdsId = sds_id;
+  document.getElementById('sdsModalTitle').textContent = 'Edit — ' + s.chemical_name;
+  populateSdsForm(s);
+  document.getElementById('saveSdsBtn').style.display = '';
+  new bootstrap.Modal(document.getElementById('sdsModal')).show();
+}
+
+function populateSdsForm(s) {
+  document.getElementById('sdsChemName').value        = s.chemical_name || '';
+  document.getElementById('sdsCommonName').value      = s.common_name || '';
+  document.getElementById('sdsUn').value              = s.un_number || '';
+  document.getElementById('sdsCas').value             = s.cas_number || '';
+  document.getElementById('sdsHazardClass').value     = s.hazard_class || 'CORROSIVE';
+  document.getElementById('sdsControlled').value      = s.is_controlled ? '1' : '0';
+  document.getElementById('sdsSupplier').value        = s.supplier || '';
+  document.getElementById('sdsSdsVersion').value      = s.sds_version || '';
+  document.getElementById('sdsIssueDate').value       = (s.issue_date || '').substring(0, 10);
+  document.getElementById('sdsExpiryDate').value      = (s.expiry_date || '').substring(0, 10);
+  document.getElementById('sdsSpecialHandling').value = s.special_handling || '';
+  document.getElementById('sdsPpe').value             = s.ppe_required || '';
+  document.getElementById('sdsStorage').value         = s.storage_conditions || '';
+  document.getElementById('sdsDisposal').value        = s.disposal_method || '';
+}
+
+async function saveSDS() {
+  const payload = {
+    chemical_name:    document.getElementById('sdsChemName').value.trim(),
+    common_name:      document.getElementById('sdsCommonName').value.trim(),
+    un_number:        document.getElementById('sdsUn').value.trim(),
+    cas_number:       document.getElementById('sdsCas').value.trim(),
+    hazard_class:     document.getElementById('sdsHazardClass').value,
+    is_controlled:    parseInt(document.getElementById('sdsControlled').value),
+    supplier:         document.getElementById('sdsSupplier').value.trim(),
+    sds_version:      document.getElementById('sdsSdsVersion').value.trim(),
+    issue_date:       document.getElementById('sdsIssueDate').value,
+    expiry_date:      document.getElementById('sdsExpiryDate').value,
+    special_handling: document.getElementById('sdsSpecialHandling').value.trim(),
+    ppe_required:     document.getElementById('sdsPpe').value.trim(),
+    storage_conditions: document.getElementById('sdsStorage').value.trim(),
+    disposal_method:  document.getElementById('sdsDisposal').value.trim(),
+  };
+  if (!payload.chemical_name) { ATCA.ui.toast('Chemical name is required', 'warning'); return; }
+
+  try {
+    if (editingSdsId) {
+      await ATCA.api.put('/mod34/sds/' + editingSdsId, payload);
+    } else {
+      await ATCA.api.post('/mod34/sds', payload);
+    }
+    bootstrap.Modal.getInstance(document.getElementById('sdsModal')).hide();
+    await loadSDS();
+    await loadKpis();
+  } catch (e) {
+    ATCA.ui.toast('Save failed: ' + e.message, 'danger');
+  }
+}
+
+/* ── Bath Make-up Calculator ──────────────────────────────────── */
+async function loadFormulas() {
+  const bathType = document.getElementById('calcBathType').value;
+  if (!bathType) { document.getElementById('formulaSteps').innerHTML = '<p class="text-muted">Select a bath type to see the make-up formula.</p>'; return; }
+  const data = await ATCA.api.get('/mod34/formulas?bath_type=' + bathType);
+  formulaData = Array.isArray(data) ? data : [];
+  recalcFormula();
+}
+
+function recalcFormula() {
+  const vol = parseFloat(document.getElementById('calcVolume').value) || 1000;
+  const container = document.getElementById('formulaSteps');
+  if (!formulaData.length) {
+    container.innerHTML = '<p class="text-muted">No formula found for this bath type.</p>';
+    return;
+  }
+  const hasControlled = formulaData.some(f => f.is_controlled);
+  const warning = hasControlled
+    ? `<div class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>CONTROLLED SUBSTANCE — Two-person rule applies. Ensure antidote kit is on site.</strong>
+       </div>` : '';
+  const steps = formulaData.map(f => {
+    const qty = ((f.qty_per_1000L * vol) / 1000).toFixed(2);
+    return `<div class="formula-step">
+      <div class="step-num">${f.add_sequence}</div>
+      <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <strong>${f.chemical_name}</strong>
+            ${f.is_controlled ? '<span class="badge bg-danger ms-1">CONTROLLED</span>' : ''}
+            ${hazardBadge(f.hazard_class || 'INERT')}
+          </div>
+          <div class="text-end">
+            <span class="fs-5 fw-bold text-primary">${qty} ${f.unit}</span>
+            <div class="text-muted small">Target: ${f.concentration_target}</div>
+          </div>
+        </div>
+        ${f.safety_note ? `<div class="mt-1 small text-warning-emphasis"><i class="bi bi-shield-fill-exclamation me-1"></i>${f.safety_note}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+  container.innerHTML = warning + steps;
+}
+
+/* ── Replenishment ────────────────────────────────────────────── */
+async function loadReplenishment() {
+  const data = await ATCA.api.get('/mod34/replenishment');
+  const list = Array.isArray(data) ? data : [];
+  const container = document.getElementById('replenishList');
+  if (!list.length) {
+    container.innerHTML = '<div class="text-center text-muted py-3"><i class="bi bi-check-circle-fill text-success me-2"></i>No pending replenishments.</div>';
+    return;
+  }
+  const triggerColors = { OUT_OF_SPEC: 'danger', SCHEDULED: 'primary', LOW_STOCK: 'warning', MANUAL: 'secondary' };
+  container.innerHTML = list.map(r => `
+    <div class="rep-card status-${r.status}">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <strong>${r.replenishment_ref}</strong>
+          <span class="badge bg-${triggerColors[r.trigger_type] || 'secondary'} ms-2">${r.trigger_type}</span>
+          ${r.is_controlled ? '<span class="badge bg-danger ms-1">CONTROLLED</span>' : ''}
+        </div>
+        <select class="form-select form-select-sm" style="width:130px;" onchange="updateReplenishment(${r.replenishment_id}, this.value)">
+          <option ${r.status === 'PENDING' ? 'selected' : ''}>PENDING</option>
+          <option ${r.status === 'IN_PROGRESS' ? 'selected' : ''}>IN_PROGRESS</option>
+          <option value="COMPLETED">COMPLETED</option>
+          <option value="CANCELLED">CANCELLED</option>
+        </select>
+      </div>
+      <div class="text-muted small mt-1">${r.bath_name || 'Manual'} · ${r.bay_location || '—'}</div>
+      <div class="mt-2">
+        <strong>${r.chemical_name}</strong> · ${r.param_name || '—'}
+      </div>
+      <div class="row g-2 mt-1 text-center">
+        <div class="col-4"><div class="bg-light rounded p-1"><div class="small text-muted">Current</div><div class="fw-bold">${r.current_value ?? '—'}</div></div></div>
+        <div class="col-4"><div class="bg-light rounded p-1"><div class="small text-muted">Add</div><div class="fw-bold text-primary">${r.quantity_to_add} ${r.add_unit}</div></div></div>
+        <div class="col-4"><div class="bg-light rounded p-1"><div class="small text-muted">Target</div><div class="fw-bold">${r.target_value ?? '—'}</div></div></div>
+      </div>
+      <div class="text-muted small mt-1">${r.hours_open}h open · initiated ${new Date(r.initiated_at).toLocaleDateString()}</div>
+    </div>
+  `).join('');
+}
+
+async function updateReplenishment(id, status) {
+  await ATCA.api.put('/mod34/replenishment/' + id, { status });
+  await loadReplenishment();
+  await loadKpis();
+}
+
+async function openReplenishModal() {
+  const sdsItems = sdsData.length ? sdsData : await ATCA.api.get('/mod34/sds');
+  const select   = document.getElementById('repSdsId');
+  select.innerHTML = sdsItems.map(s =>
+    `<option value="${s.sds_id}">${s.chemical_name}</option>`).join('');
+  new bootstrap.Modal(document.getElementById('replenishModal')).show();
+}
+
+async function saveReplenishment() {
+  const payload = {
+    sds_id:         parseInt(document.getElementById('repSdsId').value),
+    trigger_type:   document.getElementById('repTrigger').value,
+    param_name:     document.getElementById('repParamName').value.trim(),
+    current_value:  parseFloat(document.getElementById('repCurrent').value) || null,
+    target_value:   parseFloat(document.getElementById('repTarget').value) || null,
+    quantity_to_add:parseFloat(document.getElementById('repQty').value) || 0,
+    add_unit:       document.getElementById('repUnit').value,
+  };
+  await ATCA.api.post('/mod34/replenishment', payload);
+  bootstrap.Modal.getInstance(document.getElementById('replenishModal')).hide();
+  await loadReplenishment();
+  await loadKpis();
+}
+
+/* ── Inventory ────────────────────────────────────────────────── */
+async function loadInventory() {
+  const data = await ATCA.api.get('/mod34/inventory');
+  inventoryData = Array.isArray(data) ? data : [];
+  const tbody = document.getElementById('inventoryTbody');
+  if (!inventoryData.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No records found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = inventoryData.map(i => `
+    <tr class="${i.is_controlled ? 'controlled-row' : ''}">
+      <td>
+        ${i.is_controlled ? '<i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>' : ''}
+        <strong>${i.chemical_name}</strong>
+        <div class="small text-muted">${i.un_number || ''}</div>
+      </td>
+      <td>${hazardBadge(i.hazard_class)}</td>
+      <td class="small">${i.location}</td>
+      <td class="small"><strong>${i.quantity}</strong> ${i.quantity_unit}</td>
+      <td class="small">${i.min_stock_kg} ${i.quantity_unit}</td>
+      <td><span class="badge ${i.stock_rag === 'LOW' ? 'bg-danger' : 'bg-success'}">${i.stock_rag}</span></td>
+      <td class="small">${i.batch_number || '—'}</td>
+      <td class="small ${i.inv_expiry_rag === 'EXPIRED' ? 'rag-OVERDUE' : i.inv_expiry_rag === 'EXPIRING' ? 'rag-DUE_SOON' : ''}">
+        ${i.expiry_date ? i.expiry_date.substring(0,10) : '—'}
+        ${i.inv_expiry_rag !== 'OK' ? `<span class="ms-1">(${i.inv_expiry_rag})</span>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openInventoryModal() {
+  ATCA.ui.toast('Add stock form — enter details and save', 'info');
+}
+
+/* ── Escalation Rules ─────────────────────────────────────────── */
+async function loadEscalationRules() {
+  const data  = await ATCA.api.get('/mod34/escalation/rules');
+  const rules = Array.isArray(data) ? data : [];
+  const tbody = document.getElementById('rulesTbody');
+  if (!rules.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-3">No rules configured.</td></tr>';
+    return;
+  }
+  const opSymbol = { GT: '>', GTE: '≥', LT: '<', LTE: '≤', EQ: '=' };
+  tbody.innerHTML = rules.map(r => `
+    <tr>
+      <td><strong>${r.rule_name}</strong></td>
+      <td><code>${r.module_id}</code></td>
+      <td><code>${r.alert_field}</code></td>
+      <td class="small">${opSymbol[r.operator] || r.operator} ${r.threshold_value}</td>
+      <td><span class="level-${r.level}">${r.level}</span></td>
+      <td class="small">${r.notify_roles || '—'}</td>
+      <td class="small">${r.escalation_delay_hours}h</td>
+      <td>
+        <div class="form-check form-switch mb-0">
+          <input class="form-check-input" type="checkbox" ${r.is_active ? 'checked' : ''}
+            onchange="toggleRule(${r.rule_id}, this.checked)">
+        </div>
+      </td>
+      <td>
+        <button class="btn btn-xs btn-outline-secondary btn-sm py-0 px-2" onclick="editRule(${r.rule_id})">Edit</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function toggleRule(rule_id, is_active) {
+  await ATCA.api.put('/mod34/escalation/rules/' + rule_id, { is_active });
+  ATCA.ui.toast('Rule ' + (is_active ? 'enabled' : 'disabled'), 'info');
+}
+
+function editRule(rule_id) {
+  ATCA.ui.toast('Edit rule ' + rule_id + ' — full edit form coming in next iteration', 'info');
+}
+
+function openRuleModal() {
+  document.querySelectorAll('#ruleModal input, #ruleModal select').forEach(el => { if (el.type !== 'number') el.value = ''; });
+  document.getElementById('ruleThreshold').value = '0';
+  document.getElementById('ruleDelay').value      = '0';
+  new bootstrap.Modal(document.getElementById('ruleModal')).show();
+}
+
+async function saveRule() {
+  const payload = {
+    rule_name:               document.getElementById('ruleRuleName').value.trim(),
+    module_id:               document.getElementById('ruleModuleId').value,
+    alert_field:             document.getElementById('ruleAlertField').value.trim(),
+    operator:                document.getElementById('ruleOperator').value,
+    threshold_value:         parseFloat(document.getElementById('ruleThreshold').value) || 0,
+    level:                   document.getElementById('ruleLevel').value,
+    notify_roles:            document.getElementById('ruleNotifyRoles').value.trim(),
+    escalation_delay_hours:  parseInt(document.getElementById('ruleDelay').value) || 0,
+  };
+  if (!payload.rule_name || !payload.alert_field) { ATCA.ui.toast('Rule name and alert field required', 'warning'); return; }
+  await ATCA.api.post('/mod34/escalation/rules', payload);
+  bootstrap.Modal.getInstance(document.getElementById('ruleModal')).hide();
+  await loadEscalationRules();
+}
+
+/* ── Escalation Log ───────────────────────────────────────────── */
+async function loadEscalationLog() {
+  const data = await ATCA.api.get('/mod34/escalation/log');
+  const logs = Array.isArray(data) ? data : [];
+  const tbody = document.getElementById('logTbody');
+  if (!logs.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-2">No escalations triggered.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = logs.map(l => `
+    <tr class="${!l.acknowledged_at ? 'table-warning' : ''}">
+      <td class="small">${new Date(l.triggered_at).toLocaleString()}</td>
+      <td class="small">${l.rule_name}</td>
+      <td><code class="small">${l.module_id}</code></td>
+      <td class="small">${l.alert_value}</td>
+      <td><span class="level-${l.level}">${l.level}</span></td>
+      <td>
+        ${l.acknowledged_at
+          ? `<span class="text-success small"><i class="bi bi-check-circle me-1"></i>${new Date(l.acknowledged_at).toLocaleString()}</span>`
+          : `<button class="btn btn-xs btn-outline-success btn-sm py-0 px-2" onclick="acknowledgeLog(${l.log_id})">Acknowledge</button>`}
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function acknowledgeLog(log_id) {
+  await ATCA.api.put('/mod34/escalation/log/' + log_id + '/acknowledge', {});
+  await loadEscalationLog();
+  await loadKpis();
+}
+
+/* ── Init ───────────────────────────────────────────────────── */
+(async () => {
+  await ATCA.initPage();
+  await Promise.all([loadKpis(), loadSDS()]);
+})();
+</script>
+</body>
+</html>

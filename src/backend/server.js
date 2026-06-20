@@ -374,6 +374,7 @@ apiRouter.use('/mod30',   require('./api/mod30/index'));              // Pyromet
 apiRouter.use('/mod31',   require('./api/mod31/index'));              // Operator Competency & PIN Sign-off
 apiRouter.use('/mod32',   require('./api/mod32/index'));              // Bay Load Scheduler + Tank-Fit Check
 apiRouter.use('/mod33',   require('./api/mod33/index'));              // Spec & Flowdown / Frozen Process + ECN + AAM
+apiRouter.use('/mod34',   require('./api/mod34/index'));              // Chemical & Hazmat Control + Alert Escalation Engine
 
 app.use('/api/v1', apiRouter);
 

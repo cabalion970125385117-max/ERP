@@ -103,6 +103,7 @@ Six roles in ascending privilege order:
 | **MOD-31** Operator Competency & PIN Sign-off | Competency matrix (operator × process × customer × bay), approval levels/expiry; **PIN-verified non-repudiable electronic sign-off** with competency gate + audit trail; NAS410, AS9100D §7.2 |
 | **MOD-32** Bay Load Scheduler | Bay/shift scheduling queue; **tank-fit check** (part L×W×D vs PCM tank envelope, OVERSIZE flag); visual slot cards per bay × shift; manual vs auto line; AS9100D §8.1 |
 | **MOD-33** Spec & Flowdown / Frozen Process | Spec library (customer/industry/internal); parameter flowdown spec→recipe; **frozen-process guard** (ENGINEER blocked on frozen specs, must raise ECN); ECN state machine (DRAFT→IMPLEMENTED); Acceptance Authority Matrix (2-person, PIN, QAM co-sign); NADCAP Frozen Process, AS9100D §8.1, §8.5.6 |
+| **MOD-34** Chemical & Hazmat Control | SDS register (12 chemicals, OVERDUE/DUE_SOON RAG, controlled-substance flags); **bath make-up calculator** (sequenced addition steps, CONTROLLED warning banner); replenishment queue (OUT_OF_SPEC/SCHEDULED/LOW_STOCK triggers); chemical inventory; **Alert Escalation Engine** (10 cross-module rules, CRITICAL/ALERT/WARNING, acknowledge workflow); AC7108/AC7110, WSH/SDS, REACH/RoHS, AS9100D §9.1 |
 
 ### Phase 8 Utilities
 
@@ -174,11 +175,12 @@ ATCA-ERP/
 │   │       ├── mod31-operator-competency/ # MOD-31 Operator Competency & PIN
 │   │       ├── mod32-bay-scheduler/    # MOD-32 Bay Load Scheduler + Tank-Fit
 │   │       ├── mod33-spec-flowdown/    # MOD-33 Spec & Flowdown / Frozen Process
+│   │       ├── mod34-chemical-hazmat/  # MOD-34 Chemical & Hazmat + Escalation Engine
 │   │       ├── mod-changelog/
 │   │       ├── mod-bugreport/
 │   │       └── mod-chat/
 │   └── database/
-│       └── migrations/             # 036 SQL migration scripts
+│       └── migrations/             # 037 SQL migration scripts
 ├── database/migrations/            # Additional migration scripts
 ├── preview_server.py               # Local preview server (no DB required)
 ├── vercel.json                     # Vercel static deployment config
@@ -300,7 +302,7 @@ Forward features are sequenced into four structure-driven phases — see **[ROAD
 |---|---|---|
 | **9** Special-Process Compliance Core ✅ **BUILT** | **MOD-30 Pyrometry & Heat-Treat** (AMS 2750 / NADCAP AC7102), **MOD-31 Operator Competency & PIN sign-off** (= Electronic Signature) |
 | **10** Capacity & Process Control ✅ **BUILT** | **MOD-32 Bay Load Scheduler + tank-fit**, **MOD-33 Spec & Flowdown / Frozen Process**, ECN, AAM |
-| **11** Chemicals, Safety & Escalation | **MOD-34 Chemical & Hazmat control** (SDS, bath make-up), Alert Escalation Engine |
+| **11** Chemicals, Safety & Escalation ✅ **BUILT** | **MOD-34 Chemical & Hazmat control** (SDS, bath make-up/replenishment, cyanide/cadmium controls), Alert Escalation Engine |
 | **12** Market Expansion & Group Scale | **MOD-35 Semiconductor Segment**, Multi-entity isolation, Document Template & Rule Engine |
 
 **Recommended start:** Phase 9 → MOD-30 Pyrometry & Heat-Treat (largest NADCAP gap; data already in the PCM Equipment sheet).
