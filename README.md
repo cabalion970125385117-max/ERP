@@ -2,7 +2,7 @@
 
 **ATC Aviation Pte Ltd — Enterprise Resource Planning System**  
 AS9100D · NADCAP AC7108 · NADCAP AC7110 · NADCAP AC7114 · NAS410  
-LAN-only · Version 1.0 · SoR Rev. 1.0 (9 June 2026) · Last updated: 2026-06-21 · Sidebar &amp; Layout fixes
+LAN-only · Version 1.0 · SoR Rev. 1.0 (9 June 2026) · Last updated: 2026-06-21 · MOD-07 NCR/CAPA detail &amp; disposition workflow
 
 ---
 
@@ -52,7 +52,7 @@ Six roles in ascending privilege order:
 |---|---|---|
 | **MOD-01** QMS Core | Policy, objectives, risk register, management review | AS9100D §5.2, §6.1, §6.2, §9.3 |
 | **MOD-02** Document Control | Document register, revision workflow, retention schedule | AS9100D §7.5 |
-| **MOD-07** NCR & CAPA | Non-conformance, root-cause analysis, corrective actions | AS9100D §8.7, §10.2 |
+| **MOD-07** NCR & CAPA | Non-conformance register + NCR detail (MRB disposition), root-cause analysis, CAPA detail with effectiveness verification | AS9100D §8.7, §8.7.1, §10.2 |
 | **MOD-08** Audit Management | Audit plans, findings register, response & verification | AS9100D §9.2 |
 | **MOD-20** Customer Complaint & 8D | Complaint register, 8D report (D1–D8 step workflow) | AS9100D §8.7 |
 

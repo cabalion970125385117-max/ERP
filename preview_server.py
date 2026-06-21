@@ -10,7 +10,8 @@ from http.server import HTTPServer, ThreadingHTTPServer, SimpleHTTPRequestHandle
 from urllib.parse import urlparse, parse_qs
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "src", "frontend")
-PORT = 3000
+# Honor the harness-assigned port (preview tool sets $PORT); fall back to 3000 for manual runs.
+PORT = int(os.environ.get("PORT", 3000))
 
 # ── Stub API data ────────────────────────────────────────────
 STUBS = {
@@ -23,7 +24,18 @@ STUBS = {
     "GET /api/v1/alerts/summary": {"total": 3},
     "GET /api/v1/mod04/alerts/summary": {
         "certs_expiring_90d": 2, "expired_certs": 1,
-        "eye_expiring_60d": 1,   "expired_eye_exams": 0
+        "eye_expiring_60d": 1,   "expired_eye_exams": 0, "total": 3
+    },
+    "GET /api/v1/mod09/alerts/summary": {
+        "pending_reviews": 2, "pending_grn_inspection": 3, "ready_to_ship": 1, "expired_quotations": 4, "total": 10
+    },
+    "GET /api/v1/mod10/alerts/summary": {
+        "due_soon": 3, "overdue_jobs": 1, "incomplete_checklists": 1, "failed_test_pieces": 0
+    },
+    "GET /api/v1/mod34/alerts/summary": {
+        "sds_active": 12, "sds_expiring_30d": 2, "controlled_substances": 2,
+        "replenishment_pending": 3, "escalation_rules_active": 10,
+        "unacknowledged_alerts": 4, "low_stock_chemicals": 1, "total": 34
     },
     "GET /api/v1/mod05/alerts/summary": {
         "cal_overdue": 1, "cal_due_30d": 3, "never_calibrated": 0, "total": 4
@@ -79,9 +91,9 @@ STUBS = {
         {"cal_id":1,"cal_ref":"CAL-2025-001","equipment_id":1,"equip_code":"UV-001","description":"UV-A Lamp","cal_date":"2025-02-14","cal_due_date":"2026-02-14","vendor":"SATS Engineering","cert_number":"SATS-CAL-2025-0042","measured_value":"≥1000 µW/cm²","out_of_tolerance":False,"result":"PASS","recorded_by_name":"James Tan Wei Liang"},
     ], "total": 1},
     "GET /api/v1/mod07/ncr": {"items": [
-        {"ncr_id":1,"ncr_ref":"NCR-2025-001","ncr_type":"PROCESS","process_area":"FPI","description":"Bath concentration found out of spec during periodic check","detected_date":"2025-05-10","severity":"MJ","source":"INTERNAL_AUDIT","status":"OPEN","raised_by_name":"James Tan Wei Liang","raised_date":"2025-05-10","target_close_date":"2025-06-10","days_open":15,"disposition":None,"open_capa_count":0,"capa_required":True},
-        {"ncr_id":2,"ncr_ref":"NCR-2025-002","ncr_type":"PROCESS","process_area":"FPI","description":"UV lamp intensity reading below 1000 µW/cm² minimum requirement","detected_date":"2025-04-20","severity":"MN","source":"PROCESS_CHECK","status":"CAPA_IN_PROGRESS","raised_by_name":"Hendrich Lim Jun Wei","raised_date":"2025-04-20","target_close_date":"2025-05-20","days_open":35,"disposition":"REWORK","open_capa_count":1,"capa_required":True},
-        {"ncr_id":3,"ncr_ref":"NCR-2026-003","ncr_type":"PROCESS","process_area":"ANODIZE","description":"Black Anodize bath (ANO-BK-001) dye concentration below minimum 5% — measured at 3.5%. Job ROUTER-12681 (WO-2026-0005) placed on hold.","detected_date":"2026-06-11","severity":"MJ","source":"PROCESS_CHECK","status":"OPEN","raised_by_name":"James Tan Wei Liang","raised_date":"2026-06-11","target_close_date":"2026-06-14","days_open":3,"disposition":None,"open_capa_count":0,"capa_required":True},
+        {"ncr_id":1,"ncr_ref":"NCR-2025-001","ncr_type":"PROCESS","process_area":"FPI","description":"Bath concentration found out of spec during periodic check","detected_date":"2025-05-10","severity":"MJ","source":"INTERNAL_AUDIT","status":"OPEN","raised_by_name":"James Tan Wei Liang","detected_by_name":"James Tan Wei Liang","raised_date":"2025-05-10","target_close_date":"2025-06-10","work_order_ref":None,"immediate_action":"Bath FPI-EM-001 quarantined and processing halted pending re-titration and adjustment.","days_open":15,"disposition":None,"open_capa_count":0,"capa_required":True},
+        {"ncr_id":2,"ncr_ref":"NCR-2025-002","ncr_type":"PROCESS","process_area":"FPI","description":"UV lamp intensity reading below 1000 µW/cm² minimum requirement","detected_date":"2025-04-20","severity":"MN","source":"PROCESS_CHECK","status":"CAPA_IN_PROGRESS","raised_by_name":"Hendrich Lim Jun Wei","detected_by_name":"Hendrich Lim Jun Wei","part_number":"TBN-4471-03","raised_date":"2025-04-20","target_close_date":"2025-05-20","immediate_action":"UV lamp ZB-100F removed from service; parts processed since last verification held for re-inspection.","disposition_rationale":"Affected lots re-inspected under a compliant UV source; rework to re-process non-conforming parts.","disposition_date":"2025-04-22","days_open":35,"disposition":"REWORK","open_capa_count":1,"capa_required":True},
+        {"ncr_id":3,"ncr_ref":"NCR-2026-003","ncr_type":"PROCESS","process_area":"ANODIZE","description":"Black Anodize bath (ANO-BK-001) dye concentration below minimum 5% — measured at 3.5%. Job ROUTER-12681 (WO-2026-0005) placed on hold.","detected_date":"2026-06-11","severity":"MJ","source":"PROCESS_CHECK","status":"OPEN","raised_by_name":"James Tan Wei Liang","detected_by_name":"James Tan Wei Liang","work_order_ref":"WO-2026-0005","lot_number":"ROUTER-12681","raised_date":"2026-06-11","target_close_date":"2026-06-14","immediate_action":"Job ROUTER-12681 placed on hold; ANO-BK-001 flagged for dye replenishment before further processing.","days_open":3,"disposition":None,"open_capa_count":0,"capa_required":True},
     ], "total": 3},
     "GET /api/v1/mod07/capa": {"items": [
         {"capa_id":1,"capa_ref":"CAPA-2025-001","capa_type":"CORRECTIVE","ncr_id":2,"ncr_ref":"NCR-2025-002","root_cause_method":"5WHY","root_cause_description":"UV lamp bulb past service interval; no PM schedule in place","corrective_action":"Replace bulb; add PM schedule","preventive_action":"Add UV lamp to monthly PM checklist","status":"IN_PROGRESS","owner_name":"Hendrich Lim Jun Wei","assigned_to_name":"Hendrich Lim Jun Wei","target_completion_date":"2025-05-20","target_date":"2025-05-20","effectiveness_result":None,"verified_by_name":None,"closed_date":None,"days_overdue":5},

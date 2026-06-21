@@ -6,7 +6,7 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["preview_server.py"],
       "port": 3000,
-      "autoPort": false
+      "autoPort": true
     }
   ]
 }

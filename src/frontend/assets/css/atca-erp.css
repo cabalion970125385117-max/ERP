@@ -400,6 +400,17 @@ body.atca-body {
   margin-left: 6px;
 }
 
+/* Section heading inside detail cards (NCR/CAPA, etc.) */
+.atca-section-head {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--atca-navy);
+  border-bottom: 1px solid var(--atca-border);
+  padding-bottom: 4px;
+  margin-bottom: 0.6rem;
+  margin-top: 0.25rem;
+}
+
 .form-control, .form-select {
   font-size: 0.83rem;
   border-color: var(--atca-border);

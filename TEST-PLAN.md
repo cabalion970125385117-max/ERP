@@ -1,9 +1,10 @@
 # ATCA-ERP System Test Plan
-**Version:** 1.9  
+**Version:** 2.0  
 **Date:** 2026-06-21  
 **Prepared by:** QA / Development  
 **Standards:** AS9100D · NADCAP AC7102 · AC7108 · AC7110 · AC7114 · NAS410 · AMS 2750  
 
+> **v2.0 change (2026-06-21):** **QC Protocol run 2026-06-21 — 33/33 PASS, 0 WARN, 0 FAIL** — first clean automated §13 run covering all 39 module pages (Phase 1–12, MOD-01–MOD-36 + Changelog/BugReport/Chat). Automated protocol script `tools/run_qc_protocol.py` added. 5 defects found and fixed mid-run: DEF-QC-01 (mod35/36 wrong demo↔core script order), DEF-QC-02 (mod34/35/36 broken Bootstrap Icons CSS path), DEF-QC-03 (mod09/10/34 missing alerts/summary stubs), DEF-QC-04 (mod04 stub missing `total` field), DEF-QC-05 (user-guide.html relative CSS paths). `atca-core.js?v=` standardised to `?v=6` across all 46 HTML files. Results in §14.  
 > **v1.9 change (2026-06-21):** **Phase 12 built** — added **MOD-35 Government & Regulatory Certification Renewal Monitoring** (§3.24, AS9100D §7.1.2, NADCAP AC7102/AC7108/AC7114 — cert RAG OVERDUE/DUE_SOON/OK tests, renewal action workflow, body-type filtering, configurable lead days) and **MOD-36 Equipment Periodic Preventive Maintenance** (§3.25, AS9100D §7.1.3, AMS 2750H — PM schedule CRUD, auto-advance next_due_date, checklist tests, asset-status update); §7 alert contracts for MOD-35/36. Module-page count now **39**. See ROADMAP.md.  
 > **v1.8 change (2026-06-21):** **Phase 11 built** — added **MOD-34 Chemical & Hazmat Control + Alert Escalation Engine** (§3.23, AC7108/AC7110, WSH/SDS, REACH/RoHS, AS9100D §9.1 — SDS OVERDUE/controlled-substance tests, bath make-up calculator, replenishment workflow, escalation-rule CRUD + acknowledge tests); §7 alert contract for MOD-34. Module-page count now **37**. See ROADMAP.md.  
 > **v1.7 change (2026-06-20):** **Phase 10 built** — added **MOD-32 Bay Load Scheduler + Tank-Fit** (§3.21, AS9100D §8.1, tank-fit check + oversize flag tests) and **MOD-33 Spec & Flowdown / Frozen Process** (§3.22, NADCAP frozen-process, ECN state-machine + AAM tests); §7 alert contracts for MOD-32/33. Module-page count now **36**. See ROADMAP.md.  
@@ -1199,6 +1200,42 @@ Catches dead links/assets *before* a browser ever loads the page. Run as a stati
 | DEF-CSS-01 | **HIGH** | **Broken stylesheets** — 4 Layout-B/C pages (`mod08`, `mod13`, `mod17`, `mod24`) linked non-existent `/assets/css/atca-core.css` and `/assets/css/bootstrap-icons.min.css` → pages rendered **without the ATCA theme and without icons**. | **FIXED** — repointed to `/assets/css/atca-erp.css` and `/assets/fonts/bootstrap-icons.css`. Verified on preview: both → 200, theme + icons now applied (KPI cards/badges styled, navbar present). |
 
 **Result:** broken-static-reference scan now reports **0** across all 41 HTML files (0 broken `/modules/` links, 0 broken asset refs). These checks are now codified as **§13.7 / DEMO-WIRE** style static-reference assertions and should run pre-deploy.
+
+---
+
+### Run 2026-06-21 — Full automated §13 protocol, all 39 modules (Phase 1–12)
+
+**Environment:** `preview_server.py` (ThreadingHTTPServer) @ `http://localhost:3000`. **Method:** automated Python script `tools/run_qc_protocol.py` — HTTP sweeps, static HTML analysis, alert contract API calls, concurrent request test. **Coverage:** all 39 module pages (MOD-01–MOD-36 + Changelog + BugReport + Chat) + home + login.
+
+| Group | Result | Notes |
+|---|---|---|
+| **UX-NAV** Navigation & Accessibility | **7/7 PASS** | All 39 modules linked from home → 200; 0 inactive cards; home button auto-injected by `atca-core.js` DOMContentLoaded on all 39 pages; no duplicate buttons; home/login correctly have none |
+| **UX-LOAD** Page-Load Integrity | **6/6 PASS** | All 39 → HTTP 200; all >500 bytes; `atca-core.js` present on all; `atca-demo.js?v=1` before `atca-core.js?v=6` on all (checked via `<script src=...>` tags only, not comments); all `/assets/*` refs resolve on disk |
+| **UX-DATA** Data Rendering | **2/2 PASS** | Alert contracts: **31/31 PASS** (all contracted modules respond 200 with all required fields); 0 literal `undefined`/`null` in static table cells |
+| **UX-LAYOUT** Layout & Header Consistency | **2/2 PASS** | All 39 pages have exactly one header type — A:20 / B:2 / C:17; user identity injected dynamically via `ATCA.initPage()` |
+| **UX-ENC** Text-Encoding QC | **3/3 PASS** | 0 mojibake sequences across all 39 pages; UTF-8 declared on all; em-dash/middle-dot correct on mod03 spot-check |
+| **SYS** System Stability & Caching | **6/6 PASS** | 10 rapid sequential pages → all 200; 12 concurrent → all 200 in 2552 ms; `Cache-Control: no-cache, no-store` on `atca-core.js`; PATCH handler → 200 (not 501); unknown API → 404; unknown page → 404 |
+| **REF** Static-Reference Integrity | **7/7 PASS** | 0 broken `/modules/<slug>/` refs; all `/assets/` refs resolve on disk; Bootstrap + icons CSS on all pages; `atca-demo.js?v=1` consistent; `atca-core.js?v=6` consistent (46 files); 0 orphan module dirs |
+
+**Overall: 33/33 PASS — 0 WARN — 0 FAIL**
+
+#### Defects found and fixed this run
+
+| ID | Severity | Finding | Status |
+|---|---|---|---|
+| DEF-QC-01 | **HIGH** | **mod35 + mod36 wrong script order** — `atca-core.js` loaded BEFORE `atca-demo.js` (both also lacked `?v=` suffixes). Breaks demo fallback on static host: `ATCA.api.request` fallback installs after core runs, so first-load requests race unresolved. | **FIXED** — swapped to `atca-demo.js?v=1` then `atca-core.js?v=6` on both pages. |
+| DEF-QC-02 | **HIGH** | **mod34/35/36 broken Bootstrap Icons CSS** — all three Phase 11–12 pages referenced `/assets/css/bootstrap-icons.min.css` (does not exist on disk). Icons rendered as blank squares. | **FIXED** — corrected to `/assets/fonts/bootstrap-icons.css` on all three pages. |
+| DEF-QC-03 | **MEDIUM** | **mod09, mod10, mod34 missing `/alerts/summary` preview stubs** — `GET /api/v1/modXX/alerts/summary` returned 404 for these modules; KPI tiles would hang on "—" in preview. | **FIXED** — added stubs to `preview_server.py` with correct field sets per §7 contract. |
+| DEF-QC-04 | **LOW** | **mod04 stub missing `total` field** — alert contract requires `total`; preview stub omitted it. | **FIXED** — added `"total": 3` to mod04 stub. |
+| DEF-QC-05 | **LOW** | **user-guide.html broken CSS paths** — used relative paths (`assets/css/...`) instead of absolute (`/assets/...`) and referenced non-existent `bootstrap-icons.css` under `css/` instead of `fonts/`. | **FIXED** — corrected to absolute `/assets/fonts/bootstrap-icons.css`. |
+
+#### Additional improvement applied
+
+| Item | Action |
+|---|---|
+| `atca-core.js?v=` inconsistent (v5 on 40 pages, v6 on 3 pages) | Bumped all 46 HTML files to `?v=6` for consistent cache-busting. |
+
+**Script:** `tools/run_qc_protocol.py` (automated, re-runnable). Run with `python tools/run_qc_protocol.py` from project root with preview server active.
 
 ---
 
