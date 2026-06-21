@@ -1902,35 +1902,35 @@ window.ATCA_DEMO = {
     {
       "asset_id": 1,
       "asset_code": "MA-2026-0001",
-      "asset_name": "FPI Tank A",
-      "asset_type": "EQUIPMENT",
+      "name": "FPI Tank A",
+      "category": "EQUIPMENT",
       "location": "Bay 1",
       "manufacturer": "Magnaflux",
       "model_number": "ZB-100",
       "status": "ACTIVE",
-      "next_pm_date": "2026-06-20"
+      "next_pm_due": "2026-06-20"
     },
     {
       "asset_id": 2,
       "asset_code": "MA-2026-0002",
-      "asset_name": "UV Light Station 1",
-      "asset_type": "EQUIPMENT",
+      "name": "UV Light Station 1",
+      "category": "EQUIPMENT",
       "location": "Bay 1",
       "manufacturer": "Spectroline",
       "model_number": "ENF-260C",
       "status": "ACTIVE",
-      "next_pm_date": "2026-06-15"
+      "next_pm_due": "2026-06-15"
     },
     {
       "asset_id": 3,
       "asset_code": "MA-2026-0003",
-      "asset_name": "Air Compressor Unit",
-      "asset_type": "UTILITY",
+      "name": "Air Compressor Unit",
+      "category": "UTILITY",
       "location": "Utility Room",
       "manufacturer": "Atlas Copco",
       "model_number": "GA18",
       "status": "ACTIVE",
-      "next_pm_date": "2026-07-01"
+      "next_pm_due": "2026-07-01"
     }
   ],
   "/mod11/assets/1": {
@@ -2012,33 +2012,39 @@ window.ATCA_DEMO = {
       "supplier_code": "SUP-2026-0001",
       "name": "Magnaflux Asia Pacific",
       "category": "CHEMICAL",
+      "avl_scope": "FPI Consumables",
       "contact_name": "David Ng",
       "contact_email": "d.ng@magnaflux.sg",
-      "accreditation_number": "AS9100-MF-2024",
+      "accreditation_body": "SAC",
+      "accreditation_ref": "AS9100-MF-2024",
       "accreditation_expiry": "2027-03-31",
-      "status": "APPROVED"
+      "approval_status": "APPROVED"
     },
     {
       "supplier_id": 2,
       "supplier_code": "SUP-2026-0002",
       "name": "Spectronics SEA",
       "category": "EQUIPMENT",
+      "avl_scope": "UV Equipment",
       "contact_name": "Rachel Teo",
       "contact_email": "r.teo@spectronics.sg",
-      "accreditation_number": "ISO9001-SP-2025",
+      "accreditation_body": "ISO",
+      "accreditation_ref": "ISO9001-SP-2025",
       "accreditation_expiry": "2026-06-30",
-      "status": "APPROVED"
+      "approval_status": "APPROVED"
     },
     {
       "supplier_id": 3,
       "supplier_code": "SUP-2026-0003",
       "name": "3M Singapore Pte Ltd",
       "category": "CONSUMABLE",
+      "avl_scope": "General Consumables",
       "contact_name": "Kelvin Chan",
       "contact_email": "k.chan@3m.com.sg",
-      "accreditation_number": null,
+      "accreditation_body": null,
+      "accreditation_ref": null,
       "accreditation_expiry": null,
-      "status": "PENDING"
+      "approval_status": "PENDING"
     }
   ],
   "/mod12/suppliers/1": {
@@ -3185,26 +3191,30 @@ window.ATCA_DEMO = {
   "/mod10/route-cards": {
     "items": [
       {
-        "route_card_id": 1,
-        "route_card_ref": "RC-2026-0001",
+        "route_id": 1,
+        "route_ref": "RC-2026-0001",
         "part_number": "PHN-INNER-BODY-HSG",
         "customer_name": "Parker Hannifin Aerospace",
-        "process_type": "ANODIZE",
+        "job_type": "ANODIZE",
+        "quantity": 12,
+        "required_by_date": "2026-06-25",
         "priority": "NORMAL",
         "status": "IN_PROGRESS",
-        "steps_done": 7,
-        "steps_total": 12
+        "done_ops": 7,
+        "total_ops": 12
       },
       {
-        "route_card_id": 2,
-        "route_card_ref": "RC-2026-0002",
+        "route_id": 2,
+        "route_ref": "RC-2026-0002",
         "part_number": "GE90-7B-FAN-BLADE",
         "customer_name": "SIA Engineering Company",
-        "process_type": "FPI",
+        "job_type": "FPI",
+        "quantity": 4,
+        "required_by_date": "2026-06-22",
         "priority": "HIGH",
         "status": "IN_PROGRESS",
-        "steps_done": 2,
-        "steps_total": 8
+        "done_ops": 2,
+        "total_ops": 8
       }
     ],
     "total": 2
@@ -3223,19 +3233,29 @@ window.ATCA_DEMO = {
         "schedule_id": 1,
         "schedule_ref": "LAB-SCH-001",
         "analysis_name": "Anodize bath H2SO4 titration",
-        "frequency": "DAILY",
-        "next_due": "2026-06-15",
+        "analysis_type": "CHEMICAL",
+        "process_area": "Anodize Bay",
+        "frequency_type": "DAILY",
+        "next_due_date": "2026-06-15",
+        "last_done_date": "2026-06-14",
+        "days_to_due": 0,
         "status": "DUE",
-        "assigned_to_name": "Ahmad Bin Rashid"
+        "responsible_name": "Ahmad Bin Rashid",
+        "external_lab": false
       },
       {
         "schedule_id": 2,
         "schedule_ref": "LAB-SCH-002",
         "analysis_name": "Penetrant sensitivity (TAM panel)",
-        "frequency": "WEEKLY",
-        "next_due": "2026-06-18",
+        "analysis_type": "NDT",
+        "process_area": "FPI Bay",
+        "frequency_type": "WEEKLY",
+        "next_due_date": "2026-06-18",
+        "last_done_date": "2026-06-11",
+        "days_to_due": 3,
         "status": "OK",
-        "assigned_to_name": "James Tan Wei Liang"
+        "responsible_name": "James Tan Wei Liang",
+        "external_lab": false
       }
     ],
     "total": 2
@@ -3246,21 +3266,27 @@ window.ATCA_DEMO = {
         "complaint_id": 1,
         "complaint_ref": "CMP-2026-0001",
         "customer_name": "Rolls-Royce Singapore",
+        "complaint_type": "QUALITY",
         "subject": "Surface finish out of spec on disc batch",
         "severity": "CRITICAL",
         "received_date": "2026-06-05",
+        "target_close_date": "2026-06-26",
         "status": "OPEN",
-        "owner_name": "James Tan Wei Liang"
+        "owned_by_name": "James Tan Wei Liang",
+        "has_8d": false
       },
       {
         "complaint_id": 2,
         "complaint_ref": "CMP-2026-0002",
         "customer_name": "SIA Engineering Company",
+        "complaint_type": "DELIVERY",
         "subject": "Late delivery of CoC documentation",
         "severity": "MEDIUM",
         "received_date": "2026-06-09",
+        "target_close_date": "2026-06-30",
         "status": "IN_PROGRESS",
-        "owner_name": "Sarah Lim Mei Ling"
+        "owned_by_name": "Sarah Lim Mei Ling",
+        "has_8d": false
       }
     ],
     "total": 2

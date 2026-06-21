@@ -280,9 +280,9 @@ STUBS = {
     # ── MOD-11 Maintenance ──────────────────────────────────────
     "GET /api/v1/mod11/alerts/summary": {"due_this_week": 3, "overdue_pm": 1, "open_permits": 2, "active_breakdowns": 0},
     "GET /api/v1/mod11/assets": [
-        {"asset_id":1,"asset_code":"MA-2026-0001","asset_name":"FPI Tank A","asset_type":"EQUIPMENT","location":"Bay 1","manufacturer":"Magnaflux","model_number":"ZB-100","status":"ACTIVE","next_pm_date":"2026-06-20"},
-        {"asset_id":2,"asset_code":"MA-2026-0002","asset_name":"UV Light Station 1","asset_type":"EQUIPMENT","location":"Bay 1","manufacturer":"Spectroline","model_number":"ENF-260C","status":"ACTIVE","next_pm_date":"2026-06-15"},
-        {"asset_id":3,"asset_code":"MA-2026-0003","asset_name":"Air Compressor Unit","asset_type":"UTILITY","location":"Utility Room","manufacturer":"Atlas Copco","model_number":"GA18","status":"ACTIVE","next_pm_date":"2026-07-01"},
+        {"asset_id":1,"asset_code":"MA-2026-0001","name":"FPI Tank A","category":"EQUIPMENT","location":"Bay 1","manufacturer":"Magnaflux","model_number":"ZB-100","status":"ACTIVE","next_pm_due":"2026-06-20"},
+        {"asset_id":2,"asset_code":"MA-2026-0002","name":"UV Light Station 1","category":"EQUIPMENT","location":"Bay 1","manufacturer":"Spectroline","model_number":"ENF-260C","status":"ACTIVE","next_pm_due":"2026-06-15"},
+        {"asset_id":3,"asset_code":"MA-2026-0003","name":"Air Compressor Unit","category":"UTILITY","location":"Utility Room","manufacturer":"Atlas Copco","model_number":"GA18","status":"ACTIVE","next_pm_due":"2026-07-01"},
     ],
     "GET /api/v1/mod11/assets/1": {"asset_id":1,"asset_code":"MA-2026-0001","asset_name":"FPI Tank A","asset_type":"EQUIPMENT","location":"Bay 1","manufacturer":"Magnaflux","model_number":"ZB-100","serial_number":"MF-2020-0088","purchase_date":"2020-03-15","status":"ACTIVE","schedules":[],"records":[]},
     "GET /api/v1/mod11/schedules": [
@@ -298,9 +298,9 @@ STUBS = {
     # ── MOD-12 Purchasing ───────────────────────────────────────
     "GET /api/v1/mod12/alerts/summary": {"approved_suppliers": 12, "pending_pr": 3, "open_po": 5, "expiring_accreditations": 1},
     "GET /api/v1/mod12/suppliers": [
-        {"supplier_id":1,"supplier_code":"SUP-2026-0001","name":"Magnaflux Asia Pacific","category":"CHEMICAL","contact_name":"David Ng","contact_email":"d.ng@magnaflux.sg","accreditation_number":"AS9100-MF-2024","accreditation_expiry":"2027-03-31","status":"APPROVED"},
-        {"supplier_id":2,"supplier_code":"SUP-2026-0002","name":"Spectronics SEA","category":"EQUIPMENT","contact_name":"Rachel Teo","contact_email":"r.teo@spectronics.sg","accreditation_number":"ISO9001-SP-2025","accreditation_expiry":"2026-06-30","status":"APPROVED"},
-        {"supplier_id":3,"supplier_code":"SUP-2026-0003","name":"3M Singapore Pte Ltd","category":"CONSUMABLE","contact_name":"Kelvin Chan","contact_email":"k.chan@3m.com.sg","accreditation_number":None,"accreditation_expiry":None,"status":"PENDING"},
+        {"supplier_id":1,"supplier_code":"SUP-2026-0001","name":"Magnaflux Asia Pacific","category":"CHEMICAL","avl_scope":"FPI Consumables","contact_name":"David Ng","contact_email":"d.ng@magnaflux.sg","accreditation_body":"SAC","accreditation_ref":"AS9100-MF-2024","accreditation_expiry":"2027-03-31","approval_status":"APPROVED"},
+        {"supplier_id":2,"supplier_code":"SUP-2026-0002","name":"Spectronics SEA","category":"EQUIPMENT","avl_scope":"UV Equipment","contact_name":"Rachel Teo","contact_email":"r.teo@spectronics.sg","accreditation_body":"ISO","accreditation_ref":"ISO9001-SP-2025","accreditation_expiry":"2026-06-30","approval_status":"APPROVED"},
+        {"supplier_id":3,"supplier_code":"SUP-2026-0003","name":"3M Singapore Pte Ltd","category":"CONSUMABLE","avl_scope":"General Consumables","contact_name":"Kelvin Chan","contact_email":"k.chan@3m.com.sg","accreditation_body":None,"accreditation_ref":None,"accreditation_expiry":None,"approval_status":"PENDING"},
     ],
     "GET /api/v1/mod12/suppliers/1": {"supplier_id":1,"supplier_code":"SUP-2026-0001","name":"Magnaflux Asia Pacific","category":"CHEMICAL","status":"APPROVED"},
     "GET /api/v1/mod12/requisitions": [
@@ -347,8 +347,19 @@ STUBS = {
         {"entity_id":4,"entity_name":"Production","division":"Operations","department":"Production","team":None},
     ],
 
+    # ── MOD-19 Extended Laboratory ───────────────────────────────
+    "GET /api/v1/mod19/alerts/summary": {"overdue_analyses": 1, "due_soon": 2, "low_stock": 2, "validation_overdue": 1, "lab_accred_expiring": 0, "total": 4},
+    "GET /api/v1/mod19/analysis-schedules": {"items":[
+        {"schedule_id":1,"schedule_ref":"LAB-SCH-001","analysis_name":"Anodize bath H2SO4 titration","analysis_type":"CHEMICAL","process_area":"Anodize Bay","frequency_type":"DAILY","next_due_date":"2026-06-15","last_done_date":"2026-06-14","days_to_due":0,"status":"DUE","responsible_name":"Ahmad Bin Rashid","external_lab":False},
+        {"schedule_id":2,"schedule_ref":"LAB-SCH-002","analysis_name":"Penetrant sensitivity (TAM panel)","analysis_type":"NDT","process_area":"FPI Bay","frequency_type":"WEEKLY","next_due_date":"2026-06-18","last_done_date":"2026-06-11","days_to_due":3,"status":"OK","responsible_name":"James Tan Wei Liang","external_lab":False},
+    ],"total":2},
+
     # ── MOD-20 Customer Complaint & 8D ──────────────────────────
     "GET /api/v1/mod20/alerts/summary": {"open_complaints": 4, "critical_open": 1, "overdue_complaints": 1, "open_8d": 2},
+    "GET /api/v1/mod20/complaints": {"items":[
+        {"complaint_id":1,"complaint_ref":"CMP-2026-0001","customer_name":"Rolls-Royce Singapore","complaint_type":"QUALITY","subject":"Surface finish out of spec on disc batch","severity":"CRITICAL","received_date":"2026-06-05","target_close_date":"2026-06-26","status":"OPEN","owned_by_name":"James Tan Wei Liang","has_8d":False},
+        {"complaint_id":2,"complaint_ref":"CMP-2026-0002","customer_name":"SIA Engineering Company","complaint_type":"DELIVERY","subject":"Late delivery of CoC documentation","severity":"MEDIUM","received_date":"2026-06-09","target_close_date":"2026-06-30","status":"IN_PROGRESS","owned_by_name":"Sarah Lim Mei Ling","has_8d":False},
+    ],"total":2},
 
     # ── MOD-15 KPI Dashboard (own badge; aggregates others client-side) ──
     "GET /api/v1/mod15/alerts/summary": {"critical_items": 19, "warnings": 56, "modules_attention": 16, "health_score": 22},

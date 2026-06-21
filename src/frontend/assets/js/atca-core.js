@@ -341,10 +341,78 @@ ATCA.clock = {
    MOBILE SIDEBAR TOGGLE (Phase 2)
    ============================================================ */
 ATCA.sidebar = {
+  _html: `
+<div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+<div class="nav-section-label">Quality Management</div>
+<a href="/modules/mod01-qms-core/" class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
+<a href="/modules/mod02-document-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
+<a href="/modules/mod07-ncr-capa/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
+<a href="/modules/mod08-audit-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
+<a href="/modules/mod20-customer-complaint/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>Complaint &amp; 8D</a>
+<div class="nav-section-label">NDT Process</div>
+<a href="/modules/mod03-fpi-process/" class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
+<a href="/modules/mod17-mpt-process/" class="nav-link"><span class="nav-icon"><i class="bi bi-magnet"></i></span>MPT Process</a>
+<a href="/modules/mod04-ndt-personnel/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
+<a href="/modules/mod05-equipment-calibration/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
+<a href="/modules/mod06-bath-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
+<a href="/modules/mod19-extended-laboratory/" class="nav-link"><span class="nav-icon"><i class="bi bi-eyedropper"></i></span>Extended Laboratory</a>
+<div class="nav-section-label">Operations</div>
+<a href="/modules/mod09-sales-customer-service/" class="nav-link"><span class="nav-icon"><i class="bi bi-building"></i></span>Sales &amp; Customer</a>
+<a href="/modules/mod10-production-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-gear-wide-connected"></i></span>Production</a>
+<a href="/modules/mod13-work-order/" class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
+<a href="/modules/mod24-certificate-of-conformance/" class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-check"></i></span>Certificate of Conformance</a>
+<a href="/modules/mod11-maintenance/" class="nav-link"><span class="nav-icon"><i class="bi bi-wrench-adjustable"></i></span>Maintenance</a>
+<a href="/modules/mod12-purchasing/" class="nav-link"><span class="nav-icon"><i class="bi bi-cart"></i></span>Purchasing &amp; AVL</a>
+<a href="/modules/mod14-inventory/" class="nav-link"><span class="nav-icon"><i class="bi bi-boxes"></i></span>Inventory</a>
+<div class="nav-section-label">Business &amp; HR</div>
+<a href="/modules/mod16-finance/" class="nav-link"><span class="nav-icon"><i class="bi bi-cash-coin"></i></span>Finance</a>
+<a href="/modules/mod18-hr-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>HR Management</a>
+<a href="/modules/mod21-communications/" class="nav-link"><span class="nav-icon"><i class="bi bi-megaphone"></i></span>Communications</a>
+<a href="/modules/mod22-leave-attendance/" class="nav-link"><span class="nav-icon"><i class="bi bi-calendar-check"></i></span>Leave &amp; Attendance</a>
+<a href="/modules/mod23-payroll/" class="nav-link"><span class="nav-icon"><i class="bi bi-wallet2"></i></span>Payroll</a>
+<div class="nav-section-label">System</div>
+<a href="/modules/mod25-user-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-gear"></i></span>User Management</a>
+<a href="/modules/mod-changelog/" class="nav-link"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>Change Log</a>
+<a href="/modules/mod-bugreport/" class="nav-link"><span class="nav-icon"><i class="bi bi-bug"></i></span>Bug Report</a>
+<a href="/modules/mod-chat/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-dots"></i></span>Internal Chat</a>
+<a href="/modules/mod28-pcm/" class="nav-link"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>Capability Master</a>
+<a href="/modules/mod29-qualification/" class="nav-link"><span class="nav-icon"><i class="bi bi-patch-check"></i></span>Customer Qualification</a>
+<a href="/modules/mod30-pyrometry/" class="nav-link"><span class="nav-icon"><i class="bi bi-thermometer-half"></i></span>Pyrometry &amp; Heat-Treat</a>
+<a href="/modules/mod31-operator-competency/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-check"></i></span>Operator Competency</a>
+<a href="/modules/mod32-bay-scheduler/" class="nav-link"><span class="nav-icon"><i class="bi bi-layout-split"></i></span>Bay Scheduler</a>
+<a href="/modules/mod33-spec-flowdown/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-3"></i></span>Spec &amp; Flowdown</a>
+<a href="/modules/mod34-chemical-hazmat/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-octagon"></i></span>Chemical &amp; Hazmat</a>
+<a href="/modules/mod35-regulatory-certs/" class="nav-link"><span class="nav-icon"><i class="bi bi-shield-check"></i></span>Regulatory Certs</a>
+<a href="/modules/mod36-equipment-ppm/" class="nav-link"><span class="nav-icon"><i class="bi bi-gear-wide-connected"></i></span>Equipment PPM</a>
+<a href="/modules/mod15-dashboard/" class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
+<a href="/modules/mod27-value-flow/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-2"></i></span>Value Flow</a>
+<a href="/modules/mod26-maintenance/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Maintenance Console</a>
+<a href="/user-guide.html" class="nav-link mt-2" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+<div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>`,
+
   init() {
-    const btn = document.getElementById('sidebar-toggle');
-    const sidebar = document.getElementById('sidebar');
-    btn?.addEventListener('click', () => sidebar?.classList.toggle('open'));
+    // Layout B pages: inject nav into empty #atca-sidebar and wire toggle
+    const injected = document.getElementById('atca-sidebar');
+    if (injected && !injected.dataset.injected) {
+      injected.innerHTML = this._html;
+      injected.dataset.injected = '1';
+      // Mark the active link
+      const cur = window.location.pathname.replace(/\/$/, '');
+      injected.querySelectorAll('a.nav-link').forEach(a => {
+        const href = a.getAttribute('href').replace(/\/$/, '');
+        if (href && cur.startsWith(href)) a.classList.add('active');
+      });
+      // Wire mobile toggle on the topbar
+      const btn = document.getElementById('sidebar-toggle') ||
+                  document.querySelector('[id="sidebar-toggle"]');
+      btn?.addEventListener('click', () => injected.classList.toggle('open'));
+    }
+    // Layout A pages: wire toggle on existing hardcoded #sidebar
+    const legacySidebar = document.getElementById('sidebar');
+    if (legacySidebar) {
+      const btn = document.getElementById('sidebar-toggle');
+      btn?.addEventListener('click', () => legacySidebar.classList.toggle('open'));
+    }
   },
 };
 

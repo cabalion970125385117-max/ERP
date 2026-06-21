@@ -40,10 +40,16 @@ body {
   display: flex;
 }
 
+/* Layout C pages (atca-body) use a navbar + content stack, not a sidebar row */
+body.atca-body {
+  flex-direction: column;
+}
+
 /* ============================================================
    SIDEBAR NAVIGATION
    ============================================================ */
-#sidebar {
+#sidebar,
+#atca-sidebar {
   width: var(--sidebar-width);
   min-height: 100vh;
   background: var(--sidebar-bg);
@@ -56,17 +62,20 @@ body {
   transition: transform 0.25s ease;
 }
 
-#sidebar .sidebar-brand {
+#sidebar .sidebar-brand,
+#atca-sidebar .sidebar-brand {
   padding: 1.25rem 1rem 0.75rem;
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-#sidebar .sidebar-brand img {
+#sidebar .sidebar-brand img,
+#atca-sidebar .sidebar-brand img {
   height: 36px;
   margin-bottom: 0.4rem;
 }
 
-#sidebar .sidebar-brand h6 {
+#sidebar .sidebar-brand h6,
+#atca-sidebar .sidebar-brand h6 {
   color: #fff;
   font-weight: 700;
   font-size: 0.85rem;
@@ -74,12 +83,14 @@ body {
   letter-spacing: 0.03em;
 }
 
-#sidebar .sidebar-brand small {
+#sidebar .sidebar-brand small,
+#atca-sidebar .sidebar-brand small {
   color: rgba(255,255,255,0.5);
   font-size: 0.7rem;
 }
 
-#sidebar .nav-section-label {
+#sidebar .nav-section-label,
+#atca-sidebar .nav-section-label {
   padding: 0.9rem 1rem 0.2rem;
   font-size: 0.65rem;
   font-weight: 700;
@@ -88,7 +99,8 @@ body {
   color: rgba(255,255,255,0.35);
 }
 
-#sidebar .nav-link {
+#sidebar .nav-link,
+#atca-sidebar .nav-link {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -101,30 +113,35 @@ body {
   border-left: 3px solid transparent;
 }
 
-#sidebar .nav-link:hover {
+#sidebar .nav-link:hover,
+#atca-sidebar .nav-link:hover {
   background: var(--sidebar-hover);
   color: #fff;
 }
 
-#sidebar .nav-link.active {
+#sidebar .nav-link.active,
+#atca-sidebar .nav-link.active {
   background: var(--sidebar-active);
   color: #fff;
   border-left-color: var(--atca-gold);
 }
 
-#sidebar .nav-link .nav-icon {
+#sidebar .nav-link .nav-icon,
+#atca-sidebar .nav-link .nav-icon {
   width: 18px;
   text-align: center;
   font-size: 0.9rem;
   opacity: 0.85;
 }
 
-#sidebar .nav-link .badge {
+#sidebar .nav-link .badge,
+#atca-sidebar .nav-link .badge {
   margin-left: auto;
   font-size: 0.65rem;
 }
 
-#sidebar .sidebar-footer {
+#sidebar .sidebar-footer,
+#atca-sidebar .sidebar-footer {
   margin-top: auto;
   padding: 0.75rem 1rem;
   border-top: 1px solid rgba(255,255,255,0.1);
@@ -135,7 +152,8 @@ body {
 /* ============================================================
    MAIN CONTENT AREA
    ============================================================ */
-#main-content {
+#main-content,
+.atca-main {
   margin-left: var(--sidebar-width);
   flex: 1;
   display: flex;
@@ -468,11 +486,100 @@ body {
 }
 
 /* ============================================================
+   LAYOUT A — Standalone module pages (MOD-34, MOD-35, MOD-36)
+   These carry their own topbar + sidebar chrome instead of the
+   full Layout B injected sidebar. Use class .atca-topbar on the
+   #topbar div to opt in; .atca-sidebar on the #sidebar nav.
+   ============================================================ */
+#topbar.atca-topbar {
+  background: var(--atca-navy);
+  color: #fff;
+  height: 52px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 0 1rem;
+}
+
+.atca-sidebar {
+  background: var(--atca-navy);
+  min-width: 200px;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-link:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.sidebar-link.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-weight: 500;
+}
+
+.sidebar-section {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.35);
+  padding: 0.75rem 0.75rem 0.25rem;
+}
+
+.topbar-brand {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.05em;
+}
+
+.topbar-brand-sub {
+  color: var(--atca-gold);
+}
+
+.topbar-divider {
+  display: inline-block;
+  width: 1px;
+  height: 22px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 0.25rem;
+}
+
+.topbar-module {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.85);
+}
+
+.topbar-user {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ============================================================
    PRINT STYLES
    ============================================================ */
 @media print {
-  #sidebar, #topbar { display: none !important; }
-  #main-content { margin-left: 0; }
+  #sidebar, #atca-sidebar, #topbar { display: none !important; }
+  #main-content, .atca-main { margin-left: 0; }
   .page-content { padding: 0; }
   .atca-card { box-shadow: none; border: 1px solid #ccc; }
 }
@@ -481,13 +588,16 @@ body {
    RESPONSIVE (Phase 2 tablet breakpoint)
    ============================================================ */
 @media (max-width: 768px) {
-  #sidebar {
+  #sidebar,
+  #atca-sidebar {
     transform: translateX(-100%);
   }
-  #sidebar.open {
+  #sidebar.open,
+  #atca-sidebar.open {
     transform: translateX(0);
   }
-  #main-content {
+  #main-content,
+  .atca-main {
     margin-left: 0;
   }
   .kpi-grid {

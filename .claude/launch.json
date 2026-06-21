@@ -2,10 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "atca-erp-preview",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["preview-server.js"],
-      "autoPort": true
+      "name": "preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["preview_server.py"],
+      "port": 3000,
+      "autoPort": false
     }
   ]
 }

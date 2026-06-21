@@ -2,7 +2,7 @@
 
 **ATC Aviation Pte Ltd — Enterprise Resource Planning System**  
 AS9100D · NADCAP AC7108 · NADCAP AC7110 · NADCAP AC7114 · NAS410  
-LAN-only · Version 1.0 · SoR Rev. 1.0 (9 June 2026)
+LAN-only · Version 1.0 · SoR Rev. 1.0 (9 June 2026) · Last updated: 2026-06-21 · Sidebar &amp; Layout fixes
 
 ---
 

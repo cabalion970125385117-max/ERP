@@ -6,7 +6,7 @@
 <title>MOD-35 — Regulatory Cert Renewal | ATCA-ERP</title>
 <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
 <link rel="stylesheet" href="/assets/css/bootstrap-icons.min.css">
-<link rel="stylesheet" href="/assets/css/atca-core.css">
+<link rel="stylesheet" href="/assets/css/atca-erp.css">
 <style>
   .rag-OVERDUE  { background:#dc3545!important; color:#fff; font-weight:600; }
   .rag-DUE_SOON { background:#fd7e14!important; color:#fff; font-weight:600; }
@@ -33,9 +33,30 @@
 </style>
 </head>
 <body>
-<div id="topbar"></div>
-<div class="d-flex" style="height:calc(100vh - 56px)">
-  <div id="sidebar"></div>
+
+<!-- Layout A Topbar -->
+<div id="topbar" class="atca-topbar d-flex align-items-center px-3 gap-3">
+  <span class="topbar-brand">ATCA<span class="topbar-brand-sub">ERP</span></span>
+  <span class="topbar-divider"></span>
+  <span class="topbar-module"><i class="bi bi-shield-check me-2"></i>MOD-35 — Regulatory Cert Renewal</span>
+  <span class="ms-auto d-flex align-items-center gap-3">
+    <span class="badge bg-primary">AS9100D §7.1.2</span>
+    <span class="badge bg-dark">NADCAP</span>
+    <span id="userChip" class="topbar-user">—</span>
+  </span>
+</div>
+
+<div class="d-flex" style="min-height:calc(100vh - 52px);margin-top:52px;">
+
+<!-- Sidebar -->
+<nav id="sidebar" class="atca-sidebar d-flex flex-column p-3 gap-1" style="min-width:210px;">
+  <a href="/" class="sidebar-link"><i class="bi bi-house-fill me-2"></i>Home</a>
+  <div class="sidebar-section">Regulatory Certs</div>
+  <a href="#" class="sidebar-link active" onclick="activateSidebarTab('tabDashboard',this);return false;"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+  <a href="#" class="sidebar-link" onclick="activateSidebarTab('tabCerts',this);return false;"><i class="bi bi-award me-2"></i>Certificate Register</a>
+  <a href="#" class="sidebar-link" onclick="activateSidebarTab('tabActions',this);return false;"><i class="bi bi-list-check me-2"></i>Renewal Actions</a>
+</nav>
+
   <main class="flex-grow-1 overflow-auto p-3">
 
     <div class="d-flex align-items-center gap-2 mb-3">
@@ -388,6 +409,14 @@ document.getElementById('filterRag').addEventListener('change',  () => renderCer
 document.getElementById('filterType').addEventListener('change', () => renderCertTable(allCerts));
 document.getElementById('btnTabCerts').addEventListener('click',   () => renderCertTable(allCerts));
 document.getElementById('btnTabActions').addEventListener('click', () => loadActions());
+
+function activateSidebarTab(tabId, el) {
+  document.querySelectorAll('#sidebar .sidebar-link').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+  const tab = document.querySelector(`[data-bs-target="#${tabId}"]`);
+  if (tab) bootstrap.Tab.getOrCreateInstance(tab).show();
+  return false;
+}
 
 (async () => {
   await ATCA.initPage();
