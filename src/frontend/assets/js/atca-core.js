@@ -391,28 +391,48 @@ ATCA.sidebar = {
 <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>`,
 
   init() {
-    // Layout B pages: inject nav into empty #atca-sidebar and wire toggle
-    const injected = document.getElementById('atca-sidebar');
-    if (injected && !injected.dataset.injected) {
-      injected.innerHTML = this._html;
-      injected.dataset.injected = '1';
-      // Mark the active link
-      const cur = window.location.pathname.replace(/\/$/, '');
-      injected.querySelectorAll('a.nav-link').forEach(a => {
-        const href = a.getAttribute('href').replace(/\/$/, '');
-        if (href && cur.startsWith(href)) a.classList.add('active');
-      });
-      // Wire mobile toggle on the topbar
-      const btn = document.getElementById('sidebar-toggle') ||
-                  document.querySelector('[id="sidebar-toggle"]');
-      btn?.addEventListener('click', () => injected.classList.toggle('open'));
+    // Single source of truth: inject the canonical nav into whichever sidebar
+    // container the page provides. Layout B/C pages ship an empty
+    // <nav id="atca-sidebar">; Layout A pages ship a hardcoded <nav id="sidebar">
+    // that is often an abbreviated, out-of-date copy (missing MPT Process, etc.)
+    // — overwrite it so the side panel is identical on every page.
+    let bar = document.getElementById('atca-sidebar');
+    if (!bar) {
+      // Legacy Layout A app sidebar is <nav id="sidebar"> with NO .atca-sidebar
+      // class. MOD-34/35/36 reuse id="sidebar" for their OWN module nav (class
+      // .atca-sidebar) — never hijack those.
+      const legacy = document.getElementById('sidebar');
+      if (legacy && !legacy.classList.contains('atca-sidebar')) bar = legacy;
     }
-    // Layout A pages: wire toggle on existing hardcoded #sidebar
-    const legacySidebar = document.getElementById('sidebar');
-    if (legacySidebar) {
-      const btn = document.getElementById('sidebar-toggle');
-      btn?.addEventListener('click', () => legacySidebar.classList.toggle('open'));
+    // Navbar-only pages (e.g. MOD-11/12/14/16/18/21–23) ship neither container —
+    // the base `body{display:flex}` then renders their top navbar as a tall left
+    // column. Build the standard shell so they get the sidebar like every other page:
+    // wrap the existing body content in .atca-main and prepend an #atca-sidebar.
+    // Skip pages that carry their own standalone sidebar chrome (.atca-sidebar).
+    if (!bar && !document.querySelector('.atca-sidebar')) {
+      const main = document.createElement('div');
+      main.className = 'atca-main';
+      while (document.body.firstChild) main.appendChild(document.body.firstChild);
+      bar = document.createElement('nav');
+      bar.id = 'atca-sidebar';
+      document.body.appendChild(bar);
+      document.body.appendChild(main);
     }
+    if (!bar || bar.dataset.injected) return;
+    bar.innerHTML = this._html;
+    bar.dataset.injected = '1';
+    // Mark the active link — the longest href that prefixes the current path wins
+    // (so /modules/mod07-ncr-capa/ncr-detail.html still highlights NCR & CAPA).
+    const cur = window.location.pathname.replace(/\/$/, '');
+    let best = null, bestLen = -1;
+    bar.querySelectorAll('a.nav-link').forEach(a => {
+      const href = (a.getAttribute('href') || '').replace(/\/$/, '');
+      if (href && cur.startsWith(href) && href.length > bestLen) { best = a; bestLen = href.length; }
+    });
+    best?.classList.add('active');
+    // Wire mobile toggle
+    document.getElementById('sidebar-toggle')
+      ?.addEventListener('click', () => bar.classList.toggle('open'));
   },
 };
 

@@ -8,8 +8,12 @@
   <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
   <link rel="stylesheet" href="/assets/css/atca-erp.css">
 </head>
-<body class="atca-body">
+<body>
 
+<!-- SIDEBAR (canonical nav injected by atca-core.js) -->
+<nav id="atca-sidebar"></nav>
+
+<div class="atca-main">
 <nav class="navbar navbar-dark atca-navbar px-3">
   <a class="navbar-brand fw-bold" href="/"><i class="bi bi-shield-check me-2"></i>ATCA-ERP</a>
   <span class="text-white-50 small">MOD-08 · Audit Management · AS9100D §9.2</span>
@@ -141,6 +145,7 @@
 
   </div><!-- /tab-content -->
 </div>
+</div><!-- /.atca-main -->
 
 <!-- New Audit Plan Modal -->
 <div class="modal fade" id="modalNewPlan" tabindex="-1">
@@ -292,7 +297,7 @@
 
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-demo.js?v=1"></script>
-<script src="/assets/js/atca-core.js?v=6"></script>
+<script src="/assets/js/atca-core.js?v=7"></script>
 <script>
 'use strict';
 let currentFindingId = null;

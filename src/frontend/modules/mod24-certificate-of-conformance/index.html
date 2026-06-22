@@ -14,7 +14,12 @@
     }
   </style>
 </head>
-<body class="atca-body">
+<body>
+
+<!-- SIDEBAR (canonical nav injected by atca-core.js) -->
+<nav id="atca-sidebar"></nav>
+
+<div class="atca-main">
 
 <nav class="navbar navbar-dark atca-navbar px-3 no-print">
   <a class="navbar-brand fw-bold" href="/"><i class="bi bi-award me-2"></i>ATCA-ERP</a>
@@ -193,10 +198,11 @@
     </div>
   </div>
 </div>
+</div><!-- /.atca-main -->
 
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-demo.js?v=1"></script>
-<script src="/assets/js/atca-core.js?v=6"></script>
+<script src="/assets/js/atca-core.js?v=7"></script>
 <script>
 'use strict';
 let currentCocId = null, currentCocStatus = null;

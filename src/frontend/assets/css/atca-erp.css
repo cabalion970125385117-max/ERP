@@ -411,6 +411,19 @@ body.atca-body {
   margin-top: 0.25rem;
 }
 
+/* Layout C top navbar (MOD-08/13/17/24) — dark brand bar above the content column.
+   The class was referenced in markup but never defined, so the bar rendered with
+   no background and its white text was invisible. */
+.atca-navbar {
+  background: var(--sidebar-bg);
+  border-bottom: 3px solid var(--atca-gold);
+  min-height: 52px;
+}
+.atca-navbar .navbar-brand,
+.atca-navbar .navbar-brand:hover {
+  color: #fff;
+}
+
 .form-control, .form-select {
   font-size: 0.83rem;
   border-color: var(--atca-border);
@@ -523,6 +536,20 @@ body.atca-body {
   align-self: flex-start;
   max-height: 100vh;
   overflow-y: auto;
+}
+
+/* These standalone pages reuse id="sidebar", so the global #sidebar chrome
+   (position:fixed; width:260px) overrides .atca-sidebar by id-specificity and
+   collapses the layout. Re-assert the standalone sticky sidebar (id+class wins). */
+#sidebar.atca-sidebar {
+  position: sticky;
+  width: auto;
+  min-width: 200px;
+  min-height: 0;
+  left: auto;
+  z-index: 1;
+  transition: none;
+  transform: none;
 }
 
 .sidebar-link {
