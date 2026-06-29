@@ -641,7 +641,10 @@ ATCA.entity = {
     const alertsEl = document.querySelector('.topbar-alerts');
     if (alertsEl) { alertsEl.insertAdjacentElement('afterbegin', wrap); return; }
     const navRight = document.querySelector('nav.navbar .ms-auto');
-    if (navRight)  { navRight.insertAdjacentElement('afterbegin', wrap); }
+    if (navRight)  { navRight.insertAdjacentElement('afterbegin', wrap); return; }
+    // Layout C fallback: navbar with #nav-alerts and no .ms-auto
+    const navAlerts = document.querySelector('nav.navbar #nav-alerts');
+    if (navAlerts)  { navAlerts.insertAdjacentElement('beforebegin', wrap); }
   },
 };
 
