@@ -21,6 +21,8 @@ STUBS = {
     },
     "POST /api/v1/auth/session-extend": {"message": "Session extended."},
     "POST /api/v1/auth/logout": {"message": "Logged out."},
+    "POST /api/v1/mod08/audit-plans": {"audit_plan_id": 4, "audit_number": "AP-2026-0004", "message": "Audit plan created."},
+    "POST /api/v1/mod08/findings": {"finding_id": 4, "finding_number": "AF-2026-0004", "message": "Finding raised."},
     "GET /api/v1/alerts/summary": {"total": 3},
     "GET /api/v1/alerts/list": {"items": [
         {"severity":"CRITICAL","module":"MOD-04","module_name":"Personnel / NAS410","message":"1 NDT certification has expired","link":"/modules/mod04-ndt-personnel/"},

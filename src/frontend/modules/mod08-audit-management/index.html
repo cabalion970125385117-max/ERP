@@ -7,10 +7,33 @@
   <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
   <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
   <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <style>
+    /* ── Calendar ── */
+    .cal-outer { overflow-x: auto; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(90px,1fr)); gap: 3px; min-width: 630px; }
+    .cal-day-hdr { text-align: center; font-size: .68rem; font-weight: 700; color: var(--atca-muted);
+      padding: 5px 0; text-transform: uppercase; letter-spacing: .04em; }
+    .cal-cell { min-height: 88px; border: 1px solid var(--atca-border); border-radius: 5px;
+      padding: 5px 6px; background: #fff; }
+    .cal-cell.other-month { background: #f8f9fa; }
+    .cal-cell.today-cell  { background: #eef3ff; border-color: var(--atca-navy); }
+    .cal-date { font-size: .68rem; color: var(--atca-muted); font-weight: 600; margin-bottom: 3px; }
+    .cal-date.today-num { color: var(--atca-navy); font-weight: 800; font-size: .75rem; }
+    .cal-pill { font-size: .62rem; font-weight: 600; border-radius: 3px; padding: 1px 5px;
+      margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: pointer; display: block; color: #fff; line-height: 1.5; }
+    .cal-pill.type-INTERNAL { background: #0d6efd; }
+    .cal-pill.type-NADCAP   { background: #fd7e14; }
+    .cal-pill.type-CUSTOMER { background: #6f42c1; }
+    .cal-pill.type-SUPPLIER { background: #198754; }
+    .cal-pill.status-COMPLETE   { opacity: .55; }
+    .cal-pill.status-CANCELLED  { opacity: .35; text-decoration: line-through; }
+    .cal-more { font-size: .6rem; color: var(--atca-muted); margin-top: 1px; }
+  </style>
 </head>
 <body>
 
-<!-- SIDEBAR (canonical nav injected by atca-core.js) -->
+<!-- SIDEBAR -->
 <nav id="atca-sidebar"></nav>
 
 <div class="atca-main">
@@ -26,9 +49,9 @@
 <div class="container-fluid py-3">
 
   <!-- KPI Cards -->
-  <div class="row g-3 mb-4" id="kpi-row">
+  <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-      <div class="kpi-card kpi-amber" id="kpi-planned">
+      <div class="kpi-card kpi-amber">
         <div class="kpi-label">Planned / Active Audits</div>
         <div class="kpi-value" id="kv-planned">—</div>
       </div>
@@ -46,7 +69,7 @@
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="kpi-card kpi-amber" id="kpi-pending">
+      <div class="kpi-card kpi-amber">
         <div class="kpi-label">Pending Verification</div>
         <div class="kpi-value" id="kv-pending">—</div>
       </div>
@@ -55,8 +78,12 @@
 
   <!-- Tabs -->
   <ul class="nav nav-tabs mb-3" id="mainTabs">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-plans">Audit Plans</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-findings">Findings Register</a></li>
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-plans">
+      <i class="bi bi-clipboard-list me-1"></i>Audit Plans</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-findings">
+      <i class="bi bi-exclamation-triangle me-1"></i>Findings Register</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-calendar">
+      <i class="bi bi-calendar3 me-1"></i>Calendar</a></li>
   </ul>
 
   <div class="tab-content">
@@ -143,6 +170,29 @@
       <div id="pagination-findings"></div>
     </div>
 
+    <!-- ── Calendar ── -->
+    <div class="tab-pane fade" id="tab-calendar">
+      <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+        <button class="btn btn-outline-secondary btn-sm" onclick="calNav(-1)">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <h5 class="mb-0 fw-bold" id="cal-month-label" style="min-width:160px;text-align:center;">—</h5>
+        <button class="btn btn-outline-secondary btn-sm" onclick="calNav(1)">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <button class="btn btn-outline-primary btn-sm" onclick="calToday()">Today</button>
+        <div class="ms-auto d-flex gap-2 flex-wrap">
+          <span class="badge text-white" style="background:#0d6efd;font-size:.72rem;">INTERNAL</span>
+          <span class="badge text-white" style="background:#fd7e14;font-size:.72rem;">NADCAP</span>
+          <span class="badge text-white" style="background:#6f42c1;font-size:.72rem;">CUSTOMER</span>
+          <span class="badge text-white" style="background:#198754;font-size:.72rem;">SUPPLIER</span>
+        </div>
+      </div>
+      <div class="cal-outer">
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+    </div>
+
   </div><!-- /tab-content -->
 </div>
 </div><!-- /.atca-main -->
@@ -179,8 +229,18 @@
             <input type="text" class="form-control" id="np-dept" placeholder="e.g. NDT Operations">
           </div>
           <div class="col-md-6">
-            <label class="form-label">Lead Auditor Name</label>
-            <input type="text" class="form-control" id="np-auditor" placeholder="Auditor full name">
+            <label class="form-label">Lead Auditor <span class="text-danger">*</span></label>
+            <select class="form-select" id="np-auditor-id">
+              <option value="">— Select auditor —</option>
+            </select>
+            <div class="form-text">Nominating sends a dashboard notification to the selected person.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Auditee Person <small class="text-muted">(optional — for individual nomination)</small></label>
+            <select class="form-select" id="np-auditee-id">
+              <option value="">— None / Department only —</option>
+            </select>
+            <div class="form-text">If selected, this person is also notified on their dashboard.</div>
           </div>
           <div class="col-md-6">
             <label class="form-label">Standard / Clause Reference</label>
@@ -197,9 +257,9 @@
         <button class="btn btn-primary"
           data-compliance="AS9100D §9.2.1 — Audit programme considers process importance and previous audit results"
           data-linked="MOD-08 Findings, MOD-07 NCR/CAPA"
-          data-action-desc="Save audit plan and generate audit number"
+          data-action-desc="Save audit plan and notify nominated auditor / auditee"
           onclick="savePlan()">
-          <i class="bi bi-save me-1"></i>Save Audit Plan
+          <i class="bi bi-save me-1"></i>Save & Notify
         </button>
       </div>
     </div>
@@ -295,28 +355,79 @@
   </div>
 </div>
 
+<!-- Audit Quick-View Modal (calendar click) -->
+<div class="modal fade" id="modalCalDetail" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header atca-modal-header">
+        <h5 class="modal-title" id="cal-detail-title">Audit Detail</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="cal-detail-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-demo.js?v=1"></script>
 <script src="/assets/js/atca-core.js?v=8"></script>
 <script>
 'use strict';
-let currentFindingId = null;
-const planModal    = new bootstrap.Modal(document.getElementById('modalNewPlan'));
-const findingModal = new bootstrap.Modal(document.getElementById('modalNewFinding'));
-const detailModal  = new bootstrap.Modal(document.getElementById('modalFindingDetail'));
 
+const NOTIF_KEY = 'atca_notifications';
+
+let currentFindingId = null;
+let _plans  = [];
+let _users  = [];
+let _calYear  = new Date().getFullYear();
+let _calMonth = new Date().getMonth();
+
+const planModal     = new bootstrap.Modal(document.getElementById('modalNewPlan'));
+const findingModal  = new bootstrap.Modal(document.getElementById('modalNewFinding'));
+const detailModal   = new bootstrap.Modal(document.getElementById('modalFindingDetail'));
+const calModal      = new bootstrap.Modal(document.getElementById('modalCalDetail'));
+
+/* ──────────────────── init ──────────────────── */
 async function init() {
   await ATCA.initPage();
+  await loadUsers();
   await loadKpis();
   loadPlans();
   ATCA.tooltips.init();
   document.querySelectorAll('[data-bs-toggle="tab"]').forEach(t =>
     t.addEventListener('shown.bs.tab', e => {
-      if (e.target.getAttribute('href') === '#tab-findings') loadFindings();
+      const href = e.target.getAttribute('href');
+      if (href === '#tab-findings') loadFindings();
+      if (href === '#tab-calendar') renderCalendar();
     })
   );
 }
 
+/* ──────────────────── users ──────────────────── */
+async function loadUsers() {
+  try {
+    const res = await ATCA.api.get('/mod25/users');
+    _users = (res.items || res).filter(u => u.active !== false);
+  } catch { _users = []; }
+  populateUserDropdowns();
+}
+
+function populateUserDropdowns() {
+  const opts = _users.map(u => `<option value="${u.user_id}" data-name="${u.full_name}">${u.full_name} (${u.role})</option>`).join('');
+  document.getElementById('np-auditor-id').innerHTML  = '<option value="">— Select auditor —</option>' + opts;
+  document.getElementById('np-auditee-id').innerHTML  = '<option value="">— None / Department only —</option>' + opts;
+}
+
+function userName(id) {
+  if (!id) return null;
+  const u = _users.find(u => String(u.user_id) === String(id));
+  return u ? u.full_name : null;
+}
+
+/* ──────────────────── KPIs ──────────────────── */
 async function loadKpis() {
   const d = await ATCA.api.get('/mod08/alerts/summary');
   document.getElementById('kv-planned').textContent  = d.planned_audits ?? '—';
@@ -328,19 +439,23 @@ async function loadKpis() {
   document.getElementById('kpi-overdue').className = `kpi-card ${d.overdue_findings > 0 ? 'kpi-red' : 'kpi-green'}`;
 }
 
+/* ──────────────────── Audit Plans ──────────────────── */
 async function loadPlans() {
   const status = document.getElementById('filter-plan-status').value;
   const type   = document.getElementById('filter-plan-type').value;
-  let url = '/mod08/audit-plans?limit=20';
+  let url = '/mod08/audit-plans?limit=50';
   if (status) url += `&status=${status}`;
   if (type)   url += `&type=${type}`;
   const rows = await ATCA.api.get(url);
+  _plans = rows;
   ATCA.table.render('tbody-plans', rows, planRow);
 }
 
 function planRow(p) {
   const statusClass = { PLANNED:'warning', IN_PROGRESS:'primary', COMPLETE:'success', CANCELLED:'secondary' }[p.status] || 'secondary';
-  const openBadge = p.open_findings > 0 ? `<span class="badge bg-danger">${p.open_findings} open</span>` : `<span class="badge bg-success">${p.total_findings} findings</span>`;
+  const openBadge = p.open_findings > 0
+    ? `<span class="badge bg-danger">${p.open_findings} open</span>`
+    : `<span class="badge bg-success">${p.total_findings} findings</span>`;
   return `<tr>
     <td><strong>${p.audit_number}</strong></td>
     <td>${p.audit_title}</td>
@@ -351,25 +466,126 @@ function planRow(p) {
     <td>${openBadge}</td>
     <td><span class="badge bg-${statusClass}">${p.status}</span></td>
     <td>
-      <button class="btn btn-outline-primary btn-xs me-1"
+      <button class="btn btn-outline-primary btn-xs me-1" onclick="viewPlan(${p.audit_plan_id})"
         data-compliance="AS9100D §9.2 — Review audit status and checklist progress"
-        data-linked="MOD-08 Findings"
-        data-action-desc="Open audit plan detail and checklist"
-        onclick="viewPlan(${p.audit_plan_id})">
+        data-linked="MOD-08 Findings" data-action-desc="Open audit plan detail and checklist">
         <i class="bi bi-eye"></i>
       </button>
       ${p.status !== 'COMPLETE' && p.status !== 'CANCELLED' ? `
-      <button class="btn btn-outline-success btn-xs"
+      <button class="btn btn-outline-success btn-xs" onclick="updatePlanStatus(${p.audit_plan_id}, '${p.status}')"
         data-compliance="AS9100D §9.2.2 — Record audit outcomes including dates and results"
-        data-linked="MOD-08 Audit Plans"
-        data-action-desc="Update audit status and record actual date and outcome"
-        onclick="updatePlanStatus(${p.audit_plan_id}, '${p.status}')">
+        data-linked="MOD-08 Audit Plans" data-action-desc="Update audit status and record outcome">
         <i class="bi bi-pencil"></i>
       </button>` : ''}
     </td>
   </tr>`;
 }
 
+function showNewPlanModal() { planModal.show(); }
+
+async function savePlan() {
+  const title      = document.getElementById('np-title').value.trim();
+  const scope      = document.getElementById('np-scope').value.trim();
+  const dept       = document.getElementById('np-dept').value.trim();
+  const date       = document.getElementById('np-date').value;
+  const auditorId  = document.getElementById('np-auditor-id').value;
+  const auditorSel = document.getElementById('np-auditor-id');
+  const auditorName = auditorId ? auditorSel.options[auditorSel.selectedIndex]?.dataset?.name || userName(auditorId) : '';
+
+  if (!title || !scope || !dept || !date || !auditorId) {
+    ATCA.toast('Please fill all required fields (including Lead Auditor).', 'warning'); return;
+  }
+
+  try {
+    const res = await ATCA.api.post('/mod08/audit-plans', {
+      audit_title:       title,
+      audit_type:        document.getElementById('np-type').value,
+      audit_scope:       scope,
+      standard_ref:      document.getElementById('np-std').value.trim(),
+      planned_date:      date,
+      lead_auditor_name: auditorName,
+      auditee_dept:      dept,
+    });
+
+    const auditNumber = res.audit_number || ('AP-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4));
+    const nominatedBy = ATCA.currentUser?.full_name || 'QA Manager';
+
+    /* ── Push dashboard notifications ── */
+    const notifs = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]');
+
+    // Notify lead auditor
+    if (auditorName) {
+      notifs.push({
+        notif_id:    'NOTIF-' + Date.now() + '-A',
+        type:        'AUDIT_NOMINATION',
+        role:        'LEAD_AUDITOR',
+        recipient_name: auditorName,
+        title:       'You have been nominated as Lead Auditor',
+        body:        `${auditNumber} — ${title}`,
+        audit_number:  auditNumber,
+        audit_title:   title,
+        planned_date:  date,
+        auditee_dept:  dept,
+        nominated_by:  nominatedBy,
+        created_at:    new Date().toISOString(),
+        read: false,
+      });
+    }
+
+    // Notify auditee person (if selected)
+    const auditeeId = document.getElementById('np-auditee-id').value;
+    const auditeeSel = document.getElementById('np-auditee-id');
+    const auditeeName = auditeeId ? auditeeSel.options[auditeeSel.selectedIndex]?.dataset?.name || userName(auditeeId) : '';
+    if (auditeeName && auditeeName !== auditorName) {
+      notifs.push({
+        notif_id:    'NOTIF-' + Date.now() + '-B',
+        type:        'AUDIT_NOMINATION',
+        role:        'AUDITEE',
+        recipient_name: auditeeName,
+        title:       'You have been nominated as Auditee',
+        body:        `${auditNumber} — ${title}`,
+        audit_number:  auditNumber,
+        audit_title:   title,
+        planned_date:  date,
+        auditee_dept:  dept,
+        nominated_by:  nominatedBy,
+        created_at:    new Date().toISOString(),
+        read: false,
+      });
+    }
+
+    localStorage.setItem(NOTIF_KEY, JSON.stringify(notifs));
+
+    ATCA.toast(`Audit plan ${auditNumber} created. Notification sent to ${auditorName}.`, 'success');
+    planModal.hide();
+    loadPlans(); loadKpis();
+    ['np-title','np-scope','np-dept','np-date','np-std'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('np-auditor-id').value = '';
+    document.getElementById('np-auditee-id').value = '';
+  } catch { ATCA.toast('Error creating audit plan.', 'danger'); }
+}
+
+async function updatePlanStatus(id, current) {
+  const statusMap = { PLANNED:'IN_PROGRESS', IN_PROGRESS:'COMPLETE' };
+  const next = statusMap[current];
+  if (!next) return;
+  const result = current === 'IN_PROGRESS'
+    ? prompt('Overall result? (SATISFACTORY / MINOR_NC / MAJOR_NC)', 'SATISFACTORY')
+    : null;
+  if (!confirm(`Change audit status to ${next}?`)) return;
+  try {
+    await ATCA.api.patch(`/mod08/audit-plans/${id}/status`, { status: next, overall_result: result });
+    ATCA.toast('Audit status updated.', 'success');
+    loadPlans(); loadKpis();
+  } catch { ATCA.toast('Error updating status.', 'danger'); }
+}
+
+async function viewPlan(id) {
+  const plan = await ATCA.api.get(`/mod08/audit-plans/${id}`);
+  alert(`Audit: ${plan.audit_number}\nScope: ${plan.audit_scope}\nFindings: ${plan.findings.length}\nStatus: ${plan.status}`);
+}
+
+/* ──────────────────── Findings ──────────────────── */
 async function loadFindings() {
   const status = document.getElementById('filter-finding-status').value;
   const type   = document.getElementById('filter-finding-type').value;
@@ -381,9 +597,9 @@ async function loadFindings() {
 }
 
 function findingRow(f) {
-  const typeColors = { OBSERVATION:'info', MINOR_NC:'warning', MAJOR_NC:'danger', OPPORTUNITY:'success' };
+  const typeColors   = { OBSERVATION:'info', MINOR_NC:'warning', MAJOR_NC:'danger', OPPORTUNITY:'success' };
   const statusColors = { OPEN:'danger', RESPONSE_SUBMITTED:'warning', VERIFIED:'success', CLOSED:'secondary' };
-  const isOverdue = f.due_date && new Date(f.due_date) < new Date() && f.status === 'OPEN';
+  const isOverdue    = f.due_date && new Date(f.due_date) < new Date() && f.status === 'OPEN';
   return `<tr class="${isOverdue ? 'table-danger' : ''}">
     <td><strong>${f.finding_number}</strong></td>
     <td>${f.audit_number || '—'}</td>
@@ -405,51 +621,7 @@ function findingRow(f) {
   </tr>`;
 }
 
-function showNewPlanModal() { planModal.show(); }
-
-async function savePlan() {
-  const title = document.getElementById('np-title').value.trim();
-  const scope = document.getElementById('np-scope').value.trim();
-  const dept  = document.getElementById('np-dept').value.trim();
-  const date  = document.getElementById('np-date').value;
-  if (!title || !scope || !dept || !date) { ATCA.toast('Please fill all required fields.', 'warning'); return; }
-  try {
-    const res = await ATCA.api.post('/mod08/audit-plans', {
-      audit_title: title,
-      audit_type: document.getElementById('np-type').value,
-      audit_scope: scope,
-      standard_ref: document.getElementById('np-std').value.trim(),
-      planned_date: date,
-      lead_auditor_name: document.getElementById('np-auditor').value.trim(),
-      auditee_dept: dept,
-    });
-    ATCA.toast(`Audit plan ${res.audit_number} created.`, 'success');
-    planModal.hide();
-    loadPlans(); loadKpis();
-    ['np-title','np-scope','np-dept','np-date','np-auditor','np-std'].forEach(id => document.getElementById(id).value = '');
-  } catch { ATCA.toast('Error creating audit plan.', 'danger'); }
-}
-
-async function updatePlanStatus(id, current) {
-  const statusMap = { PLANNED:'IN_PROGRESS', IN_PROGRESS:'COMPLETE' };
-  const next = statusMap[current];
-  if (!next) return;
-  const result = current === 'IN_PROGRESS' ? prompt('Overall result? (SATISFACTORY / MINOR_NC / MAJOR_NC)','SATISFACTORY') : null;
-  if (!confirm(`Change audit status to ${next}?`)) return;
-  try {
-    await ATCA.api.patch(`/mod08/audit-plans/${id}/status`, { status: next, overall_result: result });
-    ATCA.toast('Audit status updated.', 'success');
-    loadPlans(); loadKpis();
-  } catch { ATCA.toast('Error updating status.', 'danger'); }
-}
-
-async function viewPlan(id) {
-  const plan = await ATCA.api.get(`/mod08/audit-plans/${id}`);
-  alert(`Audit: ${plan.audit_number}\nScope: ${plan.audit_scope}\nFindings: ${plan.findings.length}\nStatus: ${plan.status}`);
-}
-
 async function showNewFindingModal() {
-  // Populate plan select
   const plans = await ATCA.api.get('/mod08/audit-plans?limit=100');
   const sel = document.getElementById('nf-plan');
   sel.innerHTML = plans.map(p => `<option value="${p.audit_plan_id}">${p.audit_number} — ${p.audit_title}</option>`).join('');
@@ -457,18 +629,18 @@ async function showNewFindingModal() {
 }
 
 async function saveFinding() {
-  const desc = document.getElementById('nf-desc').value.trim();
+  const desc   = document.getElementById('nf-desc').value.trim();
   const planId = document.getElementById('nf-plan').value;
   if (!desc || !planId) { ATCA.toast('Audit plan and description required.', 'warning'); return; }
   try {
     const res = await ATCA.api.post('/mod08/findings', {
-      audit_plan_id: parseInt(planId),
-      finding_type: document.getElementById('nf-type').value,
-      clause_reference: document.getElementById('nf-clause').value.trim(),
-      description: desc,
+      audit_plan_id:      parseInt(planId),
+      finding_type:       document.getElementById('nf-type').value,
+      clause_reference:   document.getElementById('nf-clause').value.trim(),
+      description:        desc,
       objective_evidence: document.getElementById('nf-evidence').value.trim(),
-      assigned_to_name: document.getElementById('nf-assignee').value.trim(),
-      due_date: document.getElementById('nf-due').value || null,
+      assigned_to_name:   document.getElementById('nf-assignee').value.trim(),
+      due_date:           document.getElementById('nf-due').value || null,
     });
     ATCA.toast(`Finding ${res.finding_number} raised.`, 'success');
     findingModal.hide();
@@ -505,10 +677,10 @@ function viewFinding(f) {
 async function submitResponse() {
   try {
     await ATCA.api.post(`/mod08/findings/${currentFindingId}/response`, {
-      root_cause: document.getElementById('resp-rc').value.trim(),
-      correction: document.getElementById('resp-cor').value.trim(),
+      root_cause:        document.getElementById('resp-rc').value.trim(),
+      correction:        document.getElementById('resp-cor').value.trim(),
       corrective_action: document.getElementById('resp-ca').value.trim(),
-      target_date: document.getElementById('resp-td').value || null,
+      target_date:       document.getElementById('resp-td').value || null,
     });
     ATCA.toast('Response submitted.', 'success');
     detailModal.hide();
@@ -525,6 +697,116 @@ async function verifyFinding() {
     detailModal.hide();
     loadFindings(); loadKpis();
   } catch { ATCA.toast('Error verifying finding.', 'danger'); }
+}
+
+/* ──────────────────── Calendar ──────────────────── */
+const MONTH_NAMES = ['January','February','March','April','May','June',
+                     'July','August','September','October','November','December'];
+const DAY_NAMES   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+function calNav(delta) {
+  _calMonth += delta;
+  if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+  if (_calMonth < 0)  { _calMonth = 11; _calYear--; }
+  renderCalendar();
+}
+function calToday() {
+  const now = new Date();
+  _calYear = now.getFullYear();
+  _calMonth = now.getMonth();
+  renderCalendar();
+}
+
+function renderCalendar() {
+  document.getElementById('cal-month-label').textContent = `${MONTH_NAMES[_calMonth]} ${_calYear}`;
+
+  const grid = document.getElementById('cal-grid');
+
+  // Build day-header row
+  const headers = DAY_NAMES.map(d => `<div class="cal-day-hdr">${d}</div>`).join('');
+
+  // First day of month (0=Sun…6=Sat), convert to Mon-based (0=Mon)
+  const firstDay = new Date(_calYear, _calMonth, 1).getDay(); // 0=Sun
+  const startOffset = (firstDay + 6) % 7; // Mon=0
+  const daysInMonth = new Date(_calYear, _calMonth + 1, 0).getDate();
+  const daysInPrev  = new Date(_calYear, _calMonth, 0).getDate();
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  // Index plans by date
+  const byDate = {};
+  _plans.forEach(p => {
+    if (!p.planned_date) return;
+    const key = p.planned_date.substring(0,10);
+    if (!byDate[key]) byDate[key] = [];
+    byDate[key].push(p);
+  });
+
+  // Build cells
+  let cells = '';
+  const totalCells = Math.ceil((startOffset + daysInMonth) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++) {
+    let day, month, year, isCurrentMonth;
+    if (i < startOffset) {
+      day = daysInPrev - startOffset + i + 1;
+      month = _calMonth === 0 ? 12 : _calMonth;
+      year  = _calMonth === 0 ? _calYear - 1 : _calYear;
+      isCurrentMonth = false;
+    } else if (i >= startOffset + daysInMonth) {
+      day = i - startOffset - daysInMonth + 1;
+      month = _calMonth === 11 ? 1 : _calMonth + 2;
+      year  = _calMonth === 11 ? _calYear + 1 : _calYear;
+      isCurrentMonth = false;
+    } else {
+      day = i - startOffset + 1;
+      month = _calMonth + 1;
+      year  = _calYear;
+      isCurrentMonth = true;
+    }
+
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = dateStr === todayStr;
+    const plansHere = byDate[dateStr] || [];
+    const MAX_PILLS = 3;
+
+    const pills = plansHere.slice(0, MAX_PILLS).map(p =>
+      `<span class="cal-pill type-${p.audit_type} status-${p.status}"
+        onclick="showCalDetail(${JSON.stringify(p).replace(/"/g,'&quot;')})"
+        title="${p.audit_number} — ${p.audit_title}">${p.audit_number}</span>`
+    ).join('');
+    const more = plansHere.length > MAX_PILLS
+      ? `<div class="cal-more">+${plansHere.length - MAX_PILLS} more</div>` : '';
+
+    cells += `<div class="cal-cell${!isCurrentMonth ? ' other-month' : ''}${isToday ? ' today-cell' : ''}">
+      <div class="cal-date${isToday ? ' today-num' : ''}">${day}</div>
+      ${pills}${more}
+    </div>`;
+  }
+
+  grid.innerHTML = headers + cells;
+}
+
+function showCalDetail(p) {
+  const statusBadge = { PLANNED:'warning', IN_PROGRESS:'primary', COMPLETE:'success', CANCELLED:'secondary' };
+  const typePills = { INTERNAL:'#0d6efd', NADCAP:'#fd7e14', CUSTOMER:'#6f42c1', SUPPLIER:'#198754' };
+  document.getElementById('cal-detail-title').textContent = p.audit_number;
+  document.getElementById('cal-detail-body').innerHTML = `
+    <div class="mb-2">
+      <span class="badge text-white me-1" style="background:${typePills[p.audit_type]||'#6c757d'}">${p.audit_type}</span>
+      <span class="badge bg-${statusBadge[p.status]||'secondary'}">${p.status}</span>
+    </div>
+    <p class="fw-bold mb-1">${p.audit_title}</p>
+    <div class="row g-2 small">
+      <div class="col-6"><strong>Planned Date:</strong><br>${p.planned_date ? p.planned_date.substring(0,10) : '—'}</div>
+      <div class="col-6"><strong>Auditee Dept:</strong><br>${p.auditee_dept || '—'}</div>
+      <div class="col-6"><strong>Lead Auditor:</strong><br>${p.lead_auditor_full_name || p.lead_auditor_name || '—'}</div>
+      <div class="col-6"><strong>Findings:</strong><br>
+        ${p.open_findings > 0 ? `<span class="text-danger">${p.open_findings} open</span>` : `${p.total_findings||0} total`}
+      </div>
+    </div>`;
+  calModal.show();
 }
 
 init();

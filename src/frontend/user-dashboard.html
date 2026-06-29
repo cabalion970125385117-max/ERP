@@ -25,6 +25,12 @@
     .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .4rem .75rem; margin-top: .5rem; }
     .detail-item label { display: block; font-size: .65rem; font-weight: 700; text-transform: uppercase; color: var(--atca-muted); margin-bottom: 1px; }
     .detail-item span  { font-size: .8rem; color: var(--atca-text); }
+    .notif-card { border-left: 4px solid var(--atca-border); background: #fff; border-radius: 6px;
+      border: 1px solid var(--atca-border); border-left-width: 4px; padding: 1rem; margin-bottom: .75rem; }
+    .notif-card.unread { border-left-color: #0d6efd; background: #f6f9ff; }
+    .notif-card.read   { border-left-color: #ced4da; opacity: .8; }
+    .notif-title { font-weight: 600; font-size: .9rem; color: var(--atca-navy); }
+    .notif-meta  { font-size: .75rem; color: var(--atca-muted); }
   </style>
 </head>
 <body>
@@ -69,6 +75,7 @@
     <li class="nav-item"><a class="nav-link active" href="#tab-pending"  data-bs-toggle="tab"><i class="bi bi-hourglass-split me-1"></i>Pending Approval <span class="badge bg-warning text-dark ms-1" id="tab-pending-badge"></span></a></li>
     <li class="nav-item"><a class="nav-link" href="#tab-history" data-bs-toggle="tab"><i class="bi bi-clock-history me-1"></i>Approval History</a></li>
     <li class="nav-item"><a class="nav-link" href="#tab-myrequests" data-bs-toggle="tab"><i class="bi bi-send me-1"></i>My Requests</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-notifications" data-bs-toggle="tab"><i class="bi bi-bell me-1"></i>Notifications <span class="badge bg-danger ms-1" id="tab-notif-badge" style="display:none"></span></a></li>
   </ul>
 
   <div class="tab-content">
@@ -86,6 +93,11 @@
     <!-- ── My Requests ── -->
     <div class="tab-pane fade" id="tab-myrequests">
       <div id="myrequests-list"><p class="text-muted">Loading…</p></div>
+    </div>
+
+    <!-- ── Notifications ── -->
+    <div class="tab-pane fade" id="tab-notifications">
+      <div id="notif-list"><p class="text-muted">Loading…</p></div>
     </div>
 
   </div>
@@ -129,6 +141,7 @@
 'use strict';
 
 const APR_KEY   = 'atca_pending_approvals';
+const NOTIF_KEY = 'atca_notifications';
 const MOD14_KEY = 'atca_mod14_v1';
 const rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
 const esc = s => ATCA.utils.escHtml(s ?? '');
@@ -324,6 +337,83 @@ function confirmReject() {
   renderAll();
 }
 
+/* ── Notifications ── */
+function allNotifications() {
+  try { return JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); } catch { return []; }
+}
+
+function notifCard(n) {
+  const roleLabel = n.role === 'LEAD_AUDITOR' ? 'Lead Auditor' : 'Auditee';
+  const roleColor = n.role === 'LEAD_AUDITOR' ? '0d6efd' : '6f42c1';
+  const dateStr   = n.planned_date ? new Date(n.planned_date).toLocaleDateString('en-SG', {day:'numeric',month:'short',year:'numeric'}) : '—';
+  const createdStr = new Date(n.created_at).toLocaleString('en-SG');
+  return `<div class="notif-card ${n.read ? 'read' : 'unread'}" id="notif-${esc(n.notif_id)}">
+    <div class="d-flex align-items-start gap-2">
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+          <span class="badge text-white" style="background:#${roleColor};font-size:.68rem;">
+            <i class="bi bi-clipboard-check me-1"></i>${roleLabel}
+          </span>
+          <span class="badge bg-secondary" style="font-size:.68rem;">MOD-08 Audit</span>
+          ${!n.read ? '<span class="badge bg-danger" style="font-size:.62rem;">NEW</span>' : ''}
+        </div>
+        <div class="notif-title mb-1">${esc(n.title)}</div>
+        <div class="mb-1" style="font-size:.85rem;"><strong>${esc(n.audit_number)}</strong> — ${esc(n.audit_title)}</div>
+        <div class="notif-meta">
+          Scheduled: <strong>${dateStr}</strong> &nbsp;·&nbsp;
+          Dept: <strong>${esc(n.auditee_dept||'—')}</strong> &nbsp;·&nbsp;
+          Nominated by: <strong>${esc(n.nominated_by)}</strong> &nbsp;·&nbsp;
+          ${createdStr}
+        </div>
+      </div>
+      ${!n.read ? `<button class="btn btn-outline-secondary btn-sm flex-shrink-0" onclick="markNotifRead('${esc(n.notif_id)}')">
+        <i class="bi bi-check2 me-1"></i>Mark read
+      </button>` : ''}
+    </div>
+  </div>`;
+}
+
+function markNotifRead(notifId) {
+  const list = allNotifications();
+  const n = list.find(x => x.notif_id === notifId);
+  if (n) { n.read = true; localStorage.setItem(NOTIF_KEY, JSON.stringify(list)); }
+  renderNotifications();
+}
+
+function markAllNotifsRead() {
+  const list = allNotifications();
+  const me = ATCA.currentUser?.full_name;
+  list.filter(n => n.recipient_name === me).forEach(n => { n.read = true; });
+  localStorage.setItem(NOTIF_KEY, JSON.stringify(list));
+  renderNotifications();
+}
+
+function renderNotifications() {
+  const me = ATCA.currentUser?.full_name;
+  const mine = allNotifications().filter(n => n.recipient_name === me)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const unread = mine.filter(n => !n.read).length;
+
+  const badge = document.getElementById('tab-notif-badge');
+  badge.textContent = unread || '';
+  badge.style.display = unread ? '' : 'none';
+
+  const el = document.getElementById('notif-list');
+  if (!mine.length) {
+    el.innerHTML = `<div class="text-center text-muted py-5">
+      <i class="bi bi-bell-slash" style="font-size:2rem;"></i>
+      <p class="mt-2 mb-0">No notifications yet.</p></div>`;
+    return;
+  }
+  const markAllBtn = unread
+    ? `<div class="d-flex justify-content-end mb-2">
+        <button class="btn btn-outline-secondary btn-sm" onclick="markAllNotifsRead()">
+          <i class="bi bi-check2-all me-1"></i>Mark all as read
+        </button></div>`
+    : '';
+  el.innerHTML = markAllBtn + mine.map(notifCard).join('');
+}
+
 /* ── Render ── */
 function renderAll() {
   const me = ATCA.currentUser?.full_name;
@@ -361,6 +451,9 @@ function renderAll() {
   } else {
     hEl.innerHTML = [...done].sort((a,b) => new Date(b.approved_at)-new Date(a.approved_at)).map(historyCard).join('');
   }
+
+  // Notifications tab
+  renderNotifications();
 
   // My Requests tab
   const rEl = document.getElementById('myrequests-list');
