@@ -481,6 +481,7 @@ ATCA.sidebar = {
 <div class="nav-group nav-collapsed">
 <a href="/modules/mod25-user-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-gear"></i></span>User Management</a>
 <a href="/modules/mod37-file-repository/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>File Repository</a>
+<a href="/modules/mod-interco/" class="nav-link"><span class="nav-icon"><i class="bi bi-arrow-left-right"></i></span>Inter-Company Trading</a>
 <a href="/modules/mod-chat/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-dots"></i></span>Internal Chat</a>
 <a href="/modules/mod26-maintenance/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Maintenance Console</a>
 <a href="/modules/mod-changelog/" class="nav-link"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>Change Log</a>
@@ -574,6 +575,73 @@ ATCA.sidebar = {
       badge.textContent = total > 9 ? '9+' : (total || '');
       badge.style.display = total ? '' : 'none';
     } catch {}
+  },
+};
+
+/* ============================================================
+   MULTI-ENTITY CONTEXT
+   Three legal entities sharing the ERP with inter-company trading.
+   Active entity stored in localStorage; entity pill injected into
+   every topbar across all three layout variants.
+   ============================================================ */
+ATCA.entity = {
+  _key: 'atca_active_entity',
+  _list: [
+    { id:'ATCA', name:'ATCA', full:'ATC Aviation Pte Ltd',   compliance:['AC7114'],          color:'#1F6BAE' },
+    { id:'ATCT', name:'ATCT', full:'ATC Treatment Pte Ltd',  compliance:['AC7108'],          color:'#198754' },
+    { id:'APF',  name:'APF',  full:'Asia Pacific Finishing', compliance:['AC7110','AC7114'], color:'#C8922A' },
+  ],
+
+  all() { return this._list; },
+
+  active() {
+    try {
+      const stored = localStorage.getItem(this._key);
+      if (stored) { const f = this._list.find(e => e.id === stored); if (f) return f; }
+    } catch {}
+    return this._list[0];
+  },
+
+  set(id) {
+    try { localStorage.setItem(this._key, id); } catch {}
+    window.location.reload();
+  },
+
+  init() {
+    const ent = this.active();
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;';
+    wrap.innerHTML = `
+      <button class="entity-pill" id="entity-pill-btn" title="Switch entity">
+        <i class="bi bi-building" style="font-size:.75rem;opacity:.8;"></i>
+        <span class="ep-name">${ent.name}</span>
+        <span class="ep-comp">${ent.compliance.join(' · ')}</span>
+        <i class="bi bi-chevron-down" style="font-size:.5rem;opacity:.65;"></i>
+      </button>
+      <div class="entity-dropdown" id="entity-dropdown">
+        <div style="padding:.5rem .9rem .35rem;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--atca-muted);">Active Entity</div>
+        ${this._list.map(e => `
+          <div class="ed-item${e.id === ent.id ? ' active' : ''}" onclick="ATCA.entity.set('${e.id}')">
+            <span class="ed-dot" style="background:${e.color};"></span>
+            <div class="ed-info">
+              <div class="ed-name">${e.name}</div>
+              <div class="ed-sub">${e.full} &nbsp;·&nbsp; ${e.compliance.join(' · ')}</div>
+            </div>
+            ${e.id === ent.id ? '<i class="bi bi-check-lg ms-auto" style="color:var(--atca-blue);font-size:.85rem;"></i>' : ''}
+          </div>`).join('')}
+      </div>`;
+
+    const btn = wrap.querySelector('#entity-pill-btn');
+    const dd  = wrap.querySelector('#entity-dropdown');
+    btn.style.setProperty('--ep-color', ent.color);
+    btn.addEventListener('click', e => { e.stopPropagation(); dd.classList.toggle('open'); });
+    document.addEventListener('click', () => dd.classList.remove('open'));
+
+    // Inject into whichever topbar variant is present
+    const alertsEl = document.querySelector('.topbar-alerts');
+    if (alertsEl) { alertsEl.insertAdjacentElement('afterbegin', wrap); return; }
+    const navRight = document.querySelector('nav.navbar .ms-auto');
+    if (navRight)  { navRight.insertAdjacentElement('afterbegin', wrap); }
   },
 };
 
@@ -893,6 +961,7 @@ ATCA.initPage = function() {
       ATCA.sidebar.init();
       ATCA.nav.init();
       await ATCA.user.load();
+      ATCA.entity.init();
       ATCA.alerts.startPolling();
       ATCA.session.init();
       // Init tooltips for any static buttons already in the DOM

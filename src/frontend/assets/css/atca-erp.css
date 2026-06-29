@@ -215,6 +215,81 @@ body.atca-body {
   text-align: center;
 }
 
+/* ── Entity switcher pill (topbar, all layouts) ── */
+.entity-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 20px;
+  padding: .22rem .65rem;
+  font-size: .78rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+  margin-right: .5rem;
+}
+.entity-pill:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,.4); }
+.entity-pill .ep-name { font-size: .82rem; letter-spacing: .02em; }
+.entity-pill .ep-comp {
+  font-size: .58rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  padding: 1px 4px;
+  opacity: .9;
+}
+
+.entity-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1060;
+  background: #fff;
+  border: 1px solid var(--atca-border);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.15);
+  min-width: 240px;
+  display: none;
+  overflow: hidden;
+}
+.entity-dropdown.open { display: block; }
+
+.entity-dropdown .ed-item {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .6rem .9rem;
+  cursor: pointer;
+  transition: background .1s;
+  border-bottom: 1px solid #f1f3f5;
+}
+.entity-dropdown .ed-item:last-child { border-bottom: none; }
+.entity-dropdown .ed-item:hover  { background: #f8f9fa; }
+.entity-dropdown .ed-item.active  { background: #eef3ff; }
+.entity-dropdown .ed-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.entity-dropdown .ed-name { font-weight: 700; font-size: .85rem; color: var(--atca-navy); }
+.entity-dropdown .ed-sub  { font-size: .68rem; color: var(--atca-muted); margin-top: 1px; }
+
+/* ── Entity badge used in tables / cards ── */
+.ent-badge {
+  display: inline-block;
+  font-size: .65rem;
+  font-weight: 800;
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: #fff;
+  letter-spacing: .04em;
+}
+.ent-ATCA { background: #1F6BAE; }
+.ent-ATCT { background: #198754; }
+.ent-APF  { background: #C8922A; }
+
 /* ── My Dashboard widget on home page ── */
 .my-dash-widget {
   background: var(--atca-navy);

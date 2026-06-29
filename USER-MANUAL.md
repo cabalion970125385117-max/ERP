@@ -1187,6 +1187,85 @@ Key rules:
 
 ---
 
+---
+
+## §16 Multi-Entity Support (ATCA · ATCT · APF)
+
+The ERP supports three legal entities operating within the ATC group. You can switch between entities at any time using the entity pill in the top-right corner of every page.
+
+| Entity | Full Name | NADCAP Capabilities |
+|---|---|---|
+| **ATCA** | ATC Aviation Pte Ltd | AC7114 (NDT — PT/MT/UT/FPI) |
+| **ATCT** | ATC Treatment Pte Ltd | AC7108 (Chemical Processing) |
+| **APF** | Asia Pacific Finishing | AC7110 (Coatings) + AC7114 (NDT) |
+
+### Switching Entity
+1. Click the colored entity pill in the top-right corner of the topbar (e.g., **ATCA**).
+2. Select the target entity from the dropdown.
+3. The page will reload with the active entity updated. All subsequent actions are recorded under the new entity context.
+
+The active entity is stored in your browser session and persists until you switch again.
+
+### Shared Assets
+Some assets (equipment, calibration references, software licenses) are shared across all three entities. These appear in the Shared Assets tab of the Inter-Company Trading module with a **ALL ENTITIES** scope badge. Any entity can view and use shared assets; the custodian entity is responsible for calibration and maintenance.
+
+---
+
+## §17 Inter-Company Trading (Interco PO / DO)
+
+**Module:** Inter-Company Trading (ICO) — accessible from the System section of the Home dashboard or via the sidebar.
+
+Inter-company orders allow the three ATCA group entities to formally trade goods and services with each other, with full traceability.
+
+### Interco Purchase Orders (ICO-PO)
+An ICO-PO is a formal order issued by one entity to another for goods or services.
+
+**Number format:** `ICO-PO-YYYY-NNN` (e.g. `ICO-PO-2026-001`)
+
+**Lifecycle:**
+```
+DRAFT → ISSUED → ACKNOWLEDGED → FULFILLED → CLOSED
+```
+
+**To raise an Interco PO:**
+1. Go to Inter-Company Trading → Interco Purchase Orders tab.
+2. Click **New Interco PO**.
+3. Select **From Entity** (issuer) and **To Entity** (recipient). These must be different entities.
+4. Fill in description, amount (SGD), PO date, and required-by date.
+5. Set initial status to **DRAFT** (save and continue later) or **ISSUED** (send immediately).
+6. Click **Save ICO-PO**. The record appears in the table and an audit log entry is created.
+
+**To advance status:** Click the → button on the row, or open the detail view and click **Advance Status**.
+
+**To create a Delivery Order against a PO:** Click the truck icon on the PO row.
+
+### Interco Delivery Orders (ICO-DO)
+An ICO-DO records the physical dispatch of goods or completion of services against an ICO-PO.
+
+**Number format:** `ICO-DO-YYYY-NNN`
+
+**Lifecycle:**
+```
+DRAFT → DISPATCHED → RECEIVED
+```
+
+**To raise an Interco DO:**
+1. Go to Interco Delivery Orders tab → **New Interco DO**.
+2. Optionally link to an existing open ICO-PO (pre-fills From/To/Description).
+3. Enter dispatch date and confirm entities.
+4. Save. Once goods are received by the destination entity, advance status to **RECEIVED**.
+
+### Shared Assets Register
+The Shared Assets tab lists equipment, tooling, software, and calibration references that are shared across all three entities.
+
+- **Scope = ALL ENTITIES** — all three entities can use the asset.
+- **Custodian** = the entity responsible for maintaining, calibrating, and scheduling downtime.
+- Assets with a past **Calibration Due** date are highlighted in red.
+
+To register a new shared asset: click **Register Shared Asset**, fill in description, type, custodian, and calibration due date.
+
+---
+
 *This manual is a living document. Update this file after every feature change, new module, or workflow modification.*
 
 **Version History:**
@@ -1204,3 +1283,7 @@ Key rules:
 | 2026-06-28 | MOD-12: AVL tab — Purchased Items button shows full list of items sourced from ATCA inventory (with HAZMAT badge and RAG stock status); Request Audit button per supplier opens a supplier audit form with training-qualified Lead Auditor dropdown (personnel must hold the relevant AS9100D/NADCAP training credential from MOD-18 Talent Management) |
 | 2026-06-28 | User Guide: background colour changed to white |
 | 2026-06-29 | DEVELOPMENT-STANDARDS.md created — three mandatory governance rules baked in: (1) audit log on every user input/change, (2) FM-NNN form number on every controlled form, (3) persistent revision history with DRAFT→PENDING_QM→APPROVED state machine on every document; USER-MANUAL §15 added to document these rules for end users |
+| 2026-06-29 | Multi-entity support added — ATCA / ATCT / APF entity switcher pill in every page topbar; active entity stored in browser session; entity color-coded badges throughout |
+| 2026-06-29 | Inter-Company Trading module (ICO) — Interco PO (ICO-PO-YYYY-NNN), Interco DO (ICO-DO-YYYY-NNN), Shared Assets register; full lifecycle status advancement; ICO card added to Home System section and sidebar; USER-MANUAL §16–17 added |
+| 2026-06-29 | MOD-08 Audit Management — Calendar view tab added (month grid with audit pills by type: INTERNAL/NADCAP/CUSTOMER/SUPPLIER); audit nomination sends dashboard notification to nominated Lead Auditor; Notifications tab added to My Dashboard |
+| 2026-06-29 | My Dashboard — pinned as first item in every sidebar with live pending+notification badge; My Dashboard widget added to Home page |

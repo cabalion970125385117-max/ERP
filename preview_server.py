@@ -23,6 +23,24 @@ STUBS = {
     "POST /api/v1/auth/logout": {"message": "Logged out."},
     "POST /api/v1/mod08/audit-plans": {"audit_plan_id": 4, "audit_number": "AP-2026-0004", "message": "Audit plan created."},
     "POST /api/v1/mod08/findings": {"finding_id": 4, "finding_number": "AF-2026-0004", "message": "Finding raised."},
+    "GET /api/v1/interco/po": {"items": [
+        {"id": "ICO-PO-2026-001", "from": "ATCA", "to": "ATCT", "desc": "NDT inspection services for Q3 2026", "amount": 28500, "po_date": "2026-06-01", "required_by": "2026-09-30", "status": "ISSUED"},
+        {"id": "ICO-PO-2026-002", "from": "APF",  "to": "ATCA", "desc": "Penetrant materials supply — Type I Fluorescent", "amount": 4200, "po_date": "2026-06-10", "required_by": "2026-07-15", "status": "ACKNOWLEDGED"},
+        {"id": "ICO-PO-2026-003", "from": "ATCT", "to": "APF",  "desc": "Chemical treatment bath maintenance services", "amount": 6750, "po_date": "2026-06-15", "required_by": "2026-08-01", "status": "DRAFT"},
+    ]},
+    "POST /api/v1/interco/po": {"id": "ICO-PO-2026-004", "message": "Interco PO created."},
+    "GET /api/v1/interco/do": {"items": [
+        {"id": "ICO-DO-2026-001", "linked_po": "ICO-PO-2026-001", "from": "ATCA", "to": "ATCT", "desc": "NDT report package — June batch", "dispatch_date": "2026-06-28", "status": "DISPATCHED"},
+        {"id": "ICO-DO-2026-002", "linked_po": "ICO-PO-2026-002", "from": "APF",  "to": "ATCA", "desc": "Penetrant materials — 20L drums x5", "dispatch_date": "2026-06-20", "status": "RECEIVED"},
+    ]},
+    "POST /api/v1/interco/do": {"id": "ICO-DO-2026-003", "message": "Interco DO created."},
+    "GET /api/v1/interco/shared-assets": {"items": [
+        {"id": "SA-001", "desc": "Fluorescent Black Light UV Array (Spectroline)", "type": "Equipment",       "custodian": "ATCA", "scope": "ALL", "location": "NDT Bay 1",      "cal_due": "2026-12-15", "status": "ACTIVE"},
+        {"id": "SA-002", "desc": "Calibration Reference Block Set (ASME V)",       "type": "Calibration Ref", "custodian": "ATCA", "scope": "ALL", "location": "QA Lab",         "cal_due": "2026-09-30", "status": "ACTIVE"},
+        {"id": "SA-003", "desc": "ERP License — ATCA-ERP v1.0",                   "type": "Software",        "custodian": "ATCA", "scope": "ALL", "location": "Cloud/LAN",      "cal_due": "",           "status": "ACTIVE"},
+        {"id": "SA-004", "desc": "Precision Torque Wrench Set",                   "type": "Tooling",         "custodian": "ATCT", "scope": "ALL", "location": "Maintenance Bay","cal_due": "2026-11-01", "status": "ACTIVE"},
+    ]},
+    "POST /api/v1/interco/shared-assets": {"id": "SA-005", "message": "Shared asset registered."},
     "GET /api/v1/alerts/summary": {"total": 3},
     "GET /api/v1/alerts/list": {"items": [
         {"severity":"CRITICAL","module":"MOD-04","module_name":"Personnel / NAS410","message":"1 NDT certification has expired","link":"/modules/mod04-ndt-personnel/"},

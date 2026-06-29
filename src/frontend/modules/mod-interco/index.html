@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inter-Company Trading — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
+  <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+  <style>
+    .ico-badge { display:inline-block; font-size:.65rem; font-weight:800; border-radius:4px; padding:2px 7px; color:#fff; letter-spacing:.04em; }
+    .ico-ATCA  { background:#1F6BAE; }
+    .ico-ATCT  { background:#198754; }
+    .ico-APF   { background:#C8922A; }
+    .ico-status-DRAFT       { background:#6c757d; }
+    .ico-status-ISSUED      { background:#0d6efd; }
+    .ico-status-ACKNOWLEDGED{ background:#0dcaf0; color:#000; }
+    .ico-status-FULFILLED   { background:#198754; }
+    .ico-status-CLOSED      { background:#343a40; }
+    .ico-status-DISPATCHED  { background:#fd7e14; }
+    .ico-status-RECEIVED    { background:#198754; }
+    .flow-arrow { color:var(--atca-muted); font-size:1rem; }
+    .shared-row-scope { font-size:.7rem; font-weight:700; background:#eef3ff; color:#1F6BAE; border-radius:3px; padding:1px 5px; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
+  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
+  <span class="text-white-50 small">Inter-Company Trading · Interco PO / DO / Shared Assets</span>
+  <div id="nav-alerts" class="text-white small"></div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+
+  <!-- KPI bar -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-blue"><div class="kpi-label">Open Interco POs</div><div id="kpi-ico-po" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Open Interco DOs</div><div id="kpi-ico-do" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Shared Assets</div><div id="kpi-shared" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Active Entity</div><div id="kpi-entity" class="kpi-value" style="font-size:1.1rem;">—</div></div></div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="interco-tabs">
+    <li class="nav-item"><a class="nav-link active" href="#tab-ico-po" data-bs-toggle="tab"><i class="bi bi-file-earmark-text me-1"></i>Interco Purchase Orders</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-ico-do" data-bs-toggle="tab"><i class="bi bi-truck me-1"></i>Interco Delivery Orders</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-shared" data-bs-toggle="tab"><i class="bi bi-share me-1"></i>Shared Assets</a></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ── TAB: Interco POs ── -->
+    <div class="tab-pane fade show active" id="tab-ico-po">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <select id="filter-ipo-from" class="form-select form-select-sm" style="width:140px">
+            <option value="">All From</option>
+            <option>ATCA</option><option>ATCT</option><option>APF</option>
+          </select>
+          <select id="filter-ipo-to" class="form-select form-select-sm" style="width:140px">
+            <option value="">All To</option>
+            <option>ATCA</option><option>ATCT</option><option>APF</option>
+          </select>
+          <select id="filter-ipo-status" class="form-select form-select-sm" style="width:160px">
+            <option value="">All Statuses</option>
+            <option>DRAFT</option><option>ISSUED</option><option>ACKNOWLEDGED</option><option>FULFILLED</option><option>CLOSED</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openIcoPOModal()">
+          <i class="bi bi-plus-circle me-1"></i>New Interco PO
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>PO Number</th>
+              <th>From</th>
+              <th></th>
+              <th>To</th>
+              <th>Description</th>
+              <th>Amount (SGD)</th>
+              <th>PO Date</th>
+              <th>Required By</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ico-po-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TAB: Interco DOs ── -->
+    <div class="tab-pane fade" id="tab-ico-do">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+          <select id="filter-ido-from" class="form-select form-select-sm" style="width:140px">
+            <option value="">All From</option>
+            <option>ATCA</option><option>ATCT</option><option>APF</option>
+          </select>
+          <select id="filter-ido-status" class="form-select form-select-sm" style="width:160px">
+            <option value="">All Statuses</option>
+            <option>DRAFT</option><option>DISPATCHED</option><option>RECEIVED</option>
+          </select>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="openIcoDOModal()">
+          <i class="bi bi-truck me-1"></i>New Interco DO
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>DO Number</th>
+              <th>Linked PO</th>
+              <th>From</th>
+              <th></th>
+              <th>To</th>
+              <th>Description</th>
+              <th>Dispatch Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ico-do-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TAB: Shared Assets ── -->
+    <div class="tab-pane fade" id="tab-shared">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div class="d-flex gap-2">
+          <input id="filter-shared-q" class="form-control form-control-sm" style="width:220px" placeholder="Search asset...">
+          <select id="filter-shared-type" class="form-select form-select-sm" style="width:160px">
+            <option value="">All Types</option>
+            <option>Equipment</option><option>Tooling</option><option>Software</option><option>Calibration Ref</option>
+          </select>
+        </div>
+        <button class="btn btn-outline-primary btn-sm" onclick="openSharedModal()">
+          <i class="bi bi-plus-circle me-1"></i>Register Shared Asset
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Asset ID</th>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Scope</th>
+              <th>Custodian</th>
+              <th>Location</th>
+              <th>Calibration Due</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="shared-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /tab-content -->
+</div><!-- /container -->
+
+
+<!-- ══════════ MODAL: New Interco PO ══════════ -->
+<div class="modal fade" id="modalIcoPO" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--atca-navy);color:#fff;">
+        <h5 class="modal-title"><i class="bi bi-file-earmark-plus me-2"></i>New Inter-Company Purchase Order</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">From Entity <span class="text-danger">*</span></label>
+            <select id="ipo-from" class="form-select">
+              <option value="">Select entity…</option>
+              <option>ATCA</option><option>ATCT</option><option>APF</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">To Entity <span class="text-danger">*</span></label>
+            <select id="ipo-to" class="form-select">
+              <option value="">Select entity…</option>
+              <option>ATCA</option><option>ATCT</option><option>APF</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Description / Scope of Work <span class="text-danger">*</span></label>
+            <textarea id="ipo-desc" class="form-control" rows="3" placeholder="Describe goods or services being ordered inter-company…"></textarea>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Amount (SGD) <span class="text-danger">*</span></label>
+            <input type="number" id="ipo-amount" class="form-control" placeholder="0.00" min="0" step="0.01">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">PO Date <span class="text-danger">*</span></label>
+            <input type="date" id="ipo-date" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Required By</label>
+            <input type="date" id="ipo-required-by" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Reference / Contract No.</label>
+            <input type="text" id="ipo-ref" class="form-control" placeholder="Optional reference">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Initial Status</label>
+            <select id="ipo-status" class="form-select">
+              <option>DRAFT</option><option>ISSUED</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveIcoPO()"><i class="bi bi-check-circle me-1"></i>Save ICO-PO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL: New Interco DO ══════════ -->
+<div class="modal fade" id="modalIcoDO" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:#198754;color:#fff;">
+        <h5 class="modal-title"><i class="bi bi-truck me-2"></i>New Inter-Company Delivery Order</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Linked Interco PO</label>
+            <select id="ido-linked-po" class="form-select">
+              <option value="">— None / Standalone —</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Dispatch Date <span class="text-danger">*</span></label>
+            <input type="date" id="ido-dispatch-date" class="form-control">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">From Entity <span class="text-danger">*</span></label>
+            <select id="ido-from" class="form-select">
+              <option value="">Select…</option>
+              <option>ATCA</option><option>ATCT</option><option>APF</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">To Entity <span class="text-danger">*</span></label>
+            <select id="ido-to" class="form-select">
+              <option value="">Select…</option>
+              <option>ATCA</option><option>ATCT</option><option>APF</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Description</label>
+            <textarea id="ido-desc" class="form-control" rows="2" placeholder="Describe what is being delivered…"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Status</label>
+            <select id="ido-status" class="form-select">
+              <option>DRAFT</option><option>DISPATCHED</option><option>RECEIVED</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success" onclick="saveIcoDO()"><i class="bi bi-check-circle me-1"></i>Save ICO-DO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL: Shared Asset ══════════ -->
+<div class="modal fade" id="modalShared" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--atca-navy);color:#fff;">
+        <h5 class="modal-title"><i class="bi bi-share me-2"></i>Register Shared Asset</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Asset Description <span class="text-danger">*</span></label>
+            <input type="text" id="sa-desc" class="form-control" placeholder="e.g. X-Ray Unit, Fluorescent Lamp Array…">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Type</label>
+            <select id="sa-type" class="form-select">
+              <option>Equipment</option><option>Tooling</option><option>Software</option><option>Calibration Ref</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Custodian Entity</label>
+            <select id="sa-custodian" class="form-select">
+              <option>ATCA</option><option>ATCT</option><option>APF</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Physical Location</label>
+            <input type="text" id="sa-location" class="form-control" placeholder="Bay / Room / Building">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Calibration Due</label>
+            <input type="date" id="sa-cal-due" class="form-control">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSharedAsset()"><i class="bi bi-check-circle me-1"></i>Save Asset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODAL: Detail view ══════════ -->
+<div class="modal fade" id="modalDetail" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--atca-navy);color:#fff;">
+        <h5 class="modal-title" id="detail-title">Detail</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detail-body"></div>
+      <div class="modal-footer" id="detail-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-core.js"></script>
+<script>
+const ICO_PO_KEY  = 'atca_ico_po';
+const ICO_DO_KEY  = 'atca_ico_do';
+const SHARED_KEY  = 'atca_shared_assets';
+
+const DEMO_PO = [
+  { id:'ICO-PO-2026-001', from:'ATCA', to:'ATCT', desc:'NDT inspection services for Q3 2026 — PT/MT/UT scope', amount:28500, po_date:'2026-06-01', required_by:'2026-09-30', ref:'SVC-2026-Q3', status:'ISSUED', created_by:'QM Admin', created_at:'2026-06-01T08:00:00Z' },
+  { id:'ICO-PO-2026-002', from:'APF',  to:'ATCA', desc:'Penetrant materials supply — Type I Fluorescent', amount:4200,  po_date:'2026-06-10', required_by:'2026-07-15', ref:'MAT-APF-001', status:'ACKNOWLEDGED', created_by:'Store Manager', created_at:'2026-06-10T09:30:00Z' },
+  { id:'ICO-PO-2026-003', from:'ATCT', to:'APF',  desc:'Chemical treatment bath maintenance services', amount:6750,  po_date:'2026-06-15', required_by:'2026-08-01', ref:'', status:'DRAFT', created_by:'Ops Manager', created_at:'2026-06-15T11:00:00Z' },
+];
+const DEMO_DO = [
+  { id:'ICO-DO-2026-001', linked_po:'ICO-PO-2026-001', from:'ATCA', to:'ATCT', desc:'NDT inspection report package — June batch', dispatch_date:'2026-06-28', status:'DISPATCHED', created_at:'2026-06-28T07:00:00Z' },
+  { id:'ICO-DO-2026-002', linked_po:'ICO-PO-2026-002', from:'APF',  to:'ATCA', desc:'Penetrant materials — 20L drums x5', dispatch_date:'2026-06-20', status:'RECEIVED', created_at:'2026-06-20T08:30:00Z' },
+];
+const DEMO_SHARED = [
+  { id:'SA-001', desc:'Fluorescent Black Light UV Array (Spectroline)',  type:'Equipment',      custodian:'ATCA', scope:'ALL', location:'NDT Bay 1',       cal_due:'2026-12-15', status:'ACTIVE' },
+  { id:'SA-002', desc:'Calibration Reference Block Set (ASME V)',        type:'Calibration Ref',custodian:'ATCA', scope:'ALL', location:'QA Lab',          cal_due:'2026-09-30', status:'ACTIVE' },
+  { id:'SA-003', desc:'ERP License — ATCA-ERP v1.0',                    type:'Software',       custodian:'ATCA', scope:'ALL', location:'Cloud/LAN',        cal_due:'',           status:'ACTIVE' },
+  { id:'SA-004', desc:'Precision Torque Wrench Set',                    type:'Tooling',        custodian:'ATCT', scope:'ALL', location:'Maintenance Bay',  cal_due:'2026-11-01', status:'ACTIVE' },
+  { id:'SA-005', desc:'NADCAP Audit Procedure Manual AC7108/AC7114',     type:'Calibration Ref',custodian:'APF',  scope:'ALL', location:'QM Office',        cal_due:'',           status:'ACTIVE' },
+];
+
+/* ── Storage helpers ── */
+function getPoList()     { const d = localStorage.getItem(ICO_PO_KEY);   return d ? JSON.parse(d) : [...DEMO_PO]; }
+function getDoList()     { const d = localStorage.getItem(ICO_DO_KEY);   return d ? JSON.parse(d) : [...DEMO_DO]; }
+function getSharedList() { const d = localStorage.getItem(SHARED_KEY);   return d ? JSON.parse(d) : [...DEMO_SHARED]; }
+function savePoList(arr)    { localStorage.setItem(ICO_PO_KEY,  JSON.stringify(arr)); }
+function saveDoList(arr)    { localStorage.setItem(ICO_DO_KEY,  JSON.stringify(arr)); }
+function saveSharedList(arr){ localStorage.setItem(SHARED_KEY,  JSON.stringify(arr)); }
+
+function nextIcoPONum(arr)  { return 'ICO-PO-' + new Date().getFullYear() + '-' + String(arr.length + 1).padStart(3,'0'); }
+function nextIcoDONum(arr)  { return 'ICO-DO-' + new Date().getFullYear() + '-' + String(arr.length + 1).padStart(3,'0'); }
+function nextSANum(arr)     { return 'SA-' + String(arr.length + 1).padStart(3,'0'); }
+
+/* ── Entity badge helpers ── */
+function entBadge(id) { return `<span class="ico-badge ico-${id}">${id}</span>`; }
+function statusBadge(st) { return `<span class="ico-badge ico-status-${st}">${st}</span>`; }
+
+/* ── KPI update ── */
+function updateKPIs() {
+  const pos     = getPoList();
+  const dos     = getDoList();
+  const shared  = getSharedList();
+  const openPOs = pos.filter(p => !['FULFILLED','CLOSED'].includes(p.status)).length;
+  const openDOs = dos.filter(d => d.status !== 'RECEIVED').length;
+  document.getElementById('kpi-ico-po').textContent  = openPOs;
+  document.getElementById('kpi-ico-do').textContent  = openDOs;
+  document.getElementById('kpi-shared').textContent  = shared.length;
+  const ent = ATCA.entity ? ATCA.entity.active() : { id:'ATCA' };
+  document.getElementById('kpi-entity').innerHTML = entBadge(ent.id) + ' <span style="font-size:.7rem;color:var(--atca-muted);">active</span>';
+}
+
+/* ── Render ICO PO table ── */
+function renderPoTable() {
+  const filterFrom   = document.getElementById('filter-ipo-from').value;
+  const filterTo     = document.getElementById('filter-ipo-to').value;
+  const filterStatus = document.getElementById('filter-ipo-status').value;
+  let rows = getPoList();
+  if (filterFrom)   rows = rows.filter(r => r.from === filterFrom);
+  if (filterTo)     rows = rows.filter(r => r.to === filterTo);
+  if (filterStatus) rows = rows.filter(r => r.status === filterStatus);
+  const tbody = document.getElementById('ico-po-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-4">No Interco POs found.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><a href="#" onclick="showDetail('po','${r.id}');return false;" class="fw-bold">${r.id}</a></td>
+      <td>${entBadge(r.from)}</td>
+      <td class="flow-arrow"><i class="bi bi-arrow-right"></i></td>
+      <td>${entBadge(r.to)}</td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.desc}">${r.desc}</td>
+      <td class="text-end">$${Number(r.amount).toLocaleString('en-SG',{minimumFractionDigits:2})}</td>
+      <td>${r.po_date}</td>
+      <td>${r.required_by || '—'}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>
+        <button class="btn btn-outline-primary btn-sm py-0 px-1 me-1" onclick="advancePoStatus('${r.id}')" title="Advance status"><i class="bi bi-arrow-right-circle"></i></button>
+        <button class="btn btn-outline-success btn-sm py-0 px-1 me-1" onclick="createDOFromPO('${r.id}')" title="Create DO"><i class="bi bi-truck"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ── Render ICO DO table ── */
+function renderDoTable() {
+  const filterFrom   = document.getElementById('filter-ido-from').value;
+  const filterStatus = document.getElementById('filter-ido-status').value;
+  let rows = getDoList();
+  if (filterFrom)   rows = rows.filter(r => r.from === filterFrom);
+  if (filterStatus) rows = rows.filter(r => r.status === filterStatus);
+  const tbody = document.getElementById('ico-do-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No Interco DOs found.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td><a href="#" onclick="showDetail('do','${r.id}');return false;" class="fw-bold">${r.id}</a></td>
+      <td>${r.linked_po ? `<a href="#" onclick="showDetail('po','${r.linked_po}');return false;">${r.linked_po}</a>` : '—'}</td>
+      <td>${entBadge(r.from)}</td>
+      <td class="flow-arrow"><i class="bi bi-arrow-right"></i></td>
+      <td>${entBadge(r.to)}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.desc}">${r.desc}</td>
+      <td>${r.dispatch_date}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td>
+        <button class="btn btn-outline-primary btn-sm py-0 px-1" onclick="advanceDoStatus('${r.id}')" title="Advance status"><i class="bi bi-arrow-right-circle"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ── Render Shared Assets table ── */
+function renderSharedTable() {
+  const q    = (document.getElementById('filter-shared-q').value || '').toLowerCase();
+  const type = document.getElementById('filter-shared-type').value;
+  let rows = getSharedList();
+  if (q)    rows = rows.filter(r => r.desc.toLowerCase().includes(q) || r.id.toLowerCase().includes(q));
+  if (type) rows = rows.filter(r => r.type === type);
+  const tbody = document.getElementById('shared-tbody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No shared assets found.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(r => {
+    const today = new Date().toISOString().slice(0,10);
+    const calClass = r.cal_due && r.cal_due < today ? 'text-danger fw-bold' : '';
+    return `<tr>
+      <td class="fw-bold">${r.id}</td>
+      <td>${r.desc}</td>
+      <td><span class="badge bg-secondary">${r.type}</span></td>
+      <td><span class="shared-row-scope">ALL ENTITIES</span></td>
+      <td>${entBadge(r.custodian)}</td>
+      <td>${r.location || '—'}</td>
+      <td class="${calClass}">${r.cal_due || '—'}</td>
+      <td><span class="badge bg-success">${r.status}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── Status advancement ── */
+const PO_FLOW = ['DRAFT','ISSUED','ACKNOWLEDGED','FULFILLED','CLOSED'];
+const DO_FLOW = ['DRAFT','DISPATCHED','RECEIVED'];
+
+function advancePoStatus(id) {
+  const arr = getPoList();
+  const r   = arr.find(x => x.id === id);
+  if (!r) return;
+  const idx = PO_FLOW.indexOf(r.status);
+  if (idx < 0 || idx >= PO_FLOW.length - 1) { alert('Already at final status.'); return; }
+  r.status = PO_FLOW[idx + 1];
+  savePoList(arr);
+  ATCA.audit && ATCA.audit.log({ action:'ICO_PO_STATUS_ADVANCE', record_id: id, new_status: r.status });
+  renderPoTable(); updateKPIs();
+}
+
+function advanceDoStatus(id) {
+  const arr = getDoList();
+  const r   = arr.find(x => x.id === id);
+  if (!r) return;
+  const idx = DO_FLOW.indexOf(r.status);
+  if (idx < 0 || idx >= DO_FLOW.length - 1) { alert('Already at final status.'); return; }
+  r.status = DO_FLOW[idx + 1];
+  saveDoList(arr);
+  ATCA.audit && ATCA.audit.log({ action:'ICO_DO_STATUS_ADVANCE', record_id: id, new_status: r.status });
+  renderDoTable(); updateKPIs();
+}
+
+/* ── Create DO pre-filled from PO ── */
+function createDOFromPO(poId) {
+  const po = getPoList().find(x => x.id === poId);
+  if (!po) return;
+  openIcoDOModal();
+  setTimeout(() => {
+    document.getElementById('ido-from').value       = po.from;
+    document.getElementById('ido-to').value         = po.to;
+    document.getElementById('ido-desc').value       = po.desc;
+    document.getElementById('ido-dispatch-date').value = new Date().toISOString().slice(0,10);
+    const sel = document.getElementById('ido-linked-po');
+    for (const opt of sel.options) { if (opt.value === poId) { opt.selected = true; break; } }
+  }, 150);
+}
+
+/* ── Modals ── */
+function openIcoPOModal() {
+  document.getElementById('ipo-from').value = '';
+  document.getElementById('ipo-to').value   = '';
+  document.getElementById('ipo-desc').value = '';
+  document.getElementById('ipo-amount').value = '';
+  document.getElementById('ipo-date').value  = new Date().toISOString().slice(0,10);
+  document.getElementById('ipo-required-by').value = '';
+  document.getElementById('ipo-ref').value   = '';
+  document.getElementById('ipo-status').value = 'DRAFT';
+  new bootstrap.Modal(document.getElementById('modalIcoPO')).show();
+}
+
+function openIcoDOModal() {
+  document.getElementById('ido-from').value = '';
+  document.getElementById('ido-to').value   = '';
+  document.getElementById('ido-desc').value = '';
+  document.getElementById('ido-dispatch-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('ido-status').value = 'DRAFT';
+  // populate linked PO dropdown
+  const sel = document.getElementById('ido-linked-po');
+  sel.innerHTML = '<option value="">— None / Standalone —</option>';
+  getPoList().filter(p => !['FULFILLED','CLOSED'].includes(p.status)).forEach(p => {
+    sel.innerHTML += `<option value="${p.id}">${p.id} — ${p.from}→${p.to} — ${p.desc.slice(0,40)}</option>`;
+  });
+  new bootstrap.Modal(document.getElementById('modalIcoDO')).show();
+}
+
+function openSharedModal() {
+  ['sa-desc','sa-location','sa-cal-due'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('sa-type').value      = 'Equipment';
+  document.getElementById('sa-custodian').value = 'ATCA';
+  new bootstrap.Modal(document.getElementById('modalShared')).show();
+}
+
+/* ── Save handlers ── */
+function saveIcoPO() {
+  const from   = document.getElementById('ipo-from').value.trim();
+  const to     = document.getElementById('ipo-to').value.trim();
+  const desc   = document.getElementById('ipo-desc').value.trim();
+  const amount = parseFloat(document.getElementById('ipo-amount').value);
+  const date   = document.getElementById('ipo-date').value;
+  if (!from || !to || !desc || isNaN(amount) || !date) { alert('Please fill in all required fields.'); return; }
+  if (from === to) { alert('From and To entity cannot be the same.'); return; }
+  const arr = getPoList();
+  const rec = {
+    id: nextIcoPONum(arr),
+    from, to, desc, amount,
+    po_date:     date,
+    required_by: document.getElementById('ipo-required-by').value,
+    ref:         document.getElementById('ipo-ref').value.trim(),
+    status:      document.getElementById('ipo-status').value,
+    created_by:  (ATCA.currentUser && ATCA.currentUser.full_name) || 'Unknown',
+    created_at:  new Date().toISOString(),
+  };
+  arr.push(rec);
+  savePoList(arr);
+  ATCA.audit && ATCA.audit.log({ action:'ICO_PO_CREATED', record_id: rec.id, from, to, amount });
+  bootstrap.Modal.getInstance(document.getElementById('modalIcoPO')).hide();
+  renderPoTable(); updateKPIs();
+}
+
+function saveIcoDO() {
+  const from  = document.getElementById('ido-from').value.trim();
+  const to    = document.getElementById('ido-to').value.trim();
+  const date  = document.getElementById('ido-dispatch-date').value;
+  if (!from || !to || !date) { alert('Please fill in required fields.'); return; }
+  if (from === to) { alert('From and To entity cannot be the same.'); return; }
+  const arr = getDoList();
+  const rec = {
+    id:           nextIcoDONum(arr),
+    linked_po:    document.getElementById('ido-linked-po').value,
+    from, to,
+    desc:         document.getElementById('ido-desc').value.trim(),
+    dispatch_date: date,
+    status:       document.getElementById('ido-status').value,
+    created_at:   new Date().toISOString(),
+  };
+  arr.push(rec);
+  saveDoList(arr);
+  ATCA.audit && ATCA.audit.log({ action:'ICO_DO_CREATED', record_id: rec.id, from, to });
+  bootstrap.Modal.getInstance(document.getElementById('modalIcoDO')).hide();
+  // switch to DO tab
+  const doTab = document.querySelector('[href="#tab-ico-do"]');
+  if (doTab) new bootstrap.Tab(doTab).show();
+  renderDoTable(); updateKPIs();
+}
+
+function saveSharedAsset() {
+  const desc = document.getElementById('sa-desc').value.trim();
+  if (!desc) { alert('Description is required.'); return; }
+  const arr = getSharedList();
+  const rec = {
+    id:        nextSANum(arr),
+    desc,
+    type:      document.getElementById('sa-type').value,
+    custodian: document.getElementById('sa-custodian').value,
+    scope:     'ALL',
+    location:  document.getElementById('sa-location').value.trim(),
+    cal_due:   document.getElementById('sa-cal-due').value,
+    status:    'ACTIVE',
+  };
+  arr.push(rec);
+  saveSharedList(arr);
+  ATCA.audit && ATCA.audit.log({ action:'SHARED_ASSET_REGISTERED', record_id: rec.id, desc });
+  bootstrap.Modal.getInstance(document.getElementById('modalShared')).hide();
+  renderSharedTable(); updateKPIs();
+}
+
+/* ── Detail view ── */
+function showDetail(type, id) {
+  let html = '';
+  let title = '';
+  if (type === 'po') {
+    const r = getPoList().find(x => x.id === id);
+    if (!r) return;
+    title = `<i class="bi bi-file-earmark-text me-2"></i>${r.id}`;
+    html = `
+      <dl class="row mb-0">
+        <dt class="col-sm-4">From</dt><dd class="col-sm-8">${entBadge(r.from)}</dd>
+        <dt class="col-sm-4">To</dt><dd class="col-sm-8">${entBadge(r.to)}</dd>
+        <dt class="col-sm-4">Description</dt><dd class="col-sm-8">${r.desc}</dd>
+        <dt class="col-sm-4">Amount</dt><dd class="col-sm-8 fw-bold">SGD $${Number(r.amount).toLocaleString('en-SG',{minimumFractionDigits:2})}</dd>
+        <dt class="col-sm-4">PO Date</dt><dd class="col-sm-8">${r.po_date}</dd>
+        <dt class="col-sm-4">Required By</dt><dd class="col-sm-8">${r.required_by || '—'}</dd>
+        <dt class="col-sm-4">Reference</dt><dd class="col-sm-8">${r.ref || '—'}</dd>
+        <dt class="col-sm-4">Status</dt><dd class="col-sm-8">${statusBadge(r.status)}</dd>
+        <dt class="col-sm-4">Created By</dt><dd class="col-sm-8">${r.created_by || '—'}</dd>
+        <dt class="col-sm-4">Created</dt><dd class="col-sm-8">${new Date(r.created_at).toLocaleString()}</dd>
+      </dl>`;
+    document.getElementById('detail-footer').innerHTML = `
+      <button class="btn btn-primary btn-sm me-auto" onclick="advancePoStatus('${r.id}');bootstrap.Modal.getInstance(document.getElementById('modalDetail')).hide();">
+        <i class="bi bi-arrow-right-circle me-1"></i>Advance Status
+      </button>
+      <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`;
+  } else if (type === 'do') {
+    const r = getDoList().find(x => x.id === id);
+    if (!r) return;
+    title = `<i class="bi bi-truck me-2"></i>${r.id}`;
+    html = `
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Linked PO</dt><dd class="col-sm-8">${r.linked_po || '—'}</dd>
+        <dt class="col-sm-4">From</dt><dd class="col-sm-8">${entBadge(r.from)}</dd>
+        <dt class="col-sm-4">To</dt><dd class="col-sm-8">${entBadge(r.to)}</dd>
+        <dt class="col-sm-4">Description</dt><dd class="col-sm-8">${r.desc || '—'}</dd>
+        <dt class="col-sm-4">Dispatch Date</dt><dd class="col-sm-8">${r.dispatch_date}</dd>
+        <dt class="col-sm-4">Status</dt><dd class="col-sm-8">${statusBadge(r.status)}</dd>
+        <dt class="col-sm-4">Created</dt><dd class="col-sm-8">${new Date(r.created_at).toLocaleString()}</dd>
+      </dl>`;
+    document.getElementById('detail-footer').innerHTML = `
+      <button class="btn btn-primary btn-sm me-auto" onclick="advanceDoStatus('${r.id}');bootstrap.Modal.getInstance(document.getElementById('modalDetail')).hide();">
+        <i class="bi bi-arrow-right-circle me-1"></i>Advance Status
+      </button>
+      <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>`;
+  }
+  document.getElementById('detail-title').innerHTML = title;
+  document.getElementById('detail-body').innerHTML  = html;
+  new bootstrap.Modal(document.getElementById('modalDetail')).show();
+}
+
+/* ── Filter listeners ── */
+['filter-ipo-from','filter-ipo-to','filter-ipo-status'].forEach(id =>
+  document.getElementById(id).addEventListener('change', renderPoTable));
+['filter-ido-from','filter-ido-status'].forEach(id =>
+  document.getElementById(id).addEventListener('change', renderDoTable));
+document.getElementById('filter-shared-q').addEventListener('input', renderSharedTable);
+document.getElementById('filter-shared-type').addEventListener('change', renderSharedTable);
+
+/* ── Init ── */
+ATCA.initPage().then(() => {
+  updateKPIs();
+  renderPoTable();
+  renderDoTable();
+  renderSharedTable();
+});
+</script>
+</body>
+</html>
