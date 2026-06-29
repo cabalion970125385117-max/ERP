@@ -7,49 +7,117 @@
   <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
   <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
   <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+  <style>
+    .doc-row { display:flex; gap:.4rem; align-items:flex-end; margin-bottom:.5rem; }
+    .doc-row .form-label { font-size:.7rem; margin-bottom:.1rem; }
+    .doc-pill { font-size:.7rem; }
+    .exp-ok    { color:#198754; } .exp-soon { color:#fd7e14; font-weight:600; } .exp-over { color:#dc3545; font-weight:700; }
+    #msds-block.required-on, #ep-block.required-on { border:1px solid #dc3545; border-radius:6px; padding:.6rem; background:rgba(220,53,69,.04); }
+    .loc-badge { font-size:.65rem; padding:1px 6px; border-radius:3px; font-weight:700; }
+    .loc-hazmat    { background:#fde8e8; color:#842029; }
+    .loc-explosive { background:#fff3cd; color:#664d03; }
+    .loc-normal    { background:#e2e3e5; color:#41464b; }
+    .lot-badge { display:inline-block; font-size:.7rem; font-weight:600; padding:1px 6px; border-radius:3px; white-space:nowrap; line-height:1.4; }
+    .lot-ok   { background:#d1e7dd; color:#0a3622; }
+    .lot-soon { background:#fff3cd; color:#664d03; }
+    .lot-over { background:#f8d7da; color:#58151c; }
+    .insp-available  { background:#d1e7dd; color:#0a3622; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+    .insp-quarantine { background:#fff3cd; color:#664d03; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+    .insp-rejected   { background:#f8d7da; color:#58151c; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+    .fefo-badge { background:#0d6efd; color:#fff; font-size:.62rem; font-weight:700; padding:1px 5px; border-radius:3px; vertical-align:middle; }
+  </style>
 </head>
 <body>
-<nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
-  <a class="navbar-brand fw-bold" href="/index.html">ATCA-ERP</a>
-  <span class="text-white-50 small">MOD-14 · Inventory Management · AS9100D §8.5.4</span>
-  <div id="nav-alerts" class="text-white small"></div>
-</nav>
 
+<nav id="atca-sidebar"></nav>
+
+<div class="atca-main">
+<header id="topbar">
+  <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+  <div>
+    <p class="topbar-title mb-0"><i class="bi bi-box-seam me-1"></i>Inventory Management</p>
+    <p class="topbar-subtitle mb-0">AS9100D §8.4.3 · §8.5.4 · NADCAP — Incoming Inspection · Shelf Life · FEFO · Segregation · Traceability</p>
+  </div>
+  <div class="topbar-alerts">
+    <div id="nav-alerts" class="me-2 small"></div>
+    <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+      <i class="bi bi-bell"></i>
+      <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+    </div>
+    <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+      <div class="user-avatar" id="user-avatar-initials">??</div>
+      <span id="user-display-name">Loading…</span>
+      <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+    </div>
+  </div>
+</header>
+
+<main class="page-content">
 <div class="container-fluid px-4 py-3">
   <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Low Stock Items</div><div id="kpi-low" class="kpi-value">—</div></div></div>
-    <div class="col-6 col-md-3"><div class="kpi-card rag-red"><div class="kpi-label">Out of Stock</div><div id="kpi-oos" class="kpi-value">—</div></div></div>
-    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Expiring Chemicals</div><div id="kpi-exp" class="kpi-value">—</div></div></div>
-    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Total Items</div><div id="kpi-total" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md"><div class="kpi-card rag-amber"><div class="kpi-label">Low Stock Items</div><div id="kpi-low" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md"><div class="kpi-card rag-red"><div class="kpi-label">Out of Stock</div><div id="kpi-oos" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md"><div class="kpi-card rag-amber"><div class="kpi-label">Docs Expiring / Expired</div><div id="kpi-exp" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md"><div class="kpi-card rag-red"><div class="kpi-label">Lots Expiring / Expired</div><div id="kpi-lots" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md"><div class="kpi-card rag-amber"><div class="kpi-label">Quarantined Lots</div><div id="kpi-quar" class="kpi-value">—</div></div></div>
+    <div class="col-6 col-md"><div class="kpi-card rag-green"><div class="kpi-label">Total Items</div><div id="kpi-total" class="kpi-value">—</div></div></div>
   </div>
 
   <ul class="nav nav-tabs mb-3">
     <li class="nav-item"><a class="nav-link active" href="#tab-items" data-bs-toggle="tab">Inventory Register</a></li>
     <li class="nav-item"><a class="nav-link" href="#tab-movements" data-bs-toggle="tab">Stock Movements</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-lots" data-bs-toggle="tab"><i class="bi bi-clock-history me-1"></i>Lot Expiry <span class="badge bg-danger ms-1 d-none" id="lot-expiry-badge">0</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-inspection" data-bs-toggle="tab"><i class="bi bi-clipboard2-check me-1"></i>Incoming Inspection <span class="badge bg-warning text-dark ms-1 d-none" id="insp-badge">0</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-locations" data-bs-toggle="tab">Locations</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-units" data-bs-toggle="tab">Units</a></li>
   </ul>
 
   <div class="tab-content">
+    <!-- ===== Inventory Register ===== -->
     <div class="tab-pane fade show active" id="tab-items">
-      <div class="d-flex justify-content-between mb-3">
-        <select id="filter-category" class="form-select form-select-sm" style="width:160px">
-          <option value="">All Categories</option>
-          <option>CHEMICAL</option><option>CONSUMABLE</option><option>SPARE_PART</option><option>PPE</option><option>MATERIAL</option><option>TOOL</option>
-        </select>
+      <div class="d-flex gap-2 flex-wrap justify-content-between mb-3">
+        <div class="d-flex gap-2 flex-wrap">
+          <div class="input-group input-group-sm" style="width:220px">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="search-items" type="text" class="form-control" placeholder="Search name, code, location…" oninput="renderItems()" />
+            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('search-items').value='';renderItems()" title="Clear"><i class="bi bi-x"></i></button>
+          </div>
+          <select id="filter-category" class="form-select form-select-sm" style="width:150px">
+            <option value="">All Categories</option>
+            <option>CHEMICAL</option><option>CONSUMABLE</option><option>SPARE_PART</option><option>PPE</option><option>MATERIAL</option><option>TOOL</option>
+          </select>
+          <select id="filter-rag" class="form-select form-select-sm" style="width:130px" onchange="renderItems()">
+            <option value="">All RAG</option>
+            <option value="RED">🔴 Critical</option>
+            <option value="AMBER">🟡 Low Stock</option>
+            <option value="GREEN">🟢 Adequate</option>
+          </select>
+        </div>
         <button class="btn btn-primary btn-sm" onclick="openItemModal()"
-          data-compliance="AS9100D §8.5.4" data-linked="MOD-14,MOD-06" data-action-desc="Register new inventory item">
+          data-compliance="AS9100D §8.5.4" data-linked="MOD-14,MOD-06,MOD-34" data-action-desc="Register a new inventory item. Hazardous materials require an MSDS/SDS upload.">
           <i class="bi bi-plus-circle me-1"></i>New Item
         </button>
-      </div>
-      <!-- Kanban-style cards by RAG -->
+      </div><!-- /.d-flex justify-content-between -->
       <div class="row g-2 mb-3" id="kanban-row"></div>
       <div class="table-responsive">
         <table class="table table-hover table-sm align-middle">
-          <thead class="table-dark"><tr><th>Item Code</th><th>Name</th><th>Category</th><th>Location</th><th>Stock</th><th>Reorder</th><th>Hazardous</th><th>RAG</th><th>Actions</th></tr></thead>
+          <thead class="table-dark" id="items-thead"><tr>
+            <th class="sort-col" data-col="item_code" style="cursor:pointer;white-space:nowrap">Item Code <i class="bi bi-arrow-down-up sort-icon" style="font-size:.7rem;opacity:.5"></i></th>
+            <th class="sort-col" data-col="name" style="cursor:pointer">Name <i class="bi bi-arrow-down-up sort-icon" style="font-size:.7rem;opacity:.5"></i></th>
+            <th class="sort-col" data-col="category" style="cursor:pointer">Category <i class="bi bi-arrow-down-up sort-icon" style="font-size:.7rem;opacity:.5"></i></th>
+            <th class="sort-col" data-col="location" style="cursor:pointer">Location <i class="bi bi-arrow-down-up sort-icon" style="font-size:.7rem;opacity:.5"></i></th>
+            <th class="sort-col" data-col="bin_number" style="cursor:pointer">Bin No. <i class="bi bi-arrow-down-up sort-icon" style="font-size:.7rem;opacity:.5"></i></th>
+            <th class="sort-col" data-col="current_stock" style="cursor:pointer">Stock <i class="bi bi-arrow-down-up sort-icon" style="font-size:.7rem;opacity:.5"></i></th>
+            <th>Reorder</th><th>Critical</th><th>Hazardous</th><th>Docs</th><th>Next Lot Exp.</th>
+            <th class="sort-col" data-col="rag" style="cursor:pointer">RAG <i class="bi bi-arrow-down-up sort-icon" style="font-size:.7rem;opacity:.5"></i></th>
+            <th class="text-end">Actions</th>
+          </tr></thead>
           <tbody id="items-tbody"></tbody>
         </table>
       </div>
     </div>
 
+    <!-- ===== Stock Movements ===== -->
     <div class="tab-pane fade" id="tab-movements">
       <div class="d-flex justify-content-between mb-3">
         <span class="text-muted small">Recent stock movements</span>
@@ -60,174 +128,1912 @@
       </div>
       <div class="table-responsive">
         <table class="table table-hover table-sm align-middle">
-          <thead class="table-dark"><tr><th>Item</th><th>Type</th><th>Qty</th><th>Lot/Batch</th><th>Moved By</th><th>Date</th><th>Notes</th></tr></thead>
+          <thead class="table-dark"><tr><th>Item</th><th>Type</th><th>Qty</th><th>Ref / Lot</th><th>Requested By</th><th>Date</th><th>Notes</th><th>Status</th></tr></thead>
           <tbody id="movements-tbody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ===== Lot Expiry ===== -->
+    <div class="tab-pane fade" id="tab-lots">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <span class="text-muted small">All received lots and their expiry status. Click <strong>Extend</strong> to submit an extension request for approval.</span>
+        <select id="filter-lot-status" class="form-select form-select-sm" style="width:170px" onchange="renderLots()">
+          <option value="">All Lots</option>
+          <option value="OVER">Expired</option>
+          <option value="SOON">Expiring ≤30d</option>
+          <option value="OK">OK (&gt;30d)</option>
+          <option value="NOEXP">No Expiry Set</option>
+        </select>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Item Code</th>
+            <th>Item Name</th>
+            <th>Lot No.</th>
+            <th>Received</th>
+            <th>Qty</th>
+            <th>Expiry Date</th>
+            <th>Days Left</th>
+            <th>Expiry Status</th>
+            <th>Availability</th>
+            <th class="text-end">Actions</th>
+          </tr></thead>
+          <tbody id="lots-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== Incoming Inspection ===== -->
+    <div class="tab-pane fade" id="tab-inspection">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <span class="text-muted small">Lots awaiting incoming inspection. Stock is <strong>quarantined</strong> and must not be used until inspection is PASSED (AS9100D §8.4.3, NADCAP).</span>
+      </div>
+      <div class="alert alert-warning py-2 px-3 small mb-3">
+        <i class="bi bi-shield-exclamation me-1"></i><strong>Compliance gate:</strong> Material must not be issued or used until Incoming Inspection is PASSED. A FAIL result requires an NCR to be raised in MOD-07.
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Item</th><th>Lot No.</th><th>Qty</th><th>Lot Expiry</th><th>Cert / Heat No.</th><th>Received</th><th>Status</th><th>Action</th>
+          </tr></thead>
+          <tbody id="insp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== Locations (editable) ===== -->
+    <div class="tab-pane fade" id="tab-locations">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="row g-2 mb-3">
+            <div class="col-md-5"><input id="loc-new" class="form-control form-control-sm" placeholder="New storage location name" /></div>
+            <div class="col-md-2"><input id="loc-new-bin" class="form-control form-control-sm" placeholder="Bin No. (e.g. A-01)" /></div>
+            <div class="col-md-3">
+              <select id="loc-new-type" class="form-select form-select-sm">
+                <option value="NORMAL">Standard Storage</option>
+                <option value="HAZMAT">Hazardous Material Storage</option>
+                <option value="EXPLOSIVE">Explosive Precursor Storage</option>
+              </select>
+            </div>
+            <div class="col-auto"><button class="btn btn-primary btn-sm" onclick="addLocation()"><i class="bi bi-plus-lg me-1"></i>Add</button></div>
+          </div>
+          <table class="table table-sm align-middle">
+            <thead class="table-dark"><tr><th>Storage Location</th><th>Bins</th><th>Type</th><th>Items</th><th class="text-end">Action</th></tr></thead>
+            <tbody id="loc-tbody"></tbody>
+          </table>
+          <div class="d-flex gap-3 small text-muted mt-1">
+            <span><span class="loc-badge loc-hazmat me-1">HAZMAT</span>Hazardous Material Storage — required for hazardous items</span>
+            <span><span class="loc-badge loc-explosive me-1">EXPLOSIVE</span>Explosive Precursor Storage — required for explosive precursor items</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Units (editable) ===== -->
+    <div class="tab-pane fade" id="tab-units">
+      <div class="row">
+        <div class="col-md-5">
+          <div class="d-flex gap-2 mb-3">
+            <input id="unit-new" class="form-control form-control-sm" placeholder="New unit (e.g. Pallet(s))" />
+            <button class="btn btn-primary btn-sm text-nowrap" onclick="addUnit()"><i class="bi bi-plus-lg me-1"></i>Add</button>
+          </div>
+          <table class="table table-sm align-middle">
+            <thead class="table-dark"><tr><th>Unit</th><th>Items using</th><th class="text-end">Action</th></tr></thead>
+            <tbody id="unit-tbody"></tbody>
+          </table>
+          <p class="text-muted small">Units in use by existing items cannot be deleted.</p>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- New Item Modal -->
+<!-- ===== New / Edit Item Modal ===== -->
 <div class="modal fade" id="itemModal" tabindex="-1">
   <div class="modal-dialog modal-lg"><div class="modal-content">
-    <div class="modal-header"><h5 class="modal-title">New Inventory Item</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-    <div class="modal-body row g-2">
-      <div class="col-md-8 mb-2"><label class="form-label">Item Name *</label><input id="i-name" class="form-control form-control-sm" /></div>
-      <div class="col-md-4 mb-2"><label class="form-label">Category *</label>
-        <select id="i-category" class="form-select form-select-sm"><option>CHEMICAL</option><option>CONSUMABLE</option><option>SPARE_PART</option><option>PPE</option><option>MATERIAL</option><option>TOOL</option></select>
+    <div class="modal-header">
+      <h5 class="modal-title" id="item-modal-title">New Inventory Item</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="i-id" />
+      <div class="row g-2">
+        <div class="col-md-8 mb-1"><label class="form-label">Item Name <span class="text-danger">*</span></label><input id="i-name" class="form-control form-control-sm" /></div>
+        <div class="col-md-4 mb-1"><label class="form-label">Category <span class="text-danger">*</span></label>
+          <select id="i-category" class="form-select form-select-sm"><option>CHEMICAL</option><option>CONSUMABLE</option><option>SPARE_PART</option><option>PPE</option><option>MATERIAL</option><option>TOOL</option></select>
+        </div>
+        <div class="col-md-5 mb-1"><label class="form-label">Preferred Vendor (AVL)</label>
+          <select id="i-vendor" class="form-select form-select-sm"><option value="">— None / Not set —</option></select>
+        </div>
+        <div class="col-md-3 mb-1"><label class="form-label">Lead Time <small class="text-muted">(days)</small></label>
+          <input id="i-lead-time" type="number" min="0" class="form-control form-control-sm" value="0" />
+        </div>
+        <div class="col-md-4 mb-1"><label class="form-label">Default Lot Expiry <small class="text-muted">(days)</small></label>
+          <input id="i-lot-expiry-days" type="number" min="0" class="form-control form-control-sm" value="365" placeholder="365" />
+        </div>
+        <div class="col-md-4 mb-1"><label class="form-label">Unit <span class="text-danger">*</span></label>
+          <select id="i-unit" class="form-select form-select-sm"></select>
+        </div>
+        <div class="col-md-4 mb-1"><label class="form-label">Location</label>
+          <div class="d-flex gap-1">
+            <select id="i-location" class="form-select form-select-sm"></select>
+            <button type="button" class="btn btn-outline-primary btn-sm text-nowrap" title="Add new location" onclick="modalAddLocation()"><i class="bi bi-plus-lg"></i></button>
+            <button type="button" class="btn btn-outline-danger btn-sm text-nowrap" title="Remove selected location" onclick="modalRemoveLocation()"><i class="bi bi-trash"></i></button>
+          </div>
+          <div id="modal-loc-new" class="d-none mt-1 d-flex gap-1">
+            <input id="modal-loc-input" class="form-control form-control-sm" placeholder="New location name" />
+            <button type="button" class="btn btn-success btn-sm text-nowrap" onclick="modalConfirmLocation()">Add</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('modal-loc-new').classList.add('d-none')">✕</button>
+          </div>
+        </div>
+        <div class="col-md-4 mb-1"><label class="form-label">Bin No. <small class="text-muted">(within location)</small></label><select id="i-bin" class="form-select form-select-sm"><option value="">— None —</option></select></div>
+        <div class="col-md-4 mb-1"><label class="form-label">Current Stock</label><input id="i-stock" type="number" step="any" class="form-control form-control-sm" value="0" /></div>
+        <div class="col-md-6 mb-1"><label class="form-label">Reorder Level</label><input id="i-reorder" type="number" step="any" class="form-control form-control-sm" value="0" /></div>
+        <div class="col-md-6 mb-1"><label class="form-label">Critical Level</label><input id="i-critical" type="number" step="any" class="form-control form-control-sm" value="0" /></div>
+        <div class="col-12 mb-1 mt-2">
+          <div class="form-check ms-2 mb-1">
+            <input type="checkbox" class="form-check-input" id="i-hazardous" onchange="onHazardousToggle()" />
+            <label class="form-check-label" for="i-hazardous"><strong>Hazardous Material</strong> — MSDS/SDS upload mandatory · must be stored in a <span class="loc-badge loc-hazmat">HAZMAT</span> location</label>
+          </div>
+          <div class="form-check ms-2">
+            <input type="checkbox" class="form-check-input" id="i-ep" onchange="onEPToggle()" />
+            <label class="form-check-label" for="i-ep"><strong>Explosive Precursor</strong> — EP documentation mandatory · must be stored in an <span class="loc-badge loc-explosive">EXPLOSIVE</span> location</label>
+          </div>
+        </div>
+        <div id="i-loc-warn" class="col-12 d-none">
+          <div class="alert alert-warning py-1 px-2 small mb-0"><i class="bi bi-exclamation-triangle me-1"></i><span id="i-loc-warn-text"></span></div>
+        </div>
       </div>
-      <div class="col-md-4 mb-2"><label class="form-label">Unit *</label><input id="i-unit" class="form-control form-control-sm" /></div>
-      <div class="col-md-4 mb-2"><label class="form-label">Location</label><input id="i-location" class="form-control form-control-sm" /></div>
-      <div class="col-md-4 mb-2"><label class="form-label">Reorder Level</label><input id="i-reorder" type="number" class="form-control form-control-sm" value="0" /></div>
-      <div class="col-md-6 mb-2"><label class="form-label">Storage Conditions</label><input id="i-storage" class="form-control form-control-sm" /></div>
-      <div class="col-md-3 mb-2"><label class="form-label">SDS Ref</label><input id="i-sds" class="form-control form-control-sm" /></div>
-      <div class="col-md-3 mb-2"><label class="form-label">Shelf Life (days)</label><input id="i-shelf" type="number" class="form-control form-control-sm" /></div>
-      <div class="col-12 mb-2 form-check ms-2"><input type="checkbox" class="form-check-input" id="i-hazardous" /><label class="form-check-label" for="i-hazardous">Hazardous material — SDS/MSDS required</label></div>
+
+      <hr class="my-2" />
+      <h6 class="mb-2"><i class="bi bi-paperclip me-1"></i>Documents <small class="text-muted fw-normal">(each file carries an expiry date — defaults to 1 year)</small></h6>
+
+      <!-- MSDS / SDS -->
+      <div id="msds-block" class="mb-2">
+        <label class="form-label mb-1">MSDS / SDS <span id="msds-req" class="text-danger d-none">*</span></label>
+        <div id="msds-current" class="small mb-1"></div>
+        <div class="doc-row">
+          <div style="flex:2"><input type="file" id="f-msds" class="form-control form-control-sm" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" /></div>
+          <div style="flex:1"><label class="form-label">Expiry</label><input type="date" id="f-msds-exp" class="form-control form-control-sm" /></div>
+        </div>
+      </div>
+
+      <!-- EP Documentation -->
+      <div id="ep-block" class="mb-2">
+        <label class="form-label mb-1">Explosive Precursor Documentation <span id="ep-req" class="text-danger d-none">*</span></label>
+        <div id="ep-current" class="small mb-1"></div>
+        <div class="doc-row">
+          <div style="flex:2"><input type="file" id="f-ep" class="form-control form-control-sm" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" /></div>
+          <div style="flex:1"><label class="form-label">Expiry</label><input type="date" id="f-ep-exp" class="form-control form-control-sm" /></div>
+        </div>
+      </div>
+
+      <!-- Additional documents (TDS / Test Result / Other) -->
+      <label class="form-label mb-1">Additional Documents</label>
+      <div id="doc-rows"></div>
+      <button class="btn btn-outline-secondary btn-sm mt-1" type="button" onclick="addDocRow()"><i class="bi bi-plus-lg me-1"></i>Add Document (TDS, Test Result…)</button>
+
+      <div id="item-err" class="alert alert-danger py-1 px-2 mt-2 mb-0 d-none small"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="saveItem()"
-        data-compliance="AS9100D §8.5.4" data-linked="MOD-14" data-action-desc="Register inventory item">Save Item</button>
+        data-compliance="AS9100D §8.5.4 · §8.5.1 (hazmat control, MOD-34)" data-linked="MOD-14,MOD-34" data-action-desc="Save inventory item and its controlled documents">Save Item</button>
     </div>
   </div></div>
 </div>
 
-<!-- Movement Modal -->
-<div class="modal fade" id="movementModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
-    <div class="modal-header"><h5 class="modal-title">Record Stock Movement</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+<!-- ===== Documents Viewer Modal ===== -->
+<div class="modal fade" id="docsModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="docs-modal-title">Documents</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
-      <div class="mb-2"><label class="form-label">Item ID *</label><input id="m-item-id" type="number" class="form-control form-control-sm" placeholder="Item ID" /></div>
-      <div class="mb-2"><label class="form-label">Movement Type *</label>
-        <select id="m-type" class="form-select form-select-sm"><option>RECEIPT</option><option>ISSUE</option><option>TRANSFER</option><option>DISPOSAL</option><option>ADJUSTMENT</option></select>
+      <table class="table table-sm align-middle">
+        <thead class="table-dark"><tr><th>Type</th><th>File</th><th>Expiry</th><th class="text-end">Open</th></tr></thead>
+        <tbody id="docs-tbody"></tbody>
+      </table>
+      <p id="docs-empty" class="text-muted small d-none">No documents uploaded for this item.</p>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button></div>
+  </div></div>
+</div>
+<!-- ===== Incoming Inspection Modal ===== -->
+<div class="modal fade" id="incomingInspModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+      <h6 class="modal-title" id="insp-modal-title"><i class="bi bi-clipboard2-check me-1"></i>Incoming Inspection</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-secondary py-2 px-3 small mb-3" id="insp-item-info"></div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Inspection Result <span class="text-danger">*</span></label>
+        <select id="insp-result" class="form-select form-select-sm" onchange="onInspResultChange()">
+          <option value="">— Select result —</option>
+          <option value="PASS">✅ PASS — Release lot for use (AVAILABLE)</option>
+          <option value="FAIL">❌ FAIL — Reject lot (raise NCR)</option>
+        </select>
       </div>
-      <div class="row g-2 mb-2">
-        <div class="col"><label class="form-label">Quantity *</label><input id="m-qty" type="number" class="form-control form-control-sm" /></div>
-        <div class="col"><label class="form-label">Lot Number</label><input id="m-lot" class="form-control form-control-sm" /></div>
+      <div id="insp-ncr-wrap" class="mb-3 d-none">
+        <label class="form-label">NCR Reference <small class="text-muted">(raise in MOD-07 first)</small></label>
+        <input id="insp-ncr" class="form-control form-control-sm" placeholder="e.g. NCR-2026-0012" />
       </div>
-      <div class="mb-2"><label class="form-label">Notes</label><textarea id="m-notes" class="form-control form-control-sm" rows="2"></textarea></div>
+      <div class="mb-2">
+        <label class="form-label">Inspection Notes <span id="insp-notes-req" class="text-danger d-none">*</span></label>
+        <textarea id="insp-notes" class="form-control form-control-sm" rows="3" placeholder="Record inspection findings, measurements, or observations…"></textarea>
+      </div>
+      <div id="insp-err" class="alert alert-danger py-1 px-2 small d-none mt-2 mb-0"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-      <button class="btn btn-success btn-sm" onclick="saveMovement()"
-        data-compliance="AS9100D §8.5.4" data-linked="MOD-14" data-action-desc="Record stock movement and update inventory level">Record</button>
+      <button class="btn btn-primary btn-sm" onclick="saveInspection()"
+        data-compliance="AS9100D §8.4.3 · NADCAP" data-action-desc="Record incoming inspection result for received lot">
+        <i class="bi bi-clipboard2-check me-1"></i>Record Inspection
+      </button>
+    </div>
+  </div></div>
+</div>
+</main>
+</div><!-- /.atca-main -->
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6></div>
+      <div class="modal-body text-center py-3"><p class="mb-1">Your session expires in <strong id="timeout-countdown">5:00</strong></p></div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Movement Modal ===== -->
+<div class="modal fade" id="movementModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title"><i class="bi bi-arrow-left-right me-1"></i>Record Stock Movement</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="row g-2 mb-2">
+        <div class="col-md-7">
+          <label class="form-label">Item <span class="text-danger">*</span></label>
+          <select id="m-item-id" class="form-select form-select-sm" onchange="onMovementItemChange()"></select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Movement Type <span class="text-danger">*</span></label>
+          <select id="m-type" class="form-select form-select-sm" onchange="onMovementTypeChange()">
+            <option value="RECEIPT">RECEIPT — Stock Receipt</option>
+            <option value="ISSUE">ISSUE — Issue to Process / Tank</option>
+            <option value="TRANSFER">TRANSFER — Location Transfer</option>
+            <option value="DISPOSAL">DISPOSAL — Dispose / Write-off</option>
+            <option value="ADJUSTMENT">ADJUSTMENT — Stock Count Correction</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Quantity <span class="text-danger">*</span></label>
+          <div class="input-group input-group-sm">
+            <input id="m-qty" type="number" step="any" min="0.001" class="form-control" placeholder="0" />
+            <span class="input-group-text fw-semibold" id="m-unit-label">unit</span>
+          </div>
+        </div>
+      </div>
+      <hr class="my-2" />
+
+      <!-- ── RECEIPT ── -->
+      <div id="mf-receipt" class="movement-fields">
+        <p class="text-muted small fw-semibold mb-2 text-uppercase">Receipt Details</p>
+        <div class="row g-2 mb-2">
+          <div class="col-md-3">
+            <label class="form-label">Lot Number <span class="text-danger">*</span></label>
+            <input id="m-lot" class="form-control form-control-sm" placeholder="e.g. LOT-2026-001" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">DO / Delivery Order <span class="text-danger">*</span></label>
+            <input id="m-do" class="form-control form-control-sm" placeholder="e.g. DO-2026-001" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Lot Expiry Date <small class="text-muted">(optional)</small></label>
+            <input id="m-lot-expiry" type="date" class="form-control form-control-sm" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">COC <small class="text-muted">(optional)</small></label>
+            <input id="m-coc" type="file" class="form-control form-control-sm" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" />
+          </div>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-md-4">
+            <label class="form-label">Material Cert / Heat No. <small class="text-muted">(optional)</small></label>
+            <input id="m-cert-number" class="form-control form-control-sm" placeholder="e.g. CERT-2026-0042 / HT-001" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Cert Expiry <small class="text-muted">(optional)</small></label>
+            <input id="m-cert-expiry" type="date" class="form-control form-control-sm" />
+          </div>
+          <div class="col-12">
+            <div class="alert alert-info py-1 px-2 small mb-0">
+              <i class="bi bi-hourglass-split me-1"></i>Receipt will be placed in <strong>QUARANTINE</strong> — perform Incoming Inspection before releasing for use (AS9100D §8.4.3).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ISSUE ── -->
+      <div id="mf-issue" class="movement-fields d-none">
+        <p class="text-muted small fw-semibold mb-2 text-uppercase">Issue Details</p>
+        <div id="m-msds-warn" class="alert alert-danger py-1 px-2 small mb-2 d-none"></div>
+        <div class="row g-2 mb-2">
+          <div class="col-md-4">
+            <label class="form-label">Issue To <span class="text-danger">*</span></label>
+            <input id="m-issue-to" class="form-control form-control-sm" placeholder="e.g. FPI Tank A, Process Line 2" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Issued To Person <span class="text-danger">*</span></label>
+            <select id="m-issued-person" class="form-select form-select-sm"></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Issued Lot <small class="text-muted">(optional)</small></label>
+            <select id="m-issued-lot" class="form-select form-select-sm">
+              <option value="">— Select lot —</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TRANSFER ── -->
+      <div id="mf-transfer" class="movement-fields d-none">
+        <p class="text-muted small fw-semibold mb-2 text-uppercase">Transfer Details</p>
+        <div class="row g-2 mb-2">
+          <div class="col-md-4">
+            <label class="form-label">Current Location</label>
+            <input id="m-from-loc" class="form-control form-control-sm bg-light" readonly />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Lot to Transfer <small class="text-muted">(optional)</small></label>
+            <select id="m-transfer-lot" class="form-select form-select-sm">
+              <option value="">— All stock —</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Transfer To <span class="text-danger">*</span></label>
+            <select id="m-to-loc" class="form-select form-select-sm"></select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DISPOSAL ── -->
+      <div id="mf-disposal" class="movement-fields d-none">
+        <p class="text-muted small fw-semibold mb-2 text-uppercase">Disposal / Scrap Details</p>
+        <div class="row g-2 mb-2">
+          <div class="col-md-4">
+            <label class="form-label">Lot to Scrap <span class="text-danger">*</span></label>
+            <select id="m-disposal-lot" class="form-select form-select-sm">
+              <option value="">— Select lot —</option>
+            </select>
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">Disposal Method <span class="text-danger">*</span></label>
+            <select id="m-disposal-method" class="form-select form-select-sm" onchange="onDisposalMethodChange()">
+              <option value="VENDOR">Vendor — provide PO / Invoice</option>
+              <option value="WASTEWATER">Dispose via In-house Wastewater</option>
+              <option value="GENERAL_WASTE">Dispose via General Waste</option>
+            </select>
+          </div>
+          <div class="col-md-3 d-none" id="m-disposal-ref-wrap">
+            <label class="form-label">PO / Invoice Ref <span class="text-danger">*</span></label>
+            <input id="m-disposal-ref" class="form-control form-control-sm" placeholder="e.g. PO-2026-001" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADJUSTMENT ── -->
+      <div id="mf-adjustment" class="movement-fields d-none">
+        <p class="text-muted small fw-semibold mb-2 text-uppercase">Adjustment Details</p>
+        <div class="row g-2 mb-2">
+          <div class="col-md-5">
+            <label class="form-label">Reason <span class="text-danger">*</span></label>
+            <select id="m-adj-reason" class="form-select form-select-sm">
+              <option value="STOCK_LOST">Stock Lost — discrepancy / spillage / damage</option>
+              <option value="STOCK_GAIN">Stock Gain — discrepancy / found stock</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-1 mt-2">
+        <label class="form-label">Notes</label>
+        <textarea id="m-notes" class="form-control form-control-sm" rows="2"></textarea>
+      </div>
+      <div id="m-err" class="alert alert-danger py-1 px-2 small d-none mt-2 mb-0"></div>
+      <div class="alert alert-info py-1 px-2 small mt-2 mb-0">
+        <i class="bi bi-send me-1"></i>Movement will be <strong>submitted for approval</strong>. Stock is updated only after an approver confirms.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveMovement()"
+        data-compliance="AS9100D §8.5.4" data-linked="MOD-14" data-action-desc="Submit stock movement for approval">
+        <i class="bi bi-send me-1"></i>Submit for Approval
+      </button>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== Scrap Lot Modal ===== -->
+<div class="modal fade" id="scrapLotModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header bg-danger text-white">
+      <h6 class="modal-title"><i class="bi bi-trash me-1"></i>Scrap Lot — Submit for Approval</h6>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="scrap-item-id" />
+      <input type="hidden" id="scrap-lot" />
+      <div class="alert alert-danger py-2 px-3 small mb-3" id="scrap-info"></div>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="form-label">Quantity to Scrap <span class="text-danger">*</span></label>
+          <div class="input-group input-group-sm">
+            <input id="scrap-qty" type="number" step="any" min="0.001" class="form-control" placeholder="0" />
+            <span class="input-group-text" id="scrap-unit-label">unit</span>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Disposal Method <span class="text-danger">*</span></label>
+          <select id="scrap-method" class="form-select form-select-sm" onchange="onScrapMethodChange()">
+            <option value="WASTEWATER">In-house Wastewater</option>
+            <option value="GENERAL_WASTE">General Waste</option>
+            <option value="VENDOR">Vendor (PO / Invoice)</option>
+          </select>
+        </div>
+        <div class="col-12 d-none" id="scrap-ref-wrap">
+          <label class="form-label">PO / Invoice Reference <span class="text-danger">*</span></label>
+          <input id="scrap-ref" class="form-control form-control-sm" placeholder="e.g. PO-2026-001" />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Notes <small class="text-muted">(optional)</small></label>
+          <textarea id="scrap-notes" class="form-control form-control-sm" rows="2" placeholder="Reason for scrapping this lot…"></textarea>
+        </div>
+      </div>
+      <div id="scrap-err" class="alert alert-danger py-1 px-2 small d-none mt-2 mb-0"></div>
+      <div class="alert alert-warning py-1 px-2 small mt-2 mb-0">
+        <i class="bi bi-send me-1"></i>Scrap disposal will be <strong>submitted for approval</strong>. Stock is reduced only after an approver confirms.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="saveScrap()"
+        data-compliance="AS9100D §8.5.4" data-action-desc="Submit lot scrap disposal for approval">
+        <i class="bi bi-trash me-1"></i>Submit Scrap for Approval
+      </button>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== Item Lots Modal ===== -->
+<div class="modal fade" id="itemLotsModal" tabindex="-1">
+  <div class="modal-dialog modal-xl"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title" id="lots-modal-title">Lots</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+        <div class="input-group input-group-sm" style="width:280px">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input id="lots-modal-search" type="text" class="form-control" placeholder="Search lot no., DO no., location…" oninput="renderItemLots()" />
+          <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('lots-modal-search').value='';renderItemLots()"><i class="bi bi-x"></i></button>
+        </div>
+        <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>Current storage: <strong id="lots-modal-location">—</strong></span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Lot No.</th>
+            <th>DO No.</th>
+            <th>Received</th>
+            <th>Qty</th>
+            <th>Storage Location</th>
+            <th>Expiry Date</th>
+            <th>Days Left</th>
+            <th>Status</th>
+            <th>Files</th>
+            <th class="text-end">Actions</th>
+          </tr></thead>
+          <tbody id="lots-modal-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== Lot Extension Modal ===== -->
+<div class="modal fade" id="extendLotModal" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+      <h6 class="modal-title"><i class="bi bi-calendar-plus me-1"></i>Submit Lot Expiry Extension</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ext-item-id" />
+      <input type="hidden" id="ext-lot" />
+      <div class="alert alert-info py-2 px-3 small mb-3" id="ext-info"></div>
+      <div class="mb-2">
+        <label class="form-label">Proposed New Expiry Date <span class="text-danger">*</span></label>
+        <input type="date" id="ext-new-expiry" class="form-control form-control-sm" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Extension Evidence <span class="text-danger">*</span> <small class="text-muted">(re-test certificate, lab report, etc.)</small></label>
+        <input type="file" id="ext-evidence" class="form-control form-control-sm" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" />
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Notes <small class="text-muted">(optional)</small></label>
+        <textarea id="ext-notes" class="form-control form-control-sm" rows="2" placeholder="Reason for extension request…"></textarea>
+      </div>
+      <div id="ext-err" class="alert alert-danger py-1 px-2 small d-none mt-2 mb-0"></div>
+      <div class="alert alert-warning py-1 px-2 small mt-2 mb-0">
+        <i class="bi bi-send me-1"></i>Extension will be <strong>submitted for approval</strong>. Lot expiry is updated only after an approver confirms.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveExtension()"
+        data-compliance="AS9100D §8.5.4" data-action-desc="Submit lot expiry extension for approval">
+        <i class="bi bi-send me-1"></i>Submit Extension Request
+      </button>
+    </div>
+  </div></div>
+</div>
+
+<!-- ===== Bin Manager Modal ===== -->
+<div class="modal fade" id="binManagerModal" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content">
+    <div class="modal-header py-2">
+      <h6 class="modal-title mb-0" id="bin-manager-title">Bins</h6>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body py-2">
+      <div id="bin-manager-list" class="mb-3"></div>
+      <div class="d-flex gap-2">
+        <input id="bin-manager-input" class="form-control form-control-sm" placeholder="New bin (e.g. A-01)"
+          onkeydown="if(event.key==='Enter')addBinFromManager()" />
+        <button class="btn btn-primary btn-sm text-nowrap" onclick="addBinFromManager()">
+          <i class="bi bi-plus-lg"></i> Add
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer py-2">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Done</button>
     </div>
   </div></div>
 </div>
 
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-demo.js?v=1"></script>
-<script src="/assets/js/atca-core.js?v=7"></script>
+<script src="/assets/js/atca-core.js?v=8"></script>
 <script>
 'use strict';
-const itemModal = new bootstrap.Modal(document.getElementById('itemModal'));
-const movementModal = new bootstrap.Modal(document.getElementById('movementModal'));
 
-async function init() {
-  await ATCA.initPage();
-  await loadKpis();
-  loadItems();
-  ATCA.tooltips.init();
-  document.querySelector('[href="#tab-movements"]').addEventListener('shown.bs.tab', loadMovements);
+/* ============================================================
+   MOD-14 Inventory — client-side store (localStorage).
+   The static/demo deployment has no backend persistence, so the
+   register, locations and uploaded documents live in localStorage,
+   seeded once from the bundled demo data. (Real backend persistence
+   would require migration + API changes — out of scope here.)
+   ============================================================ */
+const LS_KEY = 'atca_mod14_v1';
+const DEFAULT_UNITS = ['Liters','Kg','Ton','g','Cubic Meter','Bags','Carboy(25L)',
+  'Roll(s)','Pc(s)','Ream(s)','Meter','Drum(s)','Tin(s)','Set(s)','Unit(s)','Lot(s)'];
+const DOC_TYPES = ['MSDS','EP_DOC','TDS','TEST_RESULT','OTHER'];
+const DOC_LABEL = { MSDS:'MSDS / SDS', EP_DOC:'EP Documentation', TDS:'TDS', TEST_RESULT:'Test Result', OTHER:'Other' };
+// Location types: NORMAL | HAZMAT | EXPLOSIVE
+const LOC_TYPE_LABEL = { NORMAL:'Standard', HAZMAT:'Hazardous Material Storage', EXPLOSIVE:'Explosive Precursor Storage' };
+const LOC_TYPE_CSS   = { NORMAL:'loc-normal', HAZMAT:'loc-hazmat', EXPLOSIVE:'loc-explosive' };
+
+let DB = { items: [], locations: [], units: [], nextId: 1 };
+let VENDORS = [];
+const itemModal         = new bootstrap.Modal(document.getElementById('itemModal'));
+const movementModal     = new bootstrap.Modal(document.getElementById('movementModal'));
+const docsModal         = new bootstrap.Modal(document.getElementById('docsModal'));
+const scrapLotModal     = new bootstrap.Modal(document.getElementById('scrapLotModal'));
+const itemLotsModal     = new bootstrap.Modal(document.getElementById('itemLotsModal'));
+const extendLotModal    = new bootstrap.Modal(document.getElementById('extendLotModal'));
+const binManagerModal      = new bootstrap.Modal(document.getElementById('binManagerModal'));
+const incomingInspModal    = new bootstrap.Modal(document.getElementById('incomingInspModal'));
+let _lotsItemId   = null;
+let _binManagerIdx = null;
+let _inspItemId   = null;
+let _inspLot      = null;
+
+const esc = (s) => ATCA.utils.escHtml(s ?? '');
+const todayPlus = (yrs) => { const d = new Date(); d.setFullYear(d.getFullYear() + yrs); return d.toISOString().slice(0,10); };
+const daysUntil = (iso) => iso ? Math.ceil((new Date(iso) - new Date()) / 86400000) : null;
+
+function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(DB)); } catch (e) {
+  ATCA.toast('Storage full — a file may be too large for the demo store.', 'error'); } }
+
+function ragOf(it) {
+  const s = +it.current_stock || 0, crit = +it.critical_level || 0, ro = +it.reorder_level || 0;
+  if (s <= 0 || (crit > 0 && s <= crit)) return 'RED';
+  if (ro > 0 && s <= ro) return 'AMBER';
+  return 'GREEN';
+}
+function docState(it) {
+  // worst expiry across documents: 'OVER' | 'SOON' (<=30d) | 'OK' | null
+  let worst = null;
+  (it.documents || []).forEach(d => {
+    const dd = daysUntil(d.expiry);
+    if (dd === null) return;
+    if (dd < 0) worst = 'OVER';
+    else if (dd <= 30 && worst !== 'OVER') worst = 'SOON';
+    else if (worst === null) worst = 'OK';
+  });
+  return worst;
 }
 
-async function loadKpis() {
-  const d = await ATCA.api.get('/mod14/alerts/summary');
-  if (!d) return;
-  document.getElementById('kpi-low').textContent = d.low_stock ?? '—';
-  document.getElementById('kpi-oos').textContent = d.out_of_stock ?? '—';
-  document.getElementById('kpi-exp').textContent = d.expiring_chemicals ?? '—';
-  document.getElementById('kpi-total').textContent = d.total_items ?? '—';
-  if ((d.out_of_stock || 0) > 0)
-    document.getElementById('nav-alerts').innerHTML = `<span class="badge bg-danger">${d.out_of_stock} Out of Stock</span>`;
+async function seed() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (raw) {
+    DB = JSON.parse(raw);
+    // Migrate: old string locations → objects
+    if (DB.locations.length && typeof DB.locations[0] === 'string') {
+      const HAZMAT_NAMES = ['Chemical Store','Acid Store','Acid Store (Locked)','Chemical Store (Locked)'];
+      const EP_NAMES     = ['Explosive','Precursor'];
+      DB.locations = DB.locations.map(l => ({
+        name: l,
+        type: EP_NAMES.some(k => l.includes(k)) ? 'EXPLOSIVE'
+            : HAZMAT_NAMES.some(k => l.includes(k)) ? 'HAZMAT' : 'NORMAL',
+        bins: [],
+      }));
+    }
+    // Migrate: single bin_number string → bins array
+    DB.locations = DB.locations.map(l => !Array.isArray(l.bins)
+      ? { name: l.name, type: l.type || 'NORMAL', bins: l.bin_number ? [l.bin_number] : [] }
+      : l);
+    // Seed units if missing
+    if (!DB.units || !DB.units.length) DB.units = [...DEFAULT_UNITS];
+    save();
+    // Seed demo lots if none exist for MOD-14
+    _seedDemoLots();
+    return;
+  }
+  const items = (await ATCA.api.get('/mod14/items')) || [];
+  DB.items = items.map(i => ({
+    item_id: i.item_id, item_code: i.item_code, name: i.name, category: i.category,
+    unit: i.unit, location: i.location, current_stock: i.current_stock,
+    reorder_level: i.reorder_level, critical_level: 0,
+    hazardous_flag: !!i.hazardous_flag, explosive_precursor: false, documents: [],
+    lead_time_days: 7, default_lot_expiry_days: 365, vendor_id: null, vendor_name: null,
+  }));
+  DB.nextId = Math.max(0, ...DB.items.map(i => i.item_id)) + 1;
+  // Default locations with types and bin registries
+  const existingNames = [...new Set(DB.items.map(i => i.location).filter(Boolean))];
+  DB.locations = [
+    { name: 'Chemical Store',       type: 'HAZMAT',    bins: ['CS-A1','CS-A2','CS-B1','CS-B2'] },
+    { name: 'Acid Store (Locked)',   type: 'HAZMAT',    bins: ['AC-01','AC-02','AC-03'] },
+    { name: 'PPE Cabinet',           type: 'NORMAL',    bins: ['PPE-01','PPE-02','PPE-03'] },
+    { name: 'Bay 1 Shelf',           type: 'NORMAL',    bins: ['B1-A01','B1-A02','B1-B01','B1-B02','B1-C01'] },
+    { name: 'Utility Room',          type: 'NORMAL',    bins: ['UR-01','UR-02'] },
+    { name: 'Anodize Bay',           type: 'NORMAL',    bins: ['AN-01','AN-02','AN-03'] },
+    { name: 'EP Secure Store',       type: 'EXPLOSIVE', bins: ['EP-01','EP-02'] },
+  ];
+  existingNames.forEach(n => {
+    if (!DB.locations.find(l => l.name === n))
+      DB.locations.push({ name: n, type: 'NORMAL', bins: [] });
+  });
+  DB.units = [...DEFAULT_UNITS];
+  save();
+  _seedDemoLots();
 }
 
-async function loadItems() {
-  const cat = document.getElementById('filter-category').value;
-  const data = await ATCA.api.get('/mod14/items' + (cat ? '?category=' + cat : ''));
-  const items = data || [];
-  // Kanban summary
-  const red = items.filter(i => i.rag_status === 'RED').length;
-  const amber = items.filter(i => i.rag_status === 'AMBER').length;
-  const green = items.filter(i => i.rag_status === 'GREEN').length;
+function _seedDemoLots() {
+  const existing = loadApprovals();
+  if (existing.some(a => a.module === 'MOD-14' && a.movement_type === 'RECEIPT')) return;
+  if (DB.items.length < 3) return;
+  const daysDate = d => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0,10); };
+  const ago7 = new Date(Date.now() - 7*86400000).toISOString();
+  const ago6 = new Date(Date.now() - 6*86400000).toISOString();
+  const seedLots = [
+    { idx:0, lot:'LOT-2026-001', expDays:18,   qty:50  },
+    { idx:1, lot:'LOT-2025-018', expDays:-12,  qty:20  },
+    { idx:2, lot:'LOT-2026-003', expDays:180,  qty:100 },
+    { idx:0, lot:'LOT-2026-002', expDays:365,  qty:80  },
+    { idx:3, lot:'LOT-2026-004', expDays:7,    qty:15  },
+  ];
+  const aprs = [...existing];
+  seedLots.forEach(({ idx, lot, expDays, qty }) => {
+    const it = DB.items[idx]; if (!it) return;
+    aprs.push({
+      approval_id: 'APR-SEED-' + idx + '-' + lot,
+      module: 'MOD-14', movement_type: 'RECEIPT',
+      item_id: it.item_id, item_code: it.item_code, item_name: it.name,
+      qty, unit: it.unit, lot_number: lot,
+      lot_expiry: daysDate(expDays), do_number: 'DO-SEED-001',
+      receipt_location: it.location || null,
+      coc_name: null, coc_data: null, notes: 'Demo seeded receipt',
+      status: 'APPROVED',
+      requested_by: 'System (Demo)', requested_at: ago7,
+      approved_by: 'Admin', approved_at: ago6,
+    });
+  });
+  // Seed inspection PASS records so demo lots are AVAILABLE
+  seedLots.forEach(({ idx, lot }) => {
+    const it = DB.items[idx]; if (!it) return;
+    aprs.push({
+      approval_id: 'APR-INSP-SEED-' + idx + '-' + lot,
+      module: 'MOD-14', movement_type: 'INCOMING_INSPECTION',
+      item_id: it.item_id, item_code: it.item_code, item_name: it.name,
+      lot_number: lot, inspection_result: 'PASS',
+      inspection_notes: 'Demo seed — pre-inspected.',
+      ncr_ref: null, status: 'APPROVED',
+      requested_by: 'System (Demo)', requested_at: ago7,
+      approved_by: 'Admin', approved_at: ago6,
+    });
+  });
+  saveApprovals(aprs);
+}
+
+/* ---------------- Vendors (from MOD-12 AVL) ---------------- */
+async function loadVendors() {
+  const data = await ATCA.api.get('/mod12/suppliers?status=APPROVED');
+  VENDORS = (data || []).map(s => ({ id: s.supplier_id, name: s.name, code: s.supplier_code }));
+}
+function vendorOptions(sel) {
+  return ['<option value="">— None / Not set —</option>']
+    .concat(VENDORS.map(v => `<option value="${v.id}" ${String(v.id)===String(sel)?'selected':''}>${esc(v.code)} — ${esc(v.name)}</option>`)).join('');
+}
+
+/* ---------------- Lot expiry helpers ---------------- */
+function getLotsSummary() {
+  const seen = new Map();
+  loadApprovals()
+    .filter(a => a.movement_type === 'RECEIPT' && a.status === 'APPROVED' && a.lot_number)
+    .forEach(a => {
+      const k = `${a.item_id}:${a.lot_number}`;
+      if (!seen.has(k)) seen.set(k, { expiry: a.lot_expiry || null });
+    });
+  return [...seen.values()];
+}
+function lotExpiryStatus(expiry) {
+  if (!expiry) return null;
+  const d = daysUntil(expiry);
+  return d < 0 ? 'OVER' : d <= 30 ? 'SOON' : 'OK';
+}
+function nextLotExpiry(itemId) {
+  const seen = new Set();
+  const lots = loadApprovals()
+    .filter(a => a.item_id === itemId && a.movement_type === 'RECEIPT' && a.status === 'APPROVED' && a.lot_number && a.lot_expiry)
+    .filter(a => { if (seen.has(a.lot_number)) return false; seen.add(a.lot_number); return true; })
+    .map(a => ({ lot: a.lot_number, expiry: a.lot_expiry }));
+  if (!lots.length) return null;
+  return lots.sort((a, b) => new Date(a.expiry) - new Date(b.expiry))[0];
+}
+function lotExpiryBadgeHtml(itemId) {
+  const next = nextLotExpiry(itemId);
+  if (!next) return '<span class="text-muted small">—</span>';
+  const d = daysUntil(next.expiry);
+  const st = lotExpiryStatus(next.expiry);
+  const cls = st === 'OVER' ? 'lot-over' : st === 'SOON' ? 'lot-soon' : 'lot-ok';
+  const dLabel = d < 0 ? `${Math.abs(d)}d ago` : `${d}d`;
+  return `<span class="lot-badge ${cls}" title="Lot: ${esc(next.lot)}">${esc(next.lot)}&thinsp;·&thinsp;${dLabel}</span>`;
+}
+
+/* ---------------- Incoming Inspection helpers ---------------- */
+function getLotInspectionStatus(itemId, lotNumber) {
+  const insp = loadApprovals()
+    .filter(a => a.movement_type === 'INCOMING_INSPECTION' && a.item_id === itemId && a.lot_number === lotNumber)
+    .sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at))[0];
+  if (!insp) return 'QUARANTINE';
+  return insp.inspection_result === 'PASS' ? 'AVAILABLE' : 'REJECTED';
+}
+function inspStatusBadge(status) {
+  if (status === 'AVAILABLE') return '<span class="insp-available">✓ Available</span>';
+  if (status === 'REJECTED')  return '<span class="insp-rejected">✕ Rejected</span>';
+  return '<span class="insp-quarantine">⏳ Quarantined</span>';
+}
+
+function daysUntil(dateStr) {
+  if (!dateStr) return Infinity;
+  return Math.floor((new Date(dateStr) - new Date()) / 86400000);
+}
+
+/* ---------------- KPIs / register ---------------- */
+function renderKpis() {
+  const items = DB.items;
+  const low = items.filter(i => ragOf(i) === 'AMBER').length;
+  const oos = items.filter(i => (+i.current_stock || 0) <= 0).length;
+  const exp = items.filter(i => ['OVER','SOON'].includes(docState(i))).length;
+  const lotsExp = getLotsSummary().filter(l => l.expiry && daysUntil(l.expiry) <= 30).length;
+  // Count quarantined lots (RECEIPT APPROVED with no PASS inspection)
+  const aprs = loadApprovals();
+  const receiptLotKeys = new Set();
+  aprs.filter(a => a.movement_type === 'RECEIPT' && a.status === 'APPROVED' && a.lot_number)
+      .forEach(a => receiptLotKeys.add(`${a.item_id}:${a.lot_number}`));
+  const quar = [...receiptLotKeys].filter(k => {
+    const [itemId, lot] = k.split(':');
+    return getLotInspectionStatus(+itemId, lot) === 'QUARANTINE';
+  }).length;
+  document.getElementById('kpi-low').textContent   = low;
+  document.getElementById('kpi-oos').textContent   = oos;
+  document.getElementById('kpi-exp').textContent   = exp;
+  document.getElementById('kpi-lots').textContent  = lotsExp;
+  document.getElementById('kpi-quar').textContent  = quar;
+  document.getElementById('kpi-total').textContent = items.length;
+  document.getElementById('nav-alerts').innerHTML  = oos > 0 ? `<span class="badge bg-danger">${oos} Out of Stock</span>` : '';
+  const badgeEl = document.getElementById('lot-expiry-badge');
+  if (badgeEl) { badgeEl.textContent = lotsExp; badgeEl.classList.toggle('d-none', lotsExp === 0); }
+}
+
+let _sortCol = '', _sortDir = 1; // 1=asc, -1=desc
+const RAG_ORDER = { RED: 0, AMBER: 1, GREEN: 2 };
+
+function sortBy(col) {
+  if (_sortCol === col) _sortDir *= -1; else { _sortCol = col; _sortDir = 1; }
+  updateSortHeaders();
+  renderItems();
+}
+function updateSortHeaders() {
+  document.querySelectorAll('#items-thead .sort-col').forEach(th => {
+    const icon = th.querySelector('.sort-icon');
+    if (th.dataset.col === _sortCol) {
+      icon.className = `bi bi-arrow-${_sortDir === 1 ? 'up' : 'down'} sort-icon`;
+      icon.style.opacity = '1';
+    } else {
+      icon.className = 'bi bi-arrow-down-up sort-icon';
+      icon.style.opacity = '.5';
+    }
+  });
+}
+
+function renderItems() {
+  const cat    = document.getElementById('filter-category').value;
+  const ragFil = document.getElementById('filter-rag')?.value || '';
+  const q      = (document.getElementById('search-items')?.value || '').toLowerCase().trim();
+
+  // KPI counts always use all items (unfiltered)
+  const allItems = DB.items;
+  const red   = allItems.filter(i => ragOf(i) === 'RED').length;
+  const amber = allItems.filter(i => ragOf(i) === 'AMBER').length;
+  const green = allItems.filter(i => ragOf(i) === 'GREEN').length;
   document.getElementById('kanban-row').innerHTML = `
-    <div class="col-auto"><div class="card border-danger text-danger p-2 text-center" style="min-width:100px"><div class="fw-bold fs-4">${red}</div><small>Out of Stock</small></div></div>
+    <div class="col-auto"><div class="card border-danger text-danger p-2 text-center" style="min-width:100px"><div class="fw-bold fs-4">${red}</div><small>Critical / Out</small></div></div>
     <div class="col-auto"><div class="card border-warning text-warning p-2 text-center" style="min-width:100px"><div class="fw-bold fs-4">${amber}</div><small>Low Stock</small></div></div>
-    <div class="col-auto"><div class="card border-success text-success p-2 text-center" style="min-width:100px"><div class="fw-bold fs-4">${green}</div><small>Adequate</small></div></div>
-  `;
-  ATCA.table.render('items-tbody', items, i => {
-    const rc = i.rag_status === 'RED' ? 'danger' : i.rag_status === 'AMBER' ? 'warning' : 'success';
+    <div class="col-auto"><div class="card border-success text-success p-2 text-center" style="min-width:100px"><div class="fw-bold fs-4">${green}</div><small>Adequate</small></div></div>`;
+
+  // Filter
+  let items = allItems.filter(i => {
+    if (cat && i.category !== cat) return false;
+    if (ragFil && ragOf(i) !== ragFil) return false;
+    if (q && ![ i.item_code, i.name, i.location, (i.bin_number||''), i.category ].some(f => (f||'').toLowerCase().includes(q))) return false;
+    return true;
+  });
+
+  // Sort
+  if (_sortCol) {
+    items = [...items].sort((a, b) => {
+      let va = _sortCol === 'rag' ? RAG_ORDER[ragOf(a)] : (a[_sortCol] ?? '');
+      let vb = _sortCol === 'rag' ? RAG_ORDER[ragOf(b)] : (b[_sortCol] ?? '');
+      if (typeof va === 'string') return va.localeCompare(vb) * _sortDir;
+      return (va - vb) * _sortDir;
+    });
+  }
+
+  const tbody = document.getElementById('items-tbody');
+  if (!items.length) { tbody.innerHTML = '<tr><td colspan="12" class="text-center text-muted py-3">No items.</td></tr>'; return; }
+  tbody.innerHTML = items.map(i => {
+    const rag = ragOf(i), rc = rag === 'RED' ? 'danger' : rag === 'AMBER' ? 'warning' : 'success';
+    const ds = docState(i), nDocs = (i.documents || []).length;
+    const locBin = i.bin_number || null;
+    const docBadge = nDocs === 0
+      ? (i.hazardous_flag ? '<span class="badge bg-danger" title="Hazardous item missing MSDS">MSDS missing</span>' : '<span class="text-muted">—</span>')
+      : `<span class="badge bg-${ds==='OVER'?'danger':ds==='SOON'?'warning text-dark':'secondary'}">${nDocs} doc${nDocs>1?'s':''}${ds==='OVER'?' · expired':ds==='SOON'?' · expiring':''}</span>`;
+    const vendorLine = i.vendor_name ? `<br><small class="text-muted"><i class="bi bi-building me-1"></i>${esc(i.vendor_name)}${i.lead_time_days ? ` · ${i.lead_time_days}d lead` : ''}</small>` : '';
     return `<tr>
-      <td><strong>${i.item_code}</strong></td>
-      <td>${i.name}</td>
-      <td><span class="badge bg-secondary">${i.category}</span></td>
-      <td>${i.location || '—'}</td>
-      <td>${i.current_stock} ${i.unit}</td>
-      <td>${i.reorder_level} ${i.unit}</td>
-      <td>${i.hazardous_flag ? '<span class="badge bg-danger">Hazardous</span>' : '—'}</td>
-      <td><span class="badge bg-${rc}">${i.rag_status}</span></td>
-      <td>
-        <button class="btn btn-outline-success btn-sm" onclick="quickReceipt(${i.item_id})"
-          data-compliance="AS9100D §8.5.4" data-linked="MOD-14" data-action-desc="Record stock receipt for this item">
-          <i class="bi bi-box-arrow-in-down"></i>
-        </button>
+      <td><strong>${esc(i.item_code)}</strong></td>
+      <td>${esc(i.name)}${vendorLine}</td>
+      <td><span class="badge bg-secondary">${esc(i.category)}</span></td>
+      <td>${esc(i.location || '—')}</td>
+      <td>${locBin ? `<span class="badge bg-secondary font-monospace">${esc(locBin)}</span>` : '<span class="text-muted">—</span>'}</td>
+      <td>${i.current_stock} ${esc(i.unit)}</td>
+      <td>${i.reorder_level} ${esc(i.unit)}</td>
+      <td>${i.critical_level || 0} ${esc(i.unit)}</td>
+      <td>${i.hazardous_flag ? '<span class="badge bg-danger">Hazardous</span> ' : ''}${i.explosive_precursor ? '<span class="badge bg-warning text-dark">EP</span>' : ''}${!i.hazardous_flag && !i.explosive_precursor ? '—' : ''}</td>
+      <td>${docBadge}</td>
+      <td>${lotExpiryBadgeHtml(i.item_id)}</td>
+      <td><span class="badge bg-${rc}">${rag}</span></td>
+      <td class="text-end text-nowrap">
+        <button class="btn btn-outline-primary btn-sm" title="Edit item" onclick="openItemModal(${i.item_id})"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-outline-secondary btn-sm" title="View MSDS &amp; documents" onclick="openDocs(${i.item_id})"><i class="bi bi-folder2-open"></i></button>
+        <button class="btn btn-outline-info btn-sm" title="View lots, files &amp; expiry" onclick="openItemLots(${i.item_id})"><i class="bi bi-archive"></i></button>
       </td>
     </tr>`;
+  }).join('');
+}
+
+/* ---------------- Locations ---------------- */
+/* location objects are { name, type, bins: [] } */
+function locName(l) { return typeof l === 'string' ? l : l.name; }
+function locType(l) { return typeof l === 'string' ? 'NORMAL' : (l.type || 'NORMAL'); }
+function locBins(l) { return (typeof l === 'object' && Array.isArray(l?.bins)) ? l.bins : []; }
+
+function locOptions(sel, filterType) {
+  // filterType: if set, only show locations of that type (+ a warning option)
+  const locs = filterType ? DB.locations.filter(l => locType(l) === filterType) : DB.locations;
+  const opts = ['<option value="">— Select —</option>']
+    .concat(locs.map(l => {
+      const n = locName(l), t = locType(l);
+      const badge = t !== 'NORMAL' ? ` [${t === 'HAZMAT' ? 'HAZMAT' : 'EXPLOSIVE'}]` : '';
+      return `<option value="${esc(n)}" ${n===sel?'selected':''}>${esc(n)}${badge}</option>`;
+    }));
+  return opts.join('');
+}
+
+function renderLocations() {
+  const tbody = document.getElementById('loc-tbody');
+  tbody.innerHTML = DB.locations.map((l, idx) => {
+    const n = locName(l), t = locType(l), bins = locBins(l);
+    const inUse = DB.items.filter(i => i.location === n).length;
+    const binLabel = bins.length === 0 ? '<span class="text-muted small">No bins</span>'
+      : `<span class="badge bg-light text-dark border">${bins.length} bin${bins.length !== 1 ? 's' : ''}</span>`;
+    return `<tr>
+      <td>${esc(n)}</td>
+      <td>
+        ${binLabel}
+        <button class="btn btn-outline-secondary btn-sm ms-1 py-0 px-2" style="font-size:.72rem" onclick="openBinManager(${idx})">
+          <i class="bi bi-pencil"></i> Manage
+        </button>
+      </td>
+      <td>
+        <select class="form-select form-select-sm" style="width:auto" onchange="updateLocationType(${idx}, this.value)">
+          <option value="NORMAL"    ${t==='NORMAL'   ?'selected':''}>Standard Storage</option>
+          <option value="HAZMAT"    ${t==='HAZMAT'   ?'selected':''}>Hazardous Material Storage</option>
+          <option value="EXPLOSIVE" ${t==='EXPLOSIVE'?'selected':''}>Explosive Precursor Storage</option>
+        </select>
+      </td>
+      <td>${inUse}</td>
+      <td class="text-end">${inUse
+        ? '<span class="text-muted small">in use</span>'
+        : `<button class="btn btn-outline-danger btn-sm" onclick="removeLocation(${idx})"><i class="bi bi-trash"></i></button>`}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="text-muted text-center py-2">No locations yet.</td></tr>';
+}
+function updateLocationType(idx, type) {
+  if (DB.locations[idx]) { DB.locations[idx].type = type; save(); }
+}
+function openBinManager(idx) {
+  _binManagerIdx = idx;
+  const loc = DB.locations[idx];
+  document.getElementById('bin-manager-title').textContent = `Bins — ${locName(loc)}`;
+  document.getElementById('bin-manager-input').value = '';
+  renderBinManagerList();
+  binManagerModal.show();
+}
+function renderBinManagerList() {
+  const loc = DB.locations[_binManagerIdx];
+  const bins = locBins(loc);
+  const el = document.getElementById('bin-manager-list');
+  if (!bins.length) {
+    el.innerHTML = '<p class="text-muted small mb-0">No bins yet. Add one below.</p>';
+    return;
+  }
+  el.innerHTML = bins.map(b =>
+    `<div class="d-flex align-items-center justify-content-between py-1 border-bottom">
+      <code style="font-size:.82rem">${esc(b)}</code>
+      <button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="removeBinFromManager('${esc(b)}')" title="Remove"><i class="bi bi-trash" style="font-size:.75rem"></i></button>
+    </div>`
+  ).join('');
+}
+function addBinFromManager() {
+  const v = document.getElementById('bin-manager-input').value.trim();
+  if (!v) return;
+  const loc = DB.locations[_binManagerIdx]; if (!loc) return;
+  if (!Array.isArray(loc.bins)) loc.bins = [];
+  if (loc.bins.includes(v)) { ATCA.toast('Bin already exists.', 'warning'); return; }
+  loc.bins.push(v); save();
+  document.getElementById('bin-manager-input').value = '';
+  renderBinManagerList(); renderLocations();
+  const selLoc = document.getElementById('i-location')?.value;
+  if (selLoc && locName(loc) === selLoc) populateBinDropdown();
+}
+function removeBinFromManager(binStr) {
+  const loc = DB.locations[_binManagerIdx]; if (!loc) return;
+  if (DB.items.some(i => i.location === locName(loc) && i.bin_number === binStr)) {
+    ATCA.toast(`Bin "${binStr}" is in use by an item.`, 'warning'); return;
+  }
+  loc.bins = (loc.bins || []).filter(b => b !== binStr); save();
+  renderBinManagerList(); renderLocations();
+}
+function addLocation() {
+  const v = document.getElementById('loc-new').value.trim();
+  const t = document.getElementById('loc-new-type').value;
+  const b = document.getElementById('loc-new-bin').value.trim();
+  if (!v) return;
+  if (DB.locations.find(l => locName(l) === v)) { ATCA.toast('Location already exists.', 'warning'); return; }
+  DB.locations.push({ name: v, type: t, bins: b ? [b] : [] }); save();
+  document.getElementById('loc-new').value = '';
+  document.getElementById('loc-new-bin').value = '';
+  renderLocations();
+}
+function removeLocation(idx) {
+  const l = DB.locations[idx]; if (!l) return;
+  if (DB.items.some(i => i.location === locName(l))) { ATCA.toast('Location is in use.', 'warning'); return; }
+  DB.locations.splice(idx, 1); save(); renderLocations();
+}
+
+/* ---------------- Units management ---------------- */
+function renderUnits() {
+  const tbody = document.getElementById('unit-tbody');
+  tbody.innerHTML = DB.units.map((u, idx) => {
+    const inUse = DB.items.filter(i => i.unit === u).length;
+    return `<tr>
+      <td>${esc(u)}</td>
+      <td>${inUse}</td>
+      <td class="text-end">${inUse
+        ? '<span class="text-muted small">in use</span>'
+        : `<button class="btn btn-outline-danger btn-sm" onclick="removeUnit(${idx})"><i class="bi bi-trash"></i></button>`}
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" class="text-muted text-center py-2">No units yet.</td></tr>';
+}
+function addUnit() {
+  const v = document.getElementById('unit-new').value.trim();
+  if (!v) return;
+  if (DB.units.includes(v)) { ATCA.toast('Unit already exists.', 'warning'); return; }
+  DB.units.push(v); save();
+  document.getElementById('unit-new').value = '';
+  renderUnits();
+}
+function removeUnit(idx) {
+  const u = DB.units[idx]; if (!u) return;
+  if (DB.items.some(i => i.unit === u)) { ATCA.toast('Unit is in use by existing items.', 'warning'); return; }
+  DB.units.splice(idx, 1); save(); renderUnits();
+}
+
+/* ---------------- Lot Expiry tab ---------------- */
+function renderLots() {
+  const filter = document.getElementById('filter-lot-status')?.value || '';
+  const aprs   = loadApprovals();
+  const lotMap = new Map();
+  aprs.filter(a => a.movement_type === 'RECEIPT' && a.status === 'APPROVED' && a.lot_number)
+      .forEach(a => {
+        const k = `${a.item_id}:${a.lot_number}`;
+        if (!lotMap.has(k)) lotMap.set(k, { item_id:a.item_id, item_code:a.item_code, item_name:a.item_name,
+          lot:a.lot_number, qty:a.qty, unit:a.unit, received:a.requested_at, expiry:a.lot_expiry||null });
+        else if (a.lot_expiry) lotMap.get(k).expiry = a.lot_expiry; // pick up extension updates
+      });
+  let lots = [...lotMap.values()];
+  if (filter === 'OVER')  lots = lots.filter(l => l.expiry && daysUntil(l.expiry) < 0);
+  if (filter === 'SOON')  lots = lots.filter(l => l.expiry && daysUntil(l.expiry) >= 0 && daysUntil(l.expiry) <= 30);
+  if (filter === 'OK')    lots = lots.filter(l => l.expiry && daysUntil(l.expiry) > 30);
+  if (filter === 'NOEXP') lots = lots.filter(l => !l.expiry);
+  lots.sort((a, b) => {
+    if (!a.expiry && !b.expiry) return 0;
+    if (!a.expiry) return 1; if (!b.expiry) return -1;
+    return new Date(a.expiry) - new Date(b.expiry);
   });
+  const tbody = document.getElementById('lots-tbody');
+  if (!lots.length) { tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">No lots found.</td></tr>'; return; }
+  tbody.innerHTML = lots.map(l => {
+    const d  = l.expiry ? daysUntil(l.expiry) : null;
+    const st = d === null ? null : d < 0 ? 'OVER' : d <= 30 ? 'SOON' : 'OK';
+    const cls       = st === 'OVER' ? 'lot-over' : st === 'SOON' ? 'lot-soon' : st === 'OK' ? 'lot-ok' : '';
+    const daysLabel = d === null ? '—' : d < 0 ? `<span class="text-danger fw-bold">${Math.abs(d)}d overdue</span>` : `${d}d`;
+    const badge     = st === 'OVER' ? '<span class="badge bg-danger">Expired</span>'
+                    : st === 'SOON' ? '<span class="badge bg-warning text-dark">Expiring Soon</span>'
+                    : st === 'OK'   ? '<span class="badge bg-success">OK</span>'
+                    :                 '<span class="badge bg-secondary">No Expiry</span>';
+    const inspStatus = getLotInspectionStatus(l.item_id, l.lot);
+    const hasPendingExt   = aprs.some(a => a.movement_type === 'LOT_EXTENSION' && a.item_id === l.item_id && a.lot_number === l.lot && a.status === 'PENDING');
+    const hasPendingScrap = aprs.some(a => a.movement_type === 'DISPOSAL'      && a.item_id === l.item_id && a.lot_number === l.lot && a.status === 'PENDING');
+    const rowCls = inspStatus === 'QUARANTINE' ? 'table-warning' : st === 'OVER' ? 'table-danger' : st === 'SOON' ? 'table-warning' : '';
+    const extBtn  = hasPendingExt
+      ? '<span class="badge bg-warning text-dark">Ext. Pending</span>'
+      : `<button class="btn btn-outline-primary btn-sm" title="Submit extension" onclick="openExtendModal(${l.item_id},'${esc(l.lot)}','${l.expiry||''}')"><i class="bi bi-calendar-plus"></i></button>`;
+    const scrapBtn = hasPendingScrap
+      ? '<span class="badge bg-danger ms-1">Scrap Pending</span>'
+      : `<button class="btn btn-outline-danger btn-sm ms-1" title="Scrap this lot" onclick="openScrapModal(${l.item_id},'${esc(l.lot)}')"><i class="bi bi-trash"></i></button>`;
+    const inspBtn = inspStatus === 'QUARANTINE'
+      ? `<button class="btn btn-warning btn-sm ms-1" title="Record incoming inspection" onclick="openInspectionModal(${l.item_id},'${esc(l.lot)}')"><i class="bi bi-clipboard2-check"></i></button>`
+      : '';
+    return `<tr class="${rowCls}">
+      <td><strong>${esc(l.item_code)}</strong></td>
+      <td>${esc(l.item_name)}</td>
+      <td><code>${esc(l.lot)}</code></td>
+      <td>${new Date(l.received).toLocaleDateString('en-SG')}</td>
+      <td>${l.qty} ${esc(l.unit||'')}</td>
+      <td>${l.expiry ? `<span class="${cls}">${esc(l.expiry)}</span>` : '—'}</td>
+      <td>${daysLabel}</td>
+      <td>${badge}</td>
+      <td>${inspStatusBadge(inspStatus)}</td>
+      <td class="text-end text-nowrap">${extBtn}${scrapBtn}${inspBtn}</td>
+    </tr>`;
+  }).join('');
 }
 
-async function loadMovements() {
-  const data = await ATCA.api.get('/mod14/movements');
-  const typeColor = { RECEIPT: 'success', ISSUE: 'primary', TRANSFER: 'info', DISPOSAL: 'danger', ADJUSTMENT: 'warning' };
-  ATCA.table.render('movements-tbody', data || [], m => `<tr>
-    <td><strong>${m.item_code}</strong> ${m.item_name}</td>
-    <td><span class="badge bg-${typeColor[m.movement_type] || 'secondary'}">${m.movement_type}</span></td>
-    <td>${m.qty}</td>
-    <td>${m.lot_number || '—'}</td>
-    <td>${m.moved_by_name}</td>
-    <td>${new Date(m.moved_at).toLocaleDateString()}</td>
-    <td>${m.notes || '—'}</td>
-  </tr>`);
+/* ---------------- Item Lots modal ---------------- */
+function openItemLots(itemId) {
+  _lotsItemId = itemId;
+  const it = DB.items.find(i => i.item_id === itemId);
+  document.getElementById('lots-modal-title').textContent = `Lots — ${it.item_code} · ${it.name}`;
+  document.getElementById('lots-modal-search').value = '';
+  document.getElementById('lots-modal-location').textContent = it.location || '—';
+  renderItemLots();
+  itemLotsModal.show();
 }
 
-function openItemModal() { itemModal.show(); }
-function openMovementModal() { movementModal.show(); }
+function renderItemLots() {
+  const it = DB.items.find(i => i.item_id === _lotsItemId);
+  const q  = (document.getElementById('lots-modal-search')?.value || '').toLowerCase().trim();
+  const aprs = loadApprovals();
 
+  // Collect all RECEIPT approvals for this item; keep latest lot_expiry per lot
+  const lotMap = new Map();
+  aprs.filter(a => a.item_id === _lotsItemId && a.movement_type === 'RECEIPT' && a.lot_number)
+      .forEach(a => {
+        if (!lotMap.has(a.lot_number)) lotMap.set(a.lot_number, { ...a });
+        else if (a.lot_expiry) lotMap.get(a.lot_number).lot_expiry = a.lot_expiry;
+      });
+
+  let lots = [...lotMap.values()];
+
+  // Extension evidence per lot (any status)
+  const extensions = aprs.filter(a => a.item_id === _lotsItemId && a.movement_type === 'LOT_EXTENSION');
+
+  // Search
+  if (q) {
+    lots = lots.filter(l => [l.lot_number, l.do_number, l.receipt_location || it?.location || '']
+      .some(f => (f || '').toLowerCase().includes(q)));
+  }
+
+  // Sort newest received first
+  lots.sort((a, b) => new Date(b.requested_at) - new Date(a.requested_at));
+
+  const tbody = document.getElementById('lots-modal-tbody');
+  if (!lots.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-3">No lots found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = lots.map(l => {
+    const d   = l.lot_expiry ? daysUntil(l.lot_expiry) : null;
+    const st  = d === null ? null : d < 0 ? 'OVER' : d <= 30 ? 'SOON' : 'OK';
+    const cls = st === 'OVER' ? 'lot-over' : st === 'SOON' ? 'lot-soon' : st === 'OK' ? 'lot-ok' : '';
+    const daysLabel = d === null ? '—' : d < 0
+      ? `<span class="text-danger fw-bold">${Math.abs(d)}d ago</span>`
+      : `${d}d`;
+    const badge = st === 'OVER' ? '<span class="badge bg-danger">Expired</span>'
+                : st === 'SOON' ? '<span class="badge bg-warning text-dark">Expiring Soon</span>'
+                : st === 'OK'   ? '<span class="badge bg-success">OK</span>'
+                :                 '<span class="badge bg-secondary">No Expiry</span>';
+    const loc  = l.receipt_location || it?.location || '—';
+
+    // Build file buttons
+    const fileLinks = [];
+    if (l.coc_data) {
+      fileLinks.push(`<button class="btn btn-link btn-sm p-0 me-2 text-nowrap" title="${esc(l.coc_name)}" onclick="openAprFile('${esc(l.approval_id)}','coc_data')"><i class="bi bi-file-earmark-check text-success me-1"></i>COC</button>`);
+    }
+    extensions.filter(e => e.lot_number === l.lot_number && e.evidence_data).forEach((ext, i) => {
+      const statusIcon = ext.status === 'APPROVED' ? 'text-success' : ext.status === 'REJECTED' ? 'text-danger' : 'text-warning';
+      fileLinks.push(`<button class="btn btn-link btn-sm p-0 me-2 text-nowrap" title="${esc(ext.evidence_name)} (${ext.status})" onclick="openAprFile('${esc(ext.approval_id)}','evidence_data')"><i class="bi bi-file-earmark-medical ${statusIcon} me-1"></i>Ext.${i+1}</button>`);
+    });
+
+    const hasPendingExt   = extensions.some(e => e.lot_number === l.lot_number && e.status === 'PENDING');
+    const hasPendingScrap = aprs.some(a => a.item_id === _lotsItemId && a.movement_type === 'DISPOSAL' && a.lot_number === l.lot_number && a.status === 'PENDING');
+    const extBtn = hasPendingExt
+      ? '<span class="badge bg-warning text-dark">Ext. Pending</span>'
+      : `<button class="btn btn-outline-primary btn-sm me-1" title="Submit extension" onclick="itemLotsModal.hide();openExtendModal(${_lotsItemId},'${esc(l.lot_number)}','${l.lot_expiry||''}')"><i class="bi bi-calendar-plus"></i></button>`;
+    const scrapBtn = hasPendingScrap
+      ? '<span class="badge bg-danger">Scrap Pending</span>'
+      : `<button class="btn btn-outline-danger btn-sm" title="Scrap this lot" onclick="openScrapModal(${_lotsItemId},'${esc(l.lot_number)}','lots')"><i class="bi bi-trash"></i></button>`;
+
+    return `<tr class="${st==='OVER'?'table-danger':st==='SOON'?'table-warning':''}">
+      <td><code class="fw-bold">${esc(l.lot_number)}</code></td>
+      <td>${esc(l.do_number || '—')}</td>
+      <td>${new Date(l.requested_at).toLocaleDateString('en-SG')}</td>
+      <td>${l.qty} ${esc(l.unit||'')}</td>
+      <td><i class="bi bi-geo-alt text-muted me-1"></i>${esc(loc)}</td>
+      <td>${l.lot_expiry ? `<span class="${cls}">${esc(l.lot_expiry)}</span>` : '—'}</td>
+      <td>${daysLabel}</td>
+      <td>${badge}</td>
+      <td>${fileLinks.length ? fileLinks.join('') : '<span class="text-muted">—</span>'}</td>
+      <td class="text-end text-nowrap">${extBtn}${scrapBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openAprFile(aprId, field) {
+  const apr = loadApprovals().find(a => a.approval_id === aprId);
+  const dataUrl = apr?.[field];
+  if (!dataUrl) { ATCA.toast('File not available.', 'warning'); return; }
+  fetch(dataUrl).then(r => r.blob()).then(b => window.open(URL.createObjectURL(b), '_blank'))
+    .catch(() => ATCA.toast('Could not open file.', 'error'));
+}
+
+/* ---------------- Scrap lot ---------------- */
+function openScrapModal(itemId, lot, hideFirst) {
+  if (hideFirst === 'lots') itemLotsModal.hide();
+  const it = DB.items.find(i => i.item_id === itemId);
+  const receiptApr = loadApprovals().find(a =>
+    a.item_id === itemId && a.movement_type === 'RECEIPT' && a.status === 'APPROVED' && a.lot_number === lot);
+  document.getElementById('scrap-item-id').value = itemId;
+  document.getElementById('scrap-lot').value = lot;
+  document.getElementById('scrap-err').classList.add('d-none');
+  document.getElementById('scrap-notes').value = '';
+  document.getElementById('scrap-ref').value = '';
+  document.getElementById('scrap-ref-wrap').classList.add('d-none');
+  document.getElementById('scrap-method').value = 'WASTEWATER';
+  document.getElementById('scrap-unit-label').textContent = it?.unit || 'unit';
+  document.getElementById('scrap-qty').value = receiptApr?.qty || '';
+  const expiry = receiptApr?.lot_expiry;
+  const d = expiry ? daysUntil(expiry) : null;
+  const expText = expiry
+    ? (d < 0 ? `<strong class="text-danger">Expired — ${Math.abs(d)}d ago</strong>` : `Expires in ${d}d &nbsp;(${expiry})`)
+    : 'No expiry date set';
+  document.getElementById('scrap-info').innerHTML =
+    `<strong>${esc(it?.item_code)} — ${esc(it?.name)}</strong><br>` +
+    `Lot: <code>${esc(lot)}</code> &nbsp;·&nbsp; ${expText}`;
+  scrapLotModal.show();
+}
+async function saveScrap() {
+  const err = document.getElementById('scrap-err');
+  err.classList.add('d-none');
+  const itemId = +document.getElementById('scrap-item-id').value;
+  const lot    = document.getElementById('scrap-lot').value;
+  const qty    = parseFloat(document.getElementById('scrap-qty').value);
+  const method = document.getElementById('scrap-method').value;
+  const ref    = document.getElementById('scrap-ref').value.trim();
+  if (isNaN(qty) || qty <= 0) { err.textContent = 'Enter a valid quantity.'; err.classList.remove('d-none'); return; }
+  if (method === 'VENDOR' && !ref) { err.textContent = 'PO / Invoice reference required for vendor disposal.'; err.classList.remove('d-none'); return; }
+  const it = DB.items.find(i => i.item_id === itemId);
+  pushApproval({
+    approval_id: 'APR-SCRAP-' + Date.now(),
+    module: 'MOD-14', movement_type: 'DISPOSAL',
+    item_id: itemId, item_code: it?.item_code || '', item_name: it?.name || '',
+    qty, unit: it?.unit || '',
+    lot_number: lot,
+    disposal_method: method, disposal_ref: ref || null,
+    notes: document.getElementById('scrap-notes').value.trim(),
+    status: 'PENDING',
+    requested_by: ATCA.currentUser?.full_name || 'Unknown',
+    requested_at: new Date().toISOString(),
+    approved_by: null, approved_at: null,
+  });
+  scrapLotModal.hide();
+  ATCA.toast('Scrap disposal submitted for approval.', 'success');
+  renderLots();
+}
+
+function openExtendModal(itemId, lot, currentExpiry) {
+  const it = DB.items.find(i => i.item_id === itemId);
+  document.getElementById('ext-item-id').value = itemId;
+  document.getElementById('ext-lot').value = lot;
+  document.getElementById('ext-err').classList.add('d-none');
+  document.getElementById('ext-notes').value = '';
+  document.getElementById('ext-evidence').value = '';
+  document.getElementById('ext-info').innerHTML =
+    `Item: <strong>${esc(it?.item_code)} — ${esc(it?.name)}</strong><br>` +
+    `Lot: <strong><code>${esc(lot)}</code></strong><br>` +
+    `Current expiry: <strong>${currentExpiry || 'not set'}</strong>`;
+  const base = currentExpiry ? new Date(currentExpiry) : new Date();
+  base.setFullYear(base.getFullYear() + 1);
+  document.getElementById('ext-new-expiry').value = base.toISOString().slice(0, 10);
+  extendLotModal.show();
+}
+
+async function saveExtension() {
+  const err = document.getElementById('ext-err');
+  err.classList.add('d-none');
+  const itemId      = +document.getElementById('ext-item-id').value;
+  const lot         = document.getElementById('ext-lot').value;
+  const newExpiry   = document.getElementById('ext-new-expiry').value;
+  const evidenceFile = document.getElementById('ext-evidence').files[0];
+  if (!newExpiry)     { err.textContent = 'Proposed new expiry date is required.';     err.classList.remove('d-none'); return; }
+  if (!evidenceFile)  { err.textContent = 'Extension evidence document is required.';  err.classList.remove('d-none'); return; }
+  const it = DB.items.find(i => i.item_id === itemId);
+  const receiptApr = loadApprovals().find(a => a.item_id === itemId && a.movement_type === 'RECEIPT' && a.status === 'APPROVED' && a.lot_number === lot);
+  pushApproval({
+    approval_id: 'APR-EXT-' + Date.now(),
+    module: 'MOD-14', movement_type: 'LOT_EXTENSION',
+    item_id: itemId, item_code: it?.item_code || '', item_name: it?.name || '',
+    lot_number: lot,
+    original_expiry: receiptApr?.lot_expiry || null,
+    proposed_expiry: newExpiry,
+    evidence_name: evidenceFile.name,
+    evidence_data: await readFile(evidenceFile),
+    notes: document.getElementById('ext-notes').value.trim(),
+    status: 'PENDING',
+    requested_by: ATCA.currentUser?.full_name || 'Unknown',
+    requested_at: new Date().toISOString(),
+    approved_by: null, approved_at: null,
+  });
+  extendLotModal.hide();
+  ATCA.toast('Lot extension submitted for approval.', 'success');
+  renderLots();
+}
+
+/* ---------------- Item modal ---------------- */
+function unitOptions(sel) {
+  const list = [...DB.units];
+  if (sel && !list.includes(sel)) list.unshift(sel); // keep legacy units
+  return list.map(u => `<option ${u===sel?'selected':''}>${esc(u)}</option>`).join('');
+}
+function populateBinDropdown(currentBin) {
+  const sel = document.getElementById('i-location').value;
+  const loc = DB.locations.find(l => locName(l) === sel);
+  const bins = locBins(loc);
+  const el = document.getElementById('i-bin');
+  el.innerHTML = '<option value="">— None —</option>'
+    + bins.map(b => `<option value="${esc(b)}" ${b === currentBin ? 'selected' : ''}>${esc(b)}</option>`).join('');
+}
+function checkLocWarn() {
+  const haz = document.getElementById('i-hazardous').checked;
+  const ep  = document.getElementById('i-ep').checked;
+  const sel = document.getElementById('i-location').value;
+  const loc = DB.locations.find(l => locName(l) === sel);
+  const lt  = loc ? locType(loc) : 'NORMAL';
+  const warnEl = document.getElementById('i-loc-warn');
+  const warnTxt = document.getElementById('i-loc-warn-text');
+  let msg = '';
+  if (haz && sel && lt !== 'HAZMAT')   msg = `"${sel}" is not a Hazardous Material Storage location. Please select a HAZMAT location.`;
+  if (ep  && sel && lt !== 'EXPLOSIVE') msg = `"${sel}" is not an Explosive Precursor Storage location. Please select an EXPLOSIVE location.`;
+  if (haz && !sel) msg = 'Hazardous material items must be assigned to a HAZMAT location.';
+  if (ep  && !sel) msg = 'Explosive Precursor items must be assigned to an EXPLOSIVE location.';
+  warnEl.classList.toggle('d-none', !msg);
+  if (msg) warnTxt.textContent = msg;
+}
+function onHazardousToggle() {
+  const haz = document.getElementById('i-hazardous').checked;
+  document.getElementById('msds-req').classList.toggle('d-none', !haz);
+  document.getElementById('msds-block').classList.toggle('required-on', haz);
+  // Refresh location dropdown to show only appropriate options
+  const sel = document.getElementById('i-location').value;
+  document.getElementById('i-location').innerHTML = locOptions(sel);
+  checkLocWarn();
+}
+function onEPToggle() {
+  const ep = document.getElementById('i-ep').checked;
+  document.getElementById('ep-req').classList.toggle('d-none', !ep);
+  document.getElementById('ep-block').classList.toggle('required-on', ep);
+  const sel = document.getElementById('i-location').value;
+  document.getElementById('i-location').innerHTML = locOptions(sel);
+  checkLocWarn();
+}
+function addDocRow(doc) {
+  const wrap = document.createElement('div');
+  wrap.className = 'doc-row';
+  wrap.innerHTML = `
+    <div style="flex:1"><label class="form-label">Type</label>
+      <select class="form-select form-select-sm d-type">${['TDS','TEST_RESULT','OTHER'].map(t=>`<option value="${t}" ${doc&&doc.type===t?'selected':''}>${DOC_LABEL[t]}</option>`).join('')}</select></div>
+    <div style="flex:2"><label class="form-label">${doc?'Replace file':'File'}</label>
+      <input type="file" class="form-control form-control-sm d-file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" />
+      ${doc?`<div class="small text-muted">current: ${esc(doc.name)}</div>`:''}</div>
+    <div style="flex:1"><label class="form-label">Expiry</label><input type="date" class="form-control form-control-sm d-exp" value="${doc?doc.expiry:todayPlus(1)}" /></div>
+    <div><button type="button" class="btn btn-outline-danger btn-sm" onclick="this.closest('.doc-row').remove()"><i class="bi bi-x"></i></button></div>`;
+  if (doc) wrap.dataset.existing = doc.id;
+  document.getElementById('doc-rows').appendChild(wrap);
+}
+function modalAddLocation() {
+  document.getElementById('modal-loc-new').classList.remove('d-none');
+  document.getElementById('modal-loc-input').value = '';
+  document.getElementById('modal-loc-input').focus();
+}
+function modalConfirmLocation() {
+  const v = document.getElementById('modal-loc-input').value.trim();
+  if (!v) return;
+  if (!DB.locations.find(l => locName(l) === v)) {
+    DB.locations.push({ name: v, type: 'NORMAL' }); save(); renderLocations();
+  }
+  document.getElementById('i-location').innerHTML = locOptions(v);
+  document.getElementById('modal-loc-new').classList.add('d-none');
+  checkLocWarn();
+}
+function modalRemoveLocation() {
+  const sel = document.getElementById('i-location').value;
+  if (!sel) return;
+  const currentId = document.getElementById('i-id').value;
+  if (DB.items.some(i => i.location === sel && String(i.item_id) !== currentId)) {
+    ATCA.toast('Location is in use by other items.', 'warning'); return;
+  }
+  DB.locations = DB.locations.filter(l => locName(l) !== sel); save(); renderLocations();
+  document.getElementById('i-location').innerHTML = locOptions('');
+  ATCA.toast(`Location "${sel}" removed.`, 'success');
+}
+function openItemModal(id) {
+  document.getElementById('item-err').classList.add('d-none');
+  document.getElementById('doc-rows').innerHTML = '';
+  document.getElementById('f-msds').value = '';
+  document.getElementById('msds-current').innerHTML = '';
+  const it = id ? DB.items.find(i => i.item_id === id) : null;
+  document.getElementById('item-modal-title').textContent = it ? `Edit — ${it.item_code}` : 'New Inventory Item';
+  document.getElementById('i-id').value = it ? it.item_id : '';
+  document.getElementById('i-name').value = it ? it.name : '';
+  document.getElementById('i-category').value = it ? it.category : 'CHEMICAL';
+  document.getElementById('i-vendor').innerHTML = vendorOptions(it ? (it.vendor_id || '') : '');
+  document.getElementById('i-lead-time').value = it ? (it.lead_time_days || 0) : 0;
+  document.getElementById('i-lot-expiry-days').value = it ? (it.default_lot_expiry_days || 365) : 365;
+  document.getElementById('i-unit').innerHTML = unitOptions(it ? it.unit : 'Liters');
+  document.getElementById('i-location').innerHTML = locOptions(it ? it.location : '');
+  document.getElementById('i-stock').value = it ? it.current_stock : 0;
+  document.getElementById('i-reorder').value = it ? it.reorder_level : 0;
+  document.getElementById('i-critical').value = it ? (it.critical_level || 0) : 0;
+  document.getElementById('i-hazardous').checked = it ? !!it.hazardous_flag : false;
+  document.getElementById('i-ep').checked = it ? !!it.explosive_precursor : false;
+  document.getElementById('f-msds-exp').value = todayPlus(1);
+  document.getElementById('f-ep-exp').value = todayPlus(1);
+  document.getElementById('ep-current').innerHTML = '';
+  document.getElementById('f-ep').value = '';
+  onHazardousToggle();
+  onEPToggle();
+
+  if (it) {
+    const msds = (it.documents || []).find(d => d.type === 'MSDS');
+    if (msds) document.getElementById('msds-current').innerHTML =
+      `<span class="text-success"><i class="bi bi-check-circle me-1"></i>current: ${esc(msds.name)} (expires ${esc(msds.expiry)})</span> — choose a file to replace.`;
+    const ep = (it.documents || []).find(d => d.type === 'EP_DOC');
+    if (ep) document.getElementById('ep-current').innerHTML =
+      `<span class="text-success"><i class="bi bi-check-circle me-1"></i>current: ${esc(ep.name)} (expires ${esc(ep.expiry)})</span> — choose a file to replace.`;
+    (it.documents || []).filter(d => d.type !== 'MSDS' && d.type !== 'EP_DOC').forEach(d => addDocRow(d));
+  }
+  // Wire location dropdown change for warning + bin dropdown
+  document.getElementById('i-location').onchange = () => { checkLocWarn(); populateBinDropdown(); };
+  populateBinDropdown(it?.bin_number || null);
+  itemModal.show();
+}
+
+function readFile(file) {
+  return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); });
+}
 async function saveItem() {
-  const r = await ATCA.api.post('/mod14/items', {
-    name: document.getElementById('i-name').value.trim(),
+  const err = document.getElementById('item-err');
+  const id = document.getElementById('i-id').value;
+  const existing = id ? DB.items.find(i => i.item_id === +id) : null;
+  const name = document.getElementById('i-name').value.trim();
+  const haz  = document.getElementById('i-hazardous').checked;
+  const ep   = document.getElementById('i-ep').checked;
+  const locVal = document.getElementById('i-location').value;
+  if (!name) { err.textContent = 'Item name is required.'; err.classList.remove('d-none'); return; }
+
+  // Location type enforcement
+  const locObj = DB.locations.find(l => locName(l) === locVal);
+  const lt = locObj ? locType(locObj) : 'NORMAL';
+  if (haz && locVal && lt !== 'HAZMAT') {
+    err.textContent = `Hazardous materials must be stored in a Hazardous Material Storage location. "${locVal}" is type "${LOC_TYPE_LABEL[lt]}".`;
+    err.classList.remove('d-none'); return;
+  }
+  if (ep && locVal && lt !== 'EXPLOSIVE') {
+    err.textContent = `Explosive Precursor items must be stored in an Explosive Precursor Storage location. "${locVal}" is type "${LOC_TYPE_LABEL[lt]}".`;
+    err.classList.remove('d-none'); return;
+  }
+
+  // Build document list (start from existing on edit)
+  let documents = existing ? [...(existing.documents || [])] : [];
+
+  // MSDS
+  const msdsFile = document.getElementById('f-msds').files[0];
+  const msdsExp  = document.getElementById('f-msds-exp').value || todayPlus(1);
+  if (msdsFile) {
+    documents = documents.filter(d => d.type !== 'MSDS');
+    documents.push({ id: 'd' + Date.now(), type: 'MSDS', name: msdsFile.name, expiry: msdsExp, dataUrl: await readFile(msdsFile) });
+  }
+  const hasMsds = documents.some(d => d.type === 'MSDS');
+  if (haz && !hasMsds) { err.textContent = 'Hazardous materials require an MSDS/SDS upload.'; err.classList.remove('d-none'); return; }
+
+  // EP Documentation
+  const epFile = document.getElementById('f-ep').files[0];
+  const epExp  = document.getElementById('f-ep-exp').value || todayPlus(1);
+  if (epFile) {
+    documents = documents.filter(d => d.type !== 'EP_DOC');
+    documents.push({ id: 'd' + Date.now() + 'ep', type: 'EP_DOC', name: epFile.name, expiry: epExp, dataUrl: await readFile(epFile) });
+  }
+  const hasEpDoc = documents.some(d => d.type === 'EP_DOC');
+  if (ep && !hasEpDoc) { err.textContent = 'Explosive Precursor items require an EP documentation upload.'; err.classList.remove('d-none'); return; }
+
+  // Additional document rows
+  for (const row of document.querySelectorAll('#doc-rows .doc-row')) {
+    const type = row.querySelector('.d-type').value;
+    const exp  = row.querySelector('.d-exp').value || todayPlus(1);
+    const file = row.querySelector('.d-file').files[0];
+    const exId = row.dataset.existing;
+    if (file) {
+      if (exId) documents = documents.filter(d => d.id !== exId);
+      documents.push({ id: 'd' + Date.now() + Math.random().toString(36).slice(2,6), type, name: file.name, expiry: exp, dataUrl: await readFile(file) });
+    } else if (exId) {
+      const d = documents.find(x => x.id === exId); if (d) { d.type = type; d.expiry = exp; }
+    }
+  }
+
+  const rec = {
+    item_id: existing ? existing.item_id : DB.nextId++,
+    item_code: existing ? existing.item_code : 'INV-' + new Date().getFullYear() + '-' + String(DB.nextId + 1000).slice(-4),
+    name,
     category: document.getElementById('i-category').value,
-    unit: document.getElementById('i-unit').value.trim(),
-    location: document.getElementById('i-location').value.trim() || null,
+    unit: document.getElementById('i-unit').value,
+    location: document.getElementById('i-location').value || null,
+    bin_number: document.getElementById('i-bin').value || null,
+    current_stock: parseFloat(document.getElementById('i-stock').value) || 0,
     reorder_level: parseFloat(document.getElementById('i-reorder').value) || 0,
-    storage_conditions: document.getElementById('i-storage').value.trim() || null,
-    sds_ref: document.getElementById('i-sds').value.trim() || null,
-    shelf_life_days: parseInt(document.getElementById('i-shelf').value) || null,
-    hazardous_flag: document.getElementById('i-hazardous').checked,
-  });
-  if (r) { itemModal.hide(); ATCA.toast(`Item ${r.item_code} registered`, 'success'); loadItems(); loadKpis(); }
+    critical_level: parseFloat(document.getElementById('i-critical').value) || 0,
+    hazardous_flag: haz, explosive_precursor: ep,
+    vendor_id:   document.getElementById('i-vendor').value ? +document.getElementById('i-vendor').value : null,
+    vendor_name: VENDORS.find(v => String(v.id) === document.getElementById('i-vendor').value)?.name || null,
+    lead_time_days:        parseInt(document.getElementById('i-lead-time').value) || 0,
+    default_lot_expiry_days: parseInt(document.getElementById('i-lot-expiry-days').value) || 365,
+    documents,
+  };
+  if (existing) Object.assign(existing, rec);
+  else DB.items.push(rec);
+  save();
+  itemModal.hide();
+  ATCA.toast(`Item ${rec.item_code} ${existing ? 'updated' : 'registered'}`, 'success');
+  refresh();
 }
 
+/* ---------------- Documents viewer ---------------- */
+function expClass(iso) { const d = daysUntil(iso); return d === null ? '' : d < 0 ? 'exp-over' : d <= 30 ? 'exp-soon' : 'exp-ok'; }
+function expLabel(iso) { const d = daysUntil(iso); return d === null ? '—' : d < 0 ? `${esc(iso)} (expired)` : `${esc(iso)} (${d}d)`; }
+function openDocs(id) {
+  const it = DB.items.find(i => i.item_id === id);
+  document.getElementById('docs-modal-title').textContent = `Documents — ${it.item_code} · ${it.name}`;
+  const docs = it.documents || [];
+  document.getElementById('docs-empty').classList.toggle('d-none', docs.length > 0);
+  document.getElementById('docs-tbody').innerHTML = docs.map((d, idx) => `
+    <tr>
+      <td><span class="badge bg-${d.type==='MSDS'?'danger':'secondary'} doc-pill">${DOC_LABEL[d.type]||d.type}</span></td>
+      <td>${esc(d.name)}</td>
+      <td class="${expClass(d.expiry)}">${expLabel(d.expiry)}</td>
+      <td class="text-end"><button class="btn btn-outline-primary btn-sm" onclick="openDoc(${id},${idx})"><i class="bi bi-box-arrow-up-right me-1"></i>Open</button></td>
+    </tr>`).join('');
+  docsModal.show();
+}
+function openDoc(itemId, idx) {
+  const d = DB.items.find(i => i.item_id === itemId).documents[idx];
+  if (!d || !d.dataUrl) { ATCA.toast('File not available.', 'warning'); return; }
+  fetch(d.dataUrl).then(r => r.blob()).then(b => window.open(URL.createObjectURL(b), '_blank'))
+    .catch(() => ATCA.toast('Could not open file.', 'error'));
+}
+
+/* ---------------- Approvals queue (shared across modules) ---------------- */
+const APR_KEY = 'atca_pending_approvals';
+function loadApprovals() {
+  try { return JSON.parse(localStorage.getItem(APR_KEY) || '[]'); } catch { return []; }
+}
+function saveApprovals(list) { localStorage.setItem(APR_KEY, JSON.stringify(list)); }
+function pushApproval(rec) {
+  const list = loadApprovals();
+  list.push(rec);
+  saveApprovals(list);
+}
+
+/* ---------------- Personnel (from demo/backend) ---------------- */
+let PERSONNEL = [];
+async function loadPersonnel() {
+  const data = await ATCA.api.get('/mod04/personnel');
+  PERSONNEL = (data?.items || []).map(p => ({ id: p.personnel_id, name: p.full_name }));
+}
+function personnelOptions(sel) {
+  return ['<option value="">— Select person —</option>']
+    .concat(PERSONNEL.map(p => `<option value="${p.id}" ${String(p.id)===String(sel)?'selected':''}>${esc(p.name)}</option>`)).join('');
+}
+
+/* ---------------- Lot tracking (from approved receipts) ---------------- */
+function getItemLots(itemId) {
+  const seen = new Set();
+  return loadApprovals()
+    .filter(a => a.item_id === itemId && a.movement_type === 'RECEIPT' && a.status === 'APPROVED' && a.lot_number)
+    .filter(a => { if (seen.has(a.lot_number)) return false; seen.add(a.lot_number); return true; })
+    .map(a => ({ lot: a.lot_number, expiry: a.lot_expiry || null, qty: a.qty, received: a.requested_at }));
+}
+function lotOptions(itemId, placeholder, availableOnly = false) {
+  let lots = getItemLots(itemId);
+  if (availableOnly) lots = lots.filter(l => getLotInspectionStatus(itemId, l.lot) === 'AVAILABLE');
+  // FEFO sort: soonest expiry first, no-expiry lots last
+  lots = lots.sort((a, b) => {
+    if (!a.expiry && !b.expiry) return 0;
+    if (!a.expiry) return 1; if (!b.expiry) return -1;
+    return new Date(a.expiry) - new Date(b.expiry);
+  });
+  return [`<option value="">${placeholder}</option>`]
+    .concat(lots.map((l, i) => {
+      const fefo = (i === 0 && l.expiry) ? ' · ⚑ USE FIRST (FEFO)' : '';
+      return `<option value="${esc(l.lot)}">${esc(l.lot)}${l.expiry ? ` (exp: ${l.expiry}${fefo})` : ''}</option>`;
+    })).join('');
+}
+
+/* ---------------- Movement modal helpers ---------------- */
+function onMovementItemChange() {
+  const id = +document.getElementById('m-item-id').value;
+  const it = DB.items.find(i => i.item_id === id);
+  document.getElementById('m-unit-label').textContent = it ? it.unit : 'unit';
+  document.getElementById('m-from-loc').value = it ? (it.location || '—') : '';
+  // refresh lot dropdowns
+  const type = document.getElementById('m-type').value;
+  if (type === 'ISSUE')    document.getElementById('m-issued-lot').innerHTML   = lotOptions(id, '— Select lot (FEFO) —', true);
+  if (type === 'TRANSFER') document.getElementById('m-transfer-lot').innerHTML = lotOptions(id, '— All stock —');
+  if (type === 'DISPOSAL') document.getElementById('m-disposal-lot').innerHTML = lotOptions(id, '— Select lot —');
+  // MSDS expiry warning for hazardous items being issued
+  const msdsBanner = document.getElementById('m-msds-warn');
+  if (msdsBanner && type === 'ISSUE') {
+    if (it?.hazardous_flag) {
+      const msds = (it.documents || []).find(d => d.type === 'MSDS');
+      if (!msds) {
+        msdsBanner.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i><strong>No MSDS/SDS on file</strong> for this hazardous item. Upload before issuing.';
+        msdsBanner.classList.remove('d-none');
+      } else if (msds.expiry && daysUntil(msds.expiry) < 0) {
+        msdsBanner.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i><strong>MSDS/SDS expired ${Math.abs(daysUntil(msds.expiry))}d ago</strong> (${msds.expiry}). Review and update before issuing this hazardous material.`;
+        msdsBanner.classList.remove('d-none');
+      } else { msdsBanner.classList.add('d-none'); }
+    } else { msdsBanner.classList.add('d-none'); }
+  } else if (msdsBanner) { msdsBanner.classList.add('d-none'); }
+  // pre-fill lot expiry from item default when in RECEIPT mode
+  if (type === 'RECEIPT') {
+    const days = it ? (it.default_lot_expiry_days || 365) : 365;
+    const d = new Date(); d.setDate(d.getDate() + days);
+    document.getElementById('m-lot-expiry').value = d.toISOString().slice(0, 10);
+  }
+}
+function onMovementTypeChange() {
+  document.querySelectorAll('.movement-fields').forEach(el => el.classList.add('d-none'));
+  const type = document.getElementById('m-type').value;
+  const sectionMap = { RECEIPT:'mf-receipt', ISSUE:'mf-issue', TRANSFER:'mf-transfer', DISPOSAL:'mf-disposal', ADJUSTMENT:'mf-adjustment' };
+  const sec = sectionMap[type]; if (sec) document.getElementById(sec).classList.remove('d-none');
+  // refresh dynamic fields on section show
+  const id = +document.getElementById('m-item-id').value;
+  if (type === 'ISSUE')    document.getElementById('m-issued-lot').innerHTML   = lotOptions(id, '— Select lot (FEFO) —', true);
+  if (type === 'TRANSFER') document.getElementById('m-transfer-lot').innerHTML = lotOptions(id, '— All stock —');
+  if (type === 'DISPOSAL') document.getElementById('m-disposal-lot').innerHTML = lotOptions(id, '— Select lot —');
+  // MSDS warning
+  const msdsBanner2 = document.getElementById('m-msds-warn');
+  if (msdsBanner2 && type === 'ISSUE' && id) {
+    const it2 = DB.items.find(i => i.item_id === id);
+    if (it2?.hazardous_flag) {
+      const msds2 = (it2.documents || []).find(d => d.type === 'MSDS');
+      if (!msds2) {
+        msdsBanner2.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i><strong>No MSDS/SDS on file</strong> for this hazardous item. Upload before issuing.';
+        msdsBanner2.classList.remove('d-none');
+      } else if (msds2.expiry && daysUntil(msds2.expiry) < 0) {
+        msdsBanner2.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-1"></i><strong>MSDS/SDS expired ${Math.abs(daysUntil(msds2.expiry))}d ago</strong> (${msds2.expiry}). Review and update before issuing.`;
+        msdsBanner2.classList.remove('d-none');
+      } else { msdsBanner2.classList.add('d-none'); }
+    } else { msdsBanner2.classList.add('d-none'); }
+  } else if (msdsBanner2) { msdsBanner2.classList.add('d-none'); }
+  if (type === 'RECEIPT') {
+    const it = DB.items.find(i => i.item_id === id);
+    const days = it ? (it.default_lot_expiry_days || 365) : 365;
+    const d = new Date(); d.setDate(d.getDate() + days);
+    document.getElementById('m-lot-expiry').value = d.toISOString().slice(0, 10);
+  }
+}
+function onDisposalMethodChange() {
+  const v = document.getElementById('m-disposal-method').value;
+  document.getElementById('m-disposal-ref-wrap').classList.toggle('d-none', v !== 'VENDOR');
+}
+function onScrapMethodChange() {
+  const v = document.getElementById('scrap-method').value;
+  document.getElementById('scrap-ref-wrap').classList.toggle('d-none', v !== 'VENDOR');
+}
+
+/* ---------------- Movements ---------------- */
+function itemSelectOptions() {
+  return DB.items.map(i => `<option value="${i.item_id}">${esc(i.item_code)} — ${esc(i.name)}</option>`).join('');
+}
+function loadMovements() {
+  const TYPE_COLOR = { RECEIPT:'success', ISSUE:'primary', TRANSFER:'info', DISPOSAL:'danger', ADJUSTMENT:'warning' };
+  const STATUS_COLOR = { PENDING:'warning text-dark', APPROVED:'success', REJECTED:'danger' };
+  const aprs = loadApprovals().filter(a => a.module === 'MOD-14');
+  const tbody = document.getElementById('movements-tbody');
+  if (!aprs.length) { tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No movements yet.</td></tr>'; return; }
+  tbody.innerHTML = [...aprs].reverse().map(a => `<tr>
+    <td><strong>${esc(a.item_code)}</strong><br><small class="text-muted">${esc(a.item_name)}</small></td>
+    <td><span class="badge bg-${TYPE_COLOR[a.movement_type]||'secondary'}">${esc(a.movement_type)}</span></td>
+    <td>${a.qty} ${esc(a.unit)}</td>
+    <td>${esc(a.lot_number||a.do_number||'—')}</td>
+    <td>${esc(a.requested_by)}</td>
+    <td>${new Date(a.requested_at).toLocaleDateString('en-SG')}</td>
+    <td>${esc(a.notes||'—')}</td>
+    <td><span class="badge bg-${STATUS_COLOR[a.status]||'secondary'}">${esc(a.status)}</span></td>
+  </tr>`).join('');
+}
+function openMovementModal(presetItemId) {
+  const sel = document.getElementById('m-item-id');
+  sel.innerHTML = itemSelectOptions();
+  if (presetItemId) sel.value = presetItemId;
+  document.getElementById('m-issued-person').innerHTML = personnelOptions('');
+  document.getElementById('m-to-loc').innerHTML = ['<option value="">— Select —</option>']
+    .concat(DB.locations.map(l => `<option value="${esc(locName(l))}">${esc(locName(l))} [${locType(l)}]</option>`)).join('');
+  document.getElementById('m-qty').value = '';
+  document.getElementById('m-notes').value = '';
+  document.getElementById('m-err').classList.add('d-none');
+  // reset type to RECEIPT
+  document.getElementById('m-type').value = 'RECEIPT';
+  onMovementTypeChange();
+  onMovementItemChange();
+  movementModal.show();
+}
 async function saveMovement() {
-  const r = await ATCA.api.post('/mod14/movements', {
-    item_id: parseInt(document.getElementById('m-item-id').value),
-    movement_type: document.getElementById('m-type').value,
-    qty: parseFloat(document.getElementById('m-qty').value),
-    lot_number: document.getElementById('m-lot').value.trim() || null,
-    notes: document.getElementById('m-notes').value.trim() || null,
+  const err = document.getElementById('m-err');
+  err.classList.add('d-none');
+  const id   = +document.getElementById('m-item-id').value;
+  const type = document.getElementById('m-type').value;
+  const qty  = parseFloat(document.getElementById('m-qty').value);
+  const it   = DB.items.find(i => i.item_id === id);
+  if (!it)        { err.textContent = 'Select an item.';     err.classList.remove('d-none'); return; }
+  if (isNaN(qty) || qty <= 0) { err.textContent = 'Enter a valid quantity.'; err.classList.remove('d-none'); return; }
+
+  const base = {
+    approval_id: 'APR-' + Date.now(),
+    module: 'MOD-14',
+    movement_type: type,
+    item_id: id,
+    item_code: it.item_code,
+    item_name: it.name,
+    qty, unit: it.unit,
+    notes: document.getElementById('m-notes').value.trim(),
+    status: 'PENDING',
+    requested_by: ATCA.currentUser?.full_name || 'Unknown',
+    requested_at: new Date().toISOString(),
+    approved_by: null, approved_at: null,
+  };
+
+  if (type === 'RECEIPT') {
+    const lot = document.getElementById('m-lot').value.trim();
+    const doNum = document.getElementById('m-do').value.trim();
+    if (!lot)   { err.textContent = 'Lot number is required for receipts.';  err.classList.remove('d-none'); return; }
+    if (!doNum) { err.textContent = 'DO number is required for receipts.';   err.classList.remove('d-none'); return; }
+    const cocFile   = document.getElementById('m-coc').files[0];
+    const lotExpiry = document.getElementById('m-lot-expiry').value || null;
+    const certNumber = document.getElementById('m-cert-number').value.trim() || null;
+    const certExpiry = document.getElementById('m-cert-expiry').value || null;
+    Object.assign(base, { lot_number: lot, do_number: doNum,
+      lot_expiry: lotExpiry,
+      cert_number: certNumber, cert_expiry: certExpiry,
+      receipt_location: it.location || null,
+      coc_name: cocFile ? cocFile.name : null,
+      coc_data: cocFile ? await readFile(cocFile) : null });
+  } else if (type === 'ISSUE') {
+    const issueTo = document.getElementById('m-issue-to').value.trim();
+    const personId = document.getElementById('m-issued-person').value;
+    const person = PERSONNEL.find(p => String(p.id) === String(personId));
+    if (!issueTo) { err.textContent = 'Issue-to destination is required.';  err.classList.remove('d-none'); return; }
+    if (!personId){ err.textContent = 'Issued person is required.';         err.classList.remove('d-none'); return; }
+    Object.assign(base, { issue_to: issueTo, issued_person_id: personId,
+      issued_person_name: person?.name || '',
+      issued_lot: document.getElementById('m-issued-lot').value });
+  } else if (type === 'TRANSFER') {
+    const toLoc = document.getElementById('m-to-loc').value;
+    if (!toLoc) { err.textContent = 'Transfer-to location is required.'; err.classList.remove('d-none'); return; }
+    Object.assign(base, { from_location: it.location || '—', to_location: toLoc,
+      transfer_lot: document.getElementById('m-transfer-lot').value });
+  } else if (type === 'DISPOSAL') {
+    const disposalLot = document.getElementById('m-disposal-lot').value;
+    const method = document.getElementById('m-disposal-method').value;
+    const ref = document.getElementById('m-disposal-ref').value.trim();
+    if (!disposalLot) { err.textContent = 'Select which lot to scrap.'; err.classList.remove('d-none'); return; }
+    if (method === 'VENDOR' && !ref) { err.textContent = 'PO / Invoice reference is required for vendor disposal.'; err.classList.remove('d-none'); return; }
+    Object.assign(base, { lot_number: disposalLot, disposal_method: method, disposal_ref: ref || null });
+  } else if (type === 'ADJUSTMENT') {
+    Object.assign(base, { adjustment_reason: document.getElementById('m-adj-reason').value });
+  }
+
+  pushApproval(base);
+  movementModal.hide();
+  ATCA.toast('Movement submitted for approval. Pending authorisation.', 'success');
+  loadMovements();
+}
+function applyStock(id, type, qty, toLoc) {
+  const it = DB.items.find(i => i.item_id === id); if (!it) return;
+  if (type === 'ADJUSTMENT') { it.current_stock = qty; }
+  else if (type === 'ISSUE' || type === 'DISPOSAL') { it.current_stock = Math.max(0, (+it.current_stock||0) - qty); }
+  else if (type === 'TRANSFER') { if (toLoc) it.location = toLoc; }
+  else { it.current_stock = (+it.current_stock||0) + qty; } // RECEIPT
+  save();
+}
+/* ---------------- boot ---------------- */
+/* ---------------- Incoming Inspection ---------------- */
+function openInspectionModal(itemId, lot) {
+  _inspItemId = itemId;
+  _inspLot    = lot;
+  const it = DB.items.find(i => i.item_id === itemId);
+  document.getElementById('insp-item-info').innerHTML =
+    `<strong>${it ? esc(it.item_code) + ' — ' + esc(it.name) : itemId}</strong> &nbsp;·&nbsp; Lot: <strong>${esc(lot)}</strong>`;
+  document.getElementById('insp-result').value = '';
+  document.getElementById('insp-ncr').value    = '';
+  document.getElementById('insp-notes').value  = '';
+  document.getElementById('insp-ncr-wrap').classList.add('d-none');
+  incomingInspModal.show();
+}
+function onInspResultChange() {
+  const v = document.getElementById('insp-result').value;
+  document.getElementById('insp-ncr-wrap').classList.toggle('d-none', v !== 'FAIL');
+}
+function saveInspection() {
+  const result = document.getElementById('insp-result').value;
+  if (!result) { alert('Select PASS or FAIL.'); return; }
+  const ncr = document.getElementById('insp-ncr').value.trim();
+  if (result === 'FAIL' && !ncr) { alert('NCR reference is required for a FAIL.'); return; }
+  const it = DB.items.find(i => i.item_id === _inspItemId);
+  const aprs = loadApprovals();
+  aprs.push({
+    approval_id: 'APR-INSP-' + Date.now(),
+    module: 'MOD-14',
+    movement_type: 'INCOMING_INSPECTION',
+    item_id: _inspItemId,
+    item_code: it?.item_code || '',
+    item_name: it?.name || '',
+    lot_number: _inspLot,
+    inspection_result: result,
+    ncr_ref: ncr || null,
+    inspection_notes: document.getElementById('insp-notes').value.trim(),
+    status: 'APPROVED',
+    requested_by: ATCA.currentUser?.full_name || 'Inspector',
+    requested_at: new Date().toISOString(),
+    approved_by: ATCA.currentUser?.full_name || 'Inspector',
+    approved_at: new Date().toISOString(),
   });
-  if (r) { movementModal.hide(); ATCA.toast('Movement recorded', 'success'); loadItems(); loadKpis(); }
+  saveApprovals(aprs);
+  incomingInspModal.hide();
+  refresh();
+}
+function renderIncomingInsp() {
+  const aprs = loadApprovals();
+  // collect all receipt lots
+  const receiptLots = aprs.filter(a => a.movement_type === 'RECEIPT' && a.status === 'APPROVED' && a.lot_number);
+  const tbody = document.getElementById('insp-tbody');
+  if (!receiptLots.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No received lots yet.</td></tr>';
+    document.getElementById('insp-badge').classList.add('d-none');
+    return;
+  }
+  let pendingCount = 0;
+  tbody.innerHTML = receiptLots.map(r => {
+    const status = getLotInspectionStatus(r.item_id, r.lot_number);
+    if (status === 'QUARANTINE') pendingCount++;
+    const certHtml = r.cert_number
+      ? `<span class="text-success fw-semibold">${esc(r.cert_number)}</span>${r.cert_expiry ? `<br><small class="text-muted">Exp: ${r.cert_expiry}</small>` : ''}`
+      : '<span class="text-muted fst-italic">—</span>';
+    const actionHtml = (status === 'QUARANTINE')
+      ? `<button class="btn btn-warning btn-sm py-0 px-2" onclick="openInspectionModal(${r.item_id}, '${esc(r.lot_number)}')"><i class="bi bi-clipboard2-check me-1"></i>Inspect</button>`
+      : (status === 'REJECTED')
+        ? `<button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="openInspectionModal(${r.item_id}, '${esc(r.lot_number)}')">Re-inspect</button>`
+        : '<span class="text-success small">✓ Cleared</span>';
+    return `<tr class="${status === 'QUARANTINE' ? 'table-warning' : status === 'REJECTED' ? 'table-danger' : ''}">
+      <td><strong>${esc(r.item_code)}</strong><br><small>${esc(r.item_name)}</small></td>
+      <td>${esc(r.lot_number)}</td>
+      <td>${r.qty} ${esc(r.unit)}</td>
+      <td>${r.lot_expiry || '—'}</td>
+      <td>${certHtml}</td>
+      <td>${new Date(r.requested_at).toLocaleDateString('en-SG')}</td>
+      <td>${inspStatusBadge(status)}</td>
+      <td>${actionHtml}</td>
+    </tr>`;
+  }).join('');
+  const badge = document.getElementById('insp-badge');
+  if (pendingCount > 0) { badge.textContent = pendingCount; badge.classList.remove('d-none'); }
+  else { badge.classList.add('d-none'); }
 }
 
-async function quickReceipt(itemId) {
-  const qty = prompt('Enter receipt quantity:');
-  if (!qty || isNaN(+qty)) return;
-  const r = await ATCA.api.post('/mod14/movements', { item_id: itemId, movement_type: 'RECEIPT', qty: +qty });
-  if (r) { ATCA.toast('Stock receipt recorded', 'success'); loadItems(); loadKpis(); }
+function refresh() { renderKpis(); renderItems(); renderLocations(); renderUnits(); renderIncomingInsp(); }
+async function init() {
+  await ATCA.initPage();
+  await Promise.all([seed(), loadPersonnel(), loadVendors()]);
+  refresh();
+  ATCA.tooltips.init();
+  document.getElementById('filter-category').addEventListener('change', renderItems);
+  document.querySelectorAll('#items-thead .sort-col').forEach(th =>
+    th.addEventListener('click', () => sortBy(th.dataset.col)));
+  document.querySelector('[href="#tab-movements"]').addEventListener('shown.bs.tab', loadMovements);
+  document.querySelector('[href="#tab-lots"]').addEventListener('shown.bs.tab', renderLots);
+  document.querySelector('[href="#tab-inspection"]').addEventListener('shown.bs.tab', renderIncomingInsp);
 }
-
-document.getElementById('filter-category').addEventListener('change', loadItems);
 init();
 </script>
 </body>

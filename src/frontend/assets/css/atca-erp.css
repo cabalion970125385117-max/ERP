@@ -91,12 +91,42 @@ body.atca-body {
 
 #sidebar .nav-section-label,
 #atca-sidebar .nav-section-label {
-  padding: 0.9rem 1rem 0.2rem;
+  padding: 0.6rem 1rem 0.25rem;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255,255,255,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+#sidebar .nav-section-label:hover,
+#atca-sidebar .nav-section-label:hover {
+  color: rgba(255,255,255,0.6);
+}
+#sidebar .nav-section-label .nav-chevron,
+#atca-sidebar .nav-section-label .nav-chevron {
+  font-size: 0.6rem;
+  opacity: 0.5;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+#sidebar .nav-section-label.nav-open .nav-chevron,
+#atca-sidebar .nav-section-label.nav-open .nav-chevron {
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+.nav-group {
+  overflow: hidden;
+  max-height: 400px;
+  transition: max-height 0.25s ease;
+}
+.nav-group.nav-collapsed {
+  max-height: 0;
 }
 
 #sidebar .nav-link,
@@ -104,11 +134,11 @@ body.atca-body {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.6rem 1rem;
+  padding: 0.45rem 1rem;
   color: rgba(255,255,255,0.75);
   text-decoration: none;
   border-radius: 0;
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   transition: background 0.15s, color 0.15s;
   border-left: 3px solid transparent;
 }
@@ -172,6 +202,7 @@ body.atca-body {
   position: sticky;
   top: 0;
   z-index: 500;
+  min-height: 62px;
 }
 
 #topbar .topbar-title {
@@ -206,6 +237,84 @@ body.atca-body {
   top: -4px; right: -6px;
   font-size: 0.6rem;
   padding: 2px 4px;
+}
+
+/* Alert dropdown panel */
+#alert-panel {
+  display: none;
+  position: fixed;
+  top: 56px;
+  right: 100px;
+  width: 340px;
+  max-height: 420px;
+  overflow-y: auto;
+  background: var(--atca-card-bg, #fff);
+  border: 1px solid var(--atca-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  z-index: 1080;
+}
+#alert-panel.open { display: block; }
+#alert-panel .alert-panel-header {
+  padding: 0.6rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--atca-muted);
+  border-bottom: 1px solid var(--atca-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#alert-panel .alert-panel-header a {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--atca-accent);
+  text-decoration: none;
+}
+#alert-panel .alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--atca-border);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+#alert-panel .alert-item:last-child { border-bottom: none; }
+#alert-panel .alert-item:hover { background: var(--atca-row-hover, rgba(0,0,0,0.04)); }
+#alert-panel .alert-item .alert-icon {
+  font-size: 0.85rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+#alert-panel .alert-icon.sev-CRITICAL { color: #dc3545; }
+#alert-panel .alert-icon.sev-WARNING  { color: #f0ad4e; }
+#alert-panel .alert-icon.sev-INFO     { color: #0d6efd; }
+#alert-panel .alert-item .alert-body { flex: 1; min-width: 0; }
+#alert-panel .alert-item .alert-module {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--atca-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+#alert-panel .alert-item .alert-msg {
+  font-size: 0.82rem;
+  color: var(--atca-text);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#alert-panel .alert-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--atca-muted);
+  font-size: 0.85rem;
 }
 
 #topbar .user-pill {
@@ -295,6 +404,10 @@ body.atca-body {
   border-radius: 6px;
   padding: 1rem;
   border-left: 4px solid var(--atca-blue);
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .kpi-card.rag-red    { border-left-color: var(--rag-red);   }

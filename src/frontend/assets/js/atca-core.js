@@ -280,6 +280,25 @@ ATCA.user = {
 
     if (nameEl)   nameEl.textContent = data.full_name || data.username;
     if (avatarEl) avatarEl.textContent = ATCA.user.initials(data.full_name || data.username);
+
+    // Pending approvals badge on bell (from shared queue)
+    try {
+      const aprs = JSON.parse(localStorage.getItem('atca_pending_approvals') || '[]');
+      const pending = aprs.filter(a => a.status === 'PENDING').length;
+      const countEl = document.getElementById('topbar-alert-count');
+      if (countEl && pending > 0) {
+        countEl.textContent = pending > 99 ? '99+' : pending;
+        countEl.style.display = '';
+      }
+    } catch {}
+
+    // Wire user pill → My Dashboard
+    const pill = document.getElementById('user-menu-btn');
+    if (pill && !pill.dataset.wired) {
+      pill.dataset.wired = '1';
+      pill.style.cursor = 'pointer';
+      pill.addEventListener('click', () => { window.location.href = '/user-dashboard.html'; });
+    }
   },
 
   initials(name) {
@@ -303,6 +322,8 @@ ATCA.user = {
    ALERT BADGE LOADER
    ============================================================ */
 ATCA.alerts = {
+  _panelOpen: false,
+
   async load() {
     const data = await ATCA.api.get('/alerts/summary');
     if (!data) return;
@@ -313,9 +334,64 @@ ATCA.alerts = {
     }
   },
 
+  _getPanel() {
+    let panel = document.getElementById('alert-panel');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'alert-panel';
+      document.body.appendChild(panel);
+    }
+    return panel;
+  },
+
+  async openPanel() {
+    const panel = this._getPanel();
+    panel.innerHTML = '<div class="alert-panel-header"><span>System Alerts</span><a href="/modules/mod15-dashboard/">View all</a></div><div class="alert-empty">Loading…</div>';
+    panel.classList.add('open');
+    this._panelOpen = true;
+
+    const data = await ATCA.api.get('/alerts/list');
+    const items = data?.items || [];
+    const sevIcon = { CRITICAL: 'exclamation-octagon-fill', WARNING: 'exclamation-triangle-fill', INFO: 'info-circle-fill' };
+    const body = items.length === 0
+      ? '<div class="alert-empty"><i class="bi bi-check-circle me-1"></i>No active alerts. All clear.</div>'
+      : items.map(a => `
+          <div class="alert-item" onclick="window.location='${ATCA.utils.escHtml(a.link)}'">
+            <i class="bi bi-${sevIcon[a.severity] || 'bell-fill'} alert-icon sev-${a.severity}"></i>
+            <div class="alert-body">
+              <div class="alert-module">${ATCA.utils.escHtml(a.module)} · ${ATCA.utils.escHtml(a.module_name)}</div>
+              <div class="alert-msg">${ATCA.utils.escHtml(a.message)}</div>
+            </div>
+          </div>`).join('');
+
+    panel.innerHTML = `<div class="alert-panel-header"><span>System Alerts</span><a href="/modules/mod15-dashboard/">View all</a></div>${body}`;
+  },
+
+  closePanel() {
+    const panel = document.getElementById('alert-panel');
+    if (panel) panel.classList.remove('open');
+    this._panelOpen = false;
+  },
+
+  wireButton() {
+    const btn = document.getElementById('topbar-alert-btn');
+    if (!btn || btn.dataset.wired) return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (this._panelOpen) { this.closePanel(); } else { this.openPanel(); }
+    });
+    document.addEventListener('click', (e) => {
+      if (this._panelOpen && !document.getElementById('alert-panel')?.contains(e.target)) {
+        this.closePanel();
+      }
+    });
+  },
+
   // Poll every 5 minutes
   startPolling() {
     this.load();
+    this.wireButton();
     setInterval(() => this.load(), 5 * 60 * 1000);
   },
 };
@@ -343,20 +419,25 @@ ATCA.clock = {
 ATCA.sidebar = {
   _html: `
 <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
-<div class="nav-section-label">Quality Management</div>
+<div class="nav-section-label" onclick="ATCA.sidebar._toggle(this)"><span>Quality Management</span><i class="bi bi-chevron-right nav-chevron"></i></div>
+<div class="nav-group nav-collapsed">
 <a href="/modules/mod01-qms-core/" class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
 <a href="/modules/mod02-document-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
 <a href="/modules/mod07-ncr-capa/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-triangle"></i></span>NCR &amp; CAPA</a>
 <a href="/modules/mod08-audit-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-clipboard-check"></i></span>Audit Management</a>
 <a href="/modules/mod20-customer-complaint/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-left-dots"></i></span>Complaint &amp; 8D</a>
-<div class="nav-section-label">NDT Process</div>
+</div>
+<div class="nav-section-label" onclick="ATCA.sidebar._toggle(this)"><span>NDT &amp; Laboratory</span><i class="bi bi-chevron-right nav-chevron"></i></div>
+<div class="nav-group nav-collapsed">
 <a href="/modules/mod03-fpi-process/" class="nav-link"><span class="nav-icon"><i class="bi bi-radioactive"></i></span>FPI Process</a>
 <a href="/modules/mod17-mpt-process/" class="nav-link"><span class="nav-icon"><i class="bi bi-magnet"></i></span>MPT Process</a>
 <a href="/modules/mod04-ndt-personnel/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Personnel / NAS410</a>
 <a href="/modules/mod05-equipment-calibration/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Equipment &amp; Calibration</a>
 <a href="/modules/mod06-bath-control/" class="nav-link"><span class="nav-icon"><i class="bi bi-droplet"></i></span>Chemical / Bath Control</a>
 <a href="/modules/mod19-extended-laboratory/" class="nav-link"><span class="nav-icon"><i class="bi bi-eyedropper"></i></span>Extended Laboratory</a>
-<div class="nav-section-label">Operations</div>
+</div>
+<div class="nav-section-label" onclick="ATCA.sidebar._toggle(this)"><span>Operations</span><i class="bi bi-chevron-right nav-chevron"></i></div>
+<div class="nav-group nav-collapsed">
 <a href="/modules/mod09-sales-customer-service/" class="nav-link"><span class="nav-icon"><i class="bi bi-building"></i></span>Sales &amp; Customer</a>
 <a href="/modules/mod10-production-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-gear-wide-connected"></i></span>Production</a>
 <a href="/modules/mod13-work-order/" class="nav-link"><span class="nav-icon"><i class="bi bi-file-earmark-ruled"></i></span>Work Order / Traveler</a>
@@ -364,19 +445,17 @@ ATCA.sidebar = {
 <a href="/modules/mod11-maintenance/" class="nav-link"><span class="nav-icon"><i class="bi bi-wrench-adjustable"></i></span>Maintenance</a>
 <a href="/modules/mod12-purchasing/" class="nav-link"><span class="nav-icon"><i class="bi bi-cart"></i></span>Purchasing &amp; AVL</a>
 <a href="/modules/mod14-inventory/" class="nav-link"><span class="nav-icon"><i class="bi bi-boxes"></i></span>Inventory</a>
-<div class="nav-section-label">Business &amp; HR</div>
+</div>
+<div class="nav-section-label" onclick="ATCA.sidebar._toggle(this)"><span>Business &amp; HR</span><i class="bi bi-chevron-right nav-chevron"></i></div>
+<div class="nav-group nav-collapsed">
 <a href="/modules/mod16-finance/" class="nav-link"><span class="nav-icon"><i class="bi bi-cash-coin"></i></span>Finance</a>
 <a href="/modules/mod18-hr-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-people"></i></span>HR Management</a>
 <a href="/modules/mod21-communications/" class="nav-link"><span class="nav-icon"><i class="bi bi-megaphone"></i></span>Communications</a>
 <a href="/modules/mod22-leave-attendance/" class="nav-link"><span class="nav-icon"><i class="bi bi-calendar-check"></i></span>Leave &amp; Attendance</a>
 <a href="/modules/mod23-payroll/" class="nav-link"><span class="nav-icon"><i class="bi bi-wallet2"></i></span>Payroll</a>
-<div class="nav-section-label">System</div>
-<a href="/modules/mod25-user-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-gear"></i></span>User Management</a>
-<a href="/modules/mod-changelog/" class="nav-link"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>Change Log</a>
-<a href="/modules/mod-bugreport/" class="nav-link"><span class="nav-icon"><i class="bi bi-bug"></i></span>Bug Report</a>
-<a href="/modules/mod-chat/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-dots"></i></span>Internal Chat</a>
-<a href="/modules/mod28-pcm/" class="nav-link"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>Capability Master</a>
-<a href="/modules/mod29-qualification/" class="nav-link"><span class="nav-icon"><i class="bi bi-patch-check"></i></span>Customer Qualification</a>
+</div>
+<div class="nav-section-label" onclick="ATCA.sidebar._toggle(this)"><span>Process Control</span><i class="bi bi-chevron-right nav-chevron"></i></div>
+<div class="nav-group nav-collapsed">
 <a href="/modules/mod30-pyrometry/" class="nav-link"><span class="nav-icon"><i class="bi bi-thermometer-half"></i></span>Pyrometry &amp; Heat-Treat</a>
 <a href="/modules/mod31-operator-competency/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-check"></i></span>Operator Competency</a>
 <a href="/modules/mod32-bay-scheduler/" class="nav-link"><span class="nav-icon"><i class="bi bi-layout-split"></i></span>Bay Scheduler</a>
@@ -384,11 +463,41 @@ ATCA.sidebar = {
 <a href="/modules/mod34-chemical-hazmat/" class="nav-link"><span class="nav-icon"><i class="bi bi-exclamation-octagon"></i></span>Chemical &amp; Hazmat</a>
 <a href="/modules/mod35-regulatory-certs/" class="nav-link"><span class="nav-icon"><i class="bi bi-shield-check"></i></span>Regulatory Certs</a>
 <a href="/modules/mod36-equipment-ppm/" class="nav-link"><span class="nav-icon"><i class="bi bi-gear-wide-connected"></i></span>Equipment PPM</a>
+</div>
+<div class="nav-section-label" onclick="ATCA.sidebar._toggle(this)"><span>Capability &amp; Analytics</span><i class="bi bi-chevron-right nav-chevron"></i></div>
+<div class="nav-group nav-collapsed">
+<a href="/modules/mod28-pcm/" class="nav-link"><span class="nav-icon"><i class="bi bi-grid-3x3-gap"></i></span>Capability Master</a>
+<a href="/modules/mod29-qualification/" class="nav-link"><span class="nav-icon"><i class="bi bi-patch-check"></i></span>Customer Qualification</a>
 <a href="/modules/mod15-dashboard/" class="nav-link"><span class="nav-icon"><i class="bi bi-speedometer2"></i></span>KPI Dashboard</a>
 <a href="/modules/mod27-value-flow/" class="nav-link"><span class="nav-icon"><i class="bi bi-diagram-2"></i></span>Value Flow</a>
+<a href="/user-dashboard.html" class="nav-link"><span class="nav-icon"><i class="bi bi-person-circle"></i></span>My Dashboard</a>
+</div>
+<div class="nav-section-label" onclick="ATCA.sidebar._toggle(this)"><span>System</span><i class="bi bi-chevron-right nav-chevron"></i></div>
+<div class="nav-group nav-collapsed">
+<a href="/modules/mod25-user-management/" class="nav-link"><span class="nav-icon"><i class="bi bi-person-gear"></i></span>User Management</a>
+<a href="/modules/mod37-file-repository/" class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>File Repository</a>
+<a href="/modules/mod-chat/" class="nav-link"><span class="nav-icon"><i class="bi bi-chat-dots"></i></span>Internal Chat</a>
 <a href="/modules/mod26-maintenance/" class="nav-link"><span class="nav-icon"><i class="bi bi-tools"></i></span>Maintenance Console</a>
-<a href="/user-guide.html" class="nav-link mt-2" style="border-top:1px solid var(--atca-border);padding-top:.5rem;"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>User Guide</a>
+<a href="/modules/mod-changelog/" class="nav-link"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>Change Log</a>
+<a href="/modules/mod-bugreport/" class="nav-link"><span class="nav-icon"><i class="bi bi-bug"></i></span>Bug Report</a>
+<a href="/user-guide.html" class="nav-link"><span class="nav-icon"><i class="bi bi-journal-bookmark"></i></span>User Guide</a>
+</div>
 <div class="sidebar-footer">ATCA-ERP v1.0 · AS9100D · NADCAP<br>LAN-Only · <span id="sidebar-datetime"></span></div>`,
+
+  _toggle(label) {
+    const group = label.nextElementSibling;
+    if (!group || !group.classList.contains('nav-group')) return;
+    const isOpen = !group.classList.contains('nav-collapsed');
+    // Collapse all sections
+    label.closest('nav').querySelectorAll('.nav-group').forEach(g => {
+      g.classList.add('nav-collapsed');
+      g.previousElementSibling?.classList.remove('nav-open');
+    });
+    // If it was open, leave all collapsed; if it was closed, open it
+    if (isOpen) return;
+    group.classList.remove('nav-collapsed');
+    label.classList.add('nav-open');
+  },
 
   init() {
     // Single source of truth: inject the canonical nav into whichever sidebar
@@ -430,6 +539,14 @@ ATCA.sidebar = {
       if (href && cur.startsWith(href) && href.length > bestLen) { best = a; bestLen = href.length; }
     });
     best?.classList.add('active');
+    // Auto-expand the section containing the active link; fall back to first section
+    const activeGroup = best?.closest('.nav-group');
+    const firstGroup = bar.querySelector('.nav-group');
+    const groupToOpen = activeGroup || firstGroup;
+    if (groupToOpen) {
+      groupToOpen.classList.remove('nav-collapsed');
+      groupToOpen.previousElementSibling?.classList.add('nav-open');
+    }
     // Wire mobile toggle
     document.getElementById('sidebar-toggle')
       ?.addEventListener('click', () => bar.classList.toggle('open'));
@@ -627,6 +744,102 @@ ATCA.tooltips = {
     });
   },
 };
+
+/* ============================================================
+   FILE STORE — cross-module file repository (localStorage)
+   Modules store files via ATCA.fileStore.put(meta, dataUrl)
+   and retrieve them via ATCA.fileStore.get(fileId) /
+   ATCA.fileStore.open(fileId).
+   Storage key: 'atca_file_store'
+   ============================================================ */
+ATCA.fileStore = (function() {
+  const _KEY = 'atca_file_store';
+  const _SEQ = 'atca_file_store_seq';
+
+  function _load()  { return JSON.parse(localStorage.getItem(_KEY) || '[]'); }
+  function _save(f) { localStorage.setItem(_KEY, JSON.stringify(f)); }
+  function _nextId() {
+    const n = (parseInt(localStorage.getItem(_SEQ) || '0') + 1);
+    localStorage.setItem(_SEQ, String(n));
+    return 'FILE-' + String(n).padStart(4, '0');
+  }
+
+  return {
+    /**
+     * Store a file. Returns the new file_id.
+     * @param {Object} meta  { module, entity_type, entity_id, filename, mime_type, size_bytes, file_tag, uploaded_by }
+     * @param {string} dataUrl  base64 data URL
+     */
+    put(meta, dataUrl) {
+      const files = _load();
+      const rec = {
+        file_id:     _nextId(),
+        module:      meta.module      || 'SYSTEM',
+        entity_type: meta.entity_type || '',
+        entity_id:   meta.entity_id   || '',
+        filename:    meta.filename    || 'file',
+        mime_type:   meta.mime_type   || 'application/octet-stream',
+        size_bytes:  meta.size_bytes  || 0,
+        file_tag:    meta.file_tag    || 'DOCUMENT',
+        uploaded_by: meta.uploaded_by || (ATCA.currentUser ? ATCA.currentUser.displayName : 'System'),
+        uploaded_at: new Date().toISOString(),
+        data_url:    dataUrl || null,
+      };
+      files.push(rec);
+      _save(files);
+      return rec.file_id;
+    },
+
+    /** Retrieve a single file record by file_id. Returns null if not found. */
+    get(fileId) {
+      return _load().find(f => f.file_id === fileId) || null;
+    },
+
+    /**
+     * List files, optionally filtered.
+     * @param {Object} filter  { module?, entity_id?, file_tag? }
+     */
+    list(filter) {
+      let files = _load();
+      if (!filter) return files;
+      if (filter.module)    files = files.filter(f => f.module    === filter.module);
+      if (filter.entity_id) files = files.filter(f => f.entity_id === filter.entity_id);
+      if (filter.file_tag)  files = files.filter(f => f.file_tag  === filter.file_tag);
+      return files;
+    },
+
+    /** Delete a file record from the store. */
+    remove(fileId) { _save(_load().filter(f => f.file_id !== fileId)); },
+
+    /** Open a stored file in a new browser tab. */
+    open(fileId) {
+      const rec = this.get(fileId);
+      if (!rec || !rec.data_url) { ATCA.toast('File not available in repository.', 'warning'); return; }
+      try {
+        const [header, b64] = rec.data_url.split(',');
+        const mime = header.match(/:(.*?);/)[1];
+        const bin  = atob(b64);
+        const arr  = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+        const url = URL.createObjectURL(new Blob([arr], { type: mime }));
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      } catch(e) { ATCA.toast('Could not open file.', 'danger'); }
+    },
+
+    /** Return aggregate stats for KPI display. */
+    summary() {
+      const files = _load();
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      return {
+        total:       files.length,
+        total_bytes: files.reduce((s, f) => s + (f.size_bytes || 0), 0),
+        this_month:  files.filter(f => f.uploaded_at >= monthStart).length,
+        modules:     [...new Set(files.map(f => f.module))].length,
+      };
+    },
+  };
+})();
 
 /* ============================================================
    TOAST CONTAINER — injected into body

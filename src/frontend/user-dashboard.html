@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<!--
+  ATCA-ERP v1.0 — User Dashboard
+  Pending Approvals · Approval History · My Requests
+  ATC Aviation Pte Ltd | LAN-Only
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>My Dashboard — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <style>
+    .apr-card { border-left: 4px solid var(--atca-border); background: #fff; border-radius: 6px;
+      border: 1px solid var(--atca-border); border-left-width: 4px; padding: 1rem; margin-bottom: .75rem; }
+    .apr-card.pending  { border-left-color: #ffc107; }
+    .apr-card.approved { border-left-color: #198754; }
+    .apr-card.rejected { border-left-color: #dc3545; }
+    .apr-meta { font-size: .75rem; color: var(--atca-muted); }
+    .apr-title { font-weight: 600; font-size: .9rem; color: var(--atca-navy); }
+    .badge-type { font-size: .68rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .4rem .75rem; margin-top: .5rem; }
+    .detail-item label { display: block; font-size: .65rem; font-weight: 700; text-transform: uppercase; color: var(--atca-muted); margin-bottom: 1px; }
+    .detail-item span  { font-size: .8rem; color: var(--atca-text); }
+  </style>
+</head>
+<body>
+
+<nav id="atca-sidebar"></nav>
+
+<div class="atca-main">
+<header id="topbar">
+  <button class="btn btn-sm btn-outline-secondary d-md-none me-2" id="sidebar-toggle"><i class="bi bi-list"></i></button>
+  <div>
+    <p class="topbar-title mb-0"><i class="bi bi-person-circle me-1"></i>My Dashboard</p>
+    <p class="topbar-subtitle mb-0">Pending Approvals · Approval History · My Requests</p>
+  </div>
+  <div class="topbar-alerts">
+    <div class="alert-badge" id="topbar-alert-btn" tabindex="0" role="button" aria-label="System alerts">
+      <i class="bi bi-bell"></i>
+      <span class="badge bg-danger" id="topbar-alert-count" style="display:none;"></span>
+    </div>
+    <div class="user-pill" id="user-menu-btn" tabindex="0" role="button">
+      <div class="user-avatar" id="user-avatar-initials">??</div>
+      <span id="user-display-name">Loading…</span>
+      <i class="bi bi-chevron-down" style="font-size:0.6rem;"></i>
+    </div>
+  </div>
+</header>
+
+<main class="page-content">
+  <div class="atca-breadcrumb">
+    <a href="/"><i class="bi bi-house"></i> Home</a> /
+    <span>My Dashboard</span>
+  </div>
+
+  <!-- KPI row -->
+  <div class="row g-3 mb-4" id="dash-kpis">
+    <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">Pending My Approval</div><div class="kpi-value" id="kpi-pending">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-green"><div class="kpi-label">Approved by Me</div><div class="kpi-value" id="kpi-approved">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card rag-red"><div class="kpi-label">Rejected by Me</div><div class="kpi-value" id="kpi-rejected">—</div></div></div>
+    <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-label">My Requests (Total)</div><div class="kpi-value" id="kpi-myrequests">—</div></div></div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link active" href="#tab-pending"  data-bs-toggle="tab"><i class="bi bi-hourglass-split me-1"></i>Pending Approval <span class="badge bg-warning text-dark ms-1" id="tab-pending-badge"></span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-history" data-bs-toggle="tab"><i class="bi bi-clock-history me-1"></i>Approval History</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-myrequests" data-bs-toggle="tab"><i class="bi bi-send me-1"></i>My Requests</a></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ── Pending ── -->
+    <div class="tab-pane fade show active" id="tab-pending">
+      <div id="pending-list"><p class="text-muted">Loading…</p></div>
+    </div>
+
+    <!-- ── History ── -->
+    <div class="tab-pane fade" id="tab-history">
+      <div id="history-list"><p class="text-muted">Loading…</p></div>
+    </div>
+
+    <!-- ── My Requests ── -->
+    <div class="tab-pane fade" id="tab-myrequests">
+      <div id="myrequests-list"><p class="text-muted">Loading…</p></div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<!-- Reject Reason Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered"><div class="modal-content">
+    <div class="modal-header bg-danger text-white"><h6 class="modal-title"><i class="bi bi-x-circle me-1"></i>Confirm Rejection</h6>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <label class="form-label">Reason for rejection</label>
+      <textarea id="reject-reason" class="form-control form-control-sm" rows="3" placeholder="Provide reason…"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmReject()">Confirm Reject</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Session Timeout Modal -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-warning"><h6 class="modal-title"><i class="bi bi-clock-history"></i> Session Expiring</h6></div>
+      <div class="modal-body text-center py-3"><p class="mb-1">Your session expires in <strong id="timeout-countdown">5:00</strong></p></div>
+      <div class="modal-footer justify-content-center">
+        <button class="btn btn-atca-primary btn-sm" id="keep-session-btn">Stay Logged In</button>
+        <a href="/logout" class="btn btn-outline-secondary btn-sm">Log Out</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=8"></script>
+<script>
+'use strict';
+
+const APR_KEY   = 'atca_pending_approvals';
+const MOD14_KEY = 'atca_mod14_v1';
+const rejectModal = new bootstrap.Modal(document.getElementById('rejectModal'));
+const esc = s => ATCA.utils.escHtml(s ?? '');
+
+let _rejectId = null;
+
+/* ── Approval store helpers ── */
+function allApprovals() {
+  try { return JSON.parse(localStorage.getItem(APR_KEY) || '[]'); } catch { return []; }
+}
+function saveApprovals(list) { localStorage.setItem(APR_KEY, JSON.stringify(list)); }
+
+/* ── MOD-14 stock helper ── */
+function applyMod14Stock(apr) {
+  let db;
+  try { db = JSON.parse(localStorage.getItem(MOD14_KEY)); } catch { return; }
+  if (!db) return;
+  const it = db.items.find(i => i.item_id === apr.item_id);
+  if (!it) return;
+  const { movement_type: t, qty } = apr;
+  if (t === 'ADJUSTMENT')      it.current_stock = qty;
+  else if (t === 'ISSUE' || t === 'DISPOSAL') it.current_stock = Math.max(0, (+it.current_stock||0) - qty);
+  else if (t === 'TRANSFER') { if (apr.to_location) it.location = apr.to_location; }
+  else                          it.current_stock = (+it.current_stock||0) + qty;
+  try { localStorage.setItem(MOD14_KEY, JSON.stringify(db)); } catch {}
+}
+
+/* ── MOD-14 lot extension helper ── */
+function applyLotExtension(apr) {
+  const list = allApprovals();
+  list.filter(a => a.module === 'MOD-14' && a.movement_type === 'RECEIPT' &&
+                   a.item_id === apr.item_id && a.lot_number === apr.lot_number && a.status === 'APPROVED')
+      .forEach(a => { a.lot_expiry = apr.proposed_expiry; });
+  saveApprovals(list);
+}
+
+/* ── MOD-11 form approval helper ── */
+function applyFormApproval(apr, newStatus, rejectReason) {
+  const CL_KEY = 'atca_pm_checklists';
+  let cls; try { cls = JSON.parse(localStorage.getItem(CL_KEY) || '[]'); } catch { cls = []; }
+  const idx = cls.findIndex(c => c.checklist_id === apr.reference_id);
+  if (idx >= 0) {
+    cls[idx].status       = newStatus;
+    cls[idx].status_by    = ATCA.currentUser?.full_name || 'QA Manager';
+    cls[idx].status_at    = new Date().toISOString();
+    cls[idx].reject_reason = rejectReason || null;
+  }
+  localStorage.setItem(CL_KEY, JSON.stringify(cls));
+}
+
+/* ── Card renderer ── */
+const TYPE_COLOR = { RECEIPT:'success', ISSUE:'primary', TRANSFER:'info', DISPOSAL:'danger', ADJUSTMENT:'warning', LOT_EXTENSION:'secondary', FORM_APPROVAL:'info' };
+const TYPE_ICON  = { RECEIPT:'bi-box-arrow-in-down', ISSUE:'bi-box-arrow-up', TRANSFER:'bi-arrow-left-right', DISPOSAL:'bi-trash', ADJUSTMENT:'bi-sliders', LOT_EXTENSION:'bi-calendar-plus', FORM_APPROVAL:'bi-file-earmark-check' };
+const MOD_LABEL  = { 'MOD-14': 'Inventory', 'MOD-11': 'Maintenance' };
+
+function extraDetails(a) {
+  const rows = [];
+  if (a.movement_type === 'FORM_APPROVAL') {
+    if (a.form_version) rows.push(['Revision', 'v' + a.form_version]);
+    if (a.asset_name)   rows.push(['Scope', a.asset_name]);
+    if (!rows.length) return '';
+    return `<div class="detail-grid">${rows.map(([l,v]) =>
+      `<div class="detail-item"><label>${esc(l)}</label><span>${esc(v)}</span></div>`).join('')}</div>`;
+  }
+  if (a.movement_type === 'LOT_EXTENSION') {
+    if (a.lot_number)       rows.push(['Lot No.', a.lot_number]);
+    if (a.original_expiry)  rows.push(['Current Expiry', a.original_expiry]);
+    if (a.proposed_expiry)  rows.push(['Proposed Expiry', a.proposed_expiry]);
+    if (a.evidence_name)    rows.push(['Evidence', a.evidence_name]);
+    if (a.notes)            rows.push(['Notes', a.notes]);
+  } else {
+    if (a.lot_number)          rows.push(['Lot No.', a.lot_number]);
+    if (a.lot_expiry)          rows.push(['Lot Expiry', a.lot_expiry]);
+    if (a.do_number)           rows.push(['DO No.', a.do_number]);
+    if (a.coc_name)            rows.push(['COC', a.coc_name]);
+    if (a.issue_to)            rows.push(['Issue To', a.issue_to]);
+    if (a.issued_person_name)  rows.push(['Issued To', a.issued_person_name]);
+    if (a.issued_lot)          rows.push(['Issued Lot', a.issued_lot]);
+    if (a.from_location)       rows.push(['From', a.from_location]);
+    if (a.to_location)         rows.push(['Transfer To', a.to_location]);
+    if (a.transfer_lot)        rows.push(['Transfer Lot', a.transfer_lot]);
+    if (a.disposal_method)     rows.push(['Disposal', a.disposal_method.replace(/_/g,' ')]);
+    if (a.disposal_ref)        rows.push(['Disposal Ref', a.disposal_ref]);
+    if (a.adjustment_reason)   rows.push(['Reason', a.adjustment_reason.replace(/_/g,' ')]);
+    if (a.notes)               rows.push(['Notes', a.notes]);
+  }
+  if (!rows.length) return '';
+  return `<div class="detail-grid">${rows.map(([l,v]) =>
+    `<div class="detail-item"><label>${esc(l)}</label><span>${esc(v)}</span></div>`).join('')}</div>`;
+}
+
+function pendingCard(a) {
+  const tc = TYPE_COLOR[a.movement_type] || 'secondary';
+  const ic = TYPE_ICON[a.movement_type]  || 'bi-arrow-left-right';
+  return `<div class="apr-card pending" id="apr-${esc(a.approval_id)}">
+    <div class="d-flex align-items-start gap-2">
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+          <span class="badge-type badge bg-${tc}"><i class="bi ${ic} me-1"></i>${esc(a.movement_type)}</span>
+          <span class="badge bg-secondary badge-type">${esc(MOD_LABEL[a.module]||a.module)}</span>
+          <span class="apr-title">${esc(a.item_code)} — ${esc(a.item_name)}</span>
+        </div>
+        <div class="apr-meta mb-1">
+          ${a.qty != null ? `Qty: <strong>${a.qty} ${esc(a.unit)}</strong> &nbsp;·&nbsp;` : ''}
+          Requested by <strong>${esc(a.requested_by)}</strong> &nbsp;·&nbsp;
+          ${new Date(a.requested_at).toLocaleString('en-SG')}
+        </div>
+        ${extraDetails(a)}
+      </div>
+      <div class="d-flex gap-1 flex-shrink-0">
+        <button class="btn btn-success btn-sm" onclick="approveItem('${esc(a.approval_id)}')">
+          <i class="bi bi-check-lg me-1"></i>Approve
+        </button>
+        <button class="btn btn-outline-danger btn-sm" onclick="rejectItem('${esc(a.approval_id)}')">
+          <i class="bi bi-x-lg me-1"></i>Reject
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function historyCard(a) {
+  const isApproved = a.status === 'APPROVED';
+  const tc = TYPE_COLOR[a.movement_type] || 'secondary';
+  const ic = TYPE_ICON[a.movement_type]  || 'bi-arrow-left-right';
+  return `<div class="apr-card ${a.status.toLowerCase()}">
+    <div class="d-flex align-items-start gap-2">
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+          <span class="badge-type badge bg-${tc}"><i class="bi ${ic} me-1"></i>${esc(a.movement_type)}</span>
+          <span class="badge bg-secondary badge-type">${esc(MOD_LABEL[a.module]||a.module)}</span>
+          <span class="apr-title">${esc(a.item_code)} — ${esc(a.item_name)}</span>
+          <span class="badge bg-${isApproved?'success':'danger'} ms-auto">${esc(a.status)}</span>
+        </div>
+        <div class="apr-meta mb-1">
+          ${a.qty != null ? `Qty: <strong>${a.qty} ${esc(a.unit)}</strong> &nbsp;·&nbsp;` : ''}
+          Requested by <strong>${esc(a.requested_by)}</strong> &nbsp;·&nbsp;
+          ${new Date(a.requested_at).toLocaleString('en-SG')}
+          ${a.approved_by ? ` &nbsp;·&nbsp; ${isApproved?'Approved':'Rejected'} by <strong>${esc(a.approved_by)}</strong> · ${new Date(a.approved_at).toLocaleString('en-SG')}` : ''}
+          ${a.reject_reason ? ` <br><span class="text-danger">Reason: ${esc(a.reject_reason)}</span>` : ''}
+        </div>
+        ${extraDetails(a)}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── Actions ── */
+function approveItem(aprId) {
+  const list = allApprovals();
+  const a = list.find(x => x.approval_id === aprId);
+  if (!a) return;
+  a.status = 'APPROVED';
+  a.approved_by = ATCA.currentUser?.full_name || 'Admin';
+  a.approved_at = new Date().toISOString();
+  saveApprovals(list);
+  if (a.module === 'MOD-11' && a.movement_type === 'FORM_APPROVAL') {
+    applyFormApproval(a, 'APPROVED');
+    ATCA.toast(`${a.item_code} "${a.item_name}" approved and activated.`, 'success');
+  } else if (a.module === 'MOD-14') {
+    if (a.movement_type === 'LOT_EXTENSION') {
+      applyLotExtension(a);
+      ATCA.toast(`Lot ${a.lot_number} expiry extended to ${a.proposed_expiry}.`, 'success');
+    } else {
+      applyMod14Stock(a);
+      ATCA.toast(`Movement ${a.movement_type} for ${a.item_code} approved. Stock updated.`, 'success');
+    }
+  }
+  renderAll();
+}
+function rejectItem(aprId) {
+  _rejectId = aprId;
+  document.getElementById('reject-reason').value = '';
+  rejectModal.show();
+}
+function confirmReject() {
+  const reason = document.getElementById('reject-reason').value.trim();
+  const list = allApprovals();
+  const a = list.find(x => x.approval_id === _rejectId);
+  if (!a) return;
+  a.status = 'REJECTED';
+  a.approved_by = ATCA.currentUser?.full_name || 'Admin';
+  a.approved_at = new Date().toISOString();
+  a.reject_reason = reason;
+  saveApprovals(list);
+  if (a.module === 'MOD-11' && a.movement_type === 'FORM_APPROVAL') {
+    applyFormApproval(a, 'REJECTED', reason);
+    ATCA.toast(`${a.item_code} rejected — returned to DRAFT for revision.`, 'warning');
+  } else {
+    ATCA.toast('Request rejected.', 'warning');
+  }
+  rejectModal.hide();
+  renderAll();
+}
+
+/* ── Render ── */
+function renderAll() {
+  const me = ATCA.currentUser?.full_name;
+  const all = allApprovals();
+
+  const pending   = all.filter(a => a.status === 'PENDING');
+  const myApproved= all.filter(a => a.status === 'APPROVED' && a.approved_by === me);
+  const myRejected= all.filter(a => a.status === 'REJECTED' && a.approved_by === me);
+  const myRequests= all.filter(a => a.requested_by === me);
+
+  document.getElementById('kpi-pending').textContent    = pending.length;
+  document.getElementById('kpi-approved').textContent   = myApproved.length;
+  document.getElementById('kpi-rejected').textContent   = myRejected.length;
+  document.getElementById('kpi-myrequests').textContent = myRequests.length;
+
+  const badge = document.getElementById('tab-pending-badge');
+  badge.textContent = pending.length || '';
+  badge.style.display = pending.length ? '' : 'none';
+
+  // Pending tab
+  const pEl = document.getElementById('pending-list');
+  if (!pending.length) {
+    pEl.innerHTML = `<div class="text-center text-muted py-5">
+      <i class="bi bi-check-circle" style="font-size:2rem;"></i>
+      <p class="mt-2 mb-0">No pending approvals. All clear.</p></div>`;
+  } else {
+    pEl.innerHTML = [...pending].reverse().map(pendingCard).join('');
+  }
+
+  // History tab (approved + rejected, newest first)
+  const done = all.filter(a => a.status !== 'PENDING');
+  const hEl  = document.getElementById('history-list');
+  if (!done.length) {
+    hEl.innerHTML = '<p class="text-muted py-3">No approval history yet.</p>';
+  } else {
+    hEl.innerHTML = [...done].sort((a,b) => new Date(b.approved_at)-new Date(a.approved_at)).map(historyCard).join('');
+  }
+
+  // My Requests tab
+  const rEl = document.getElementById('myrequests-list');
+  if (!myRequests.length) {
+    rEl.innerHTML = '<p class="text-muted py-3">You have not submitted any requests yet.</p>';
+  } else {
+    const STATUS_COLOR = { PENDING:'warning text-dark', APPROVED:'success', REJECTED:'danger' };
+    rEl.innerHTML = `<table class="table table-sm table-hover align-middle">
+      <thead class="table-dark"><tr><th>Module</th><th>Type</th><th>Item</th><th>Qty</th><th>Submitted</th><th>Status</th></tr></thead>
+      <tbody>${[...myRequests].reverse().map(a => `<tr>
+        <td>${esc(MOD_LABEL[a.module]||a.module)}</td>
+        <td><span class="badge bg-${TYPE_COLOR[a.movement_type]||'secondary'}">${esc(a.movement_type)}</span></td>
+        <td><strong>${esc(a.item_code)}</strong> ${esc(a.item_name)}</td>
+        <td>${a.qty != null ? `${a.qty} ${esc(a.unit)}` : '—'}</td>
+        <td>${new Date(a.requested_at).toLocaleString('en-SG')}</td>
+        <td><span class="badge bg-${STATUS_COLOR[a.status]||'secondary'}">${esc(a.status)}</span></td>
+      </tr>`).join('')}</tbody></table>`;
+  }
+}
+
+async function init() {
+  await ATCA.initPage();
+  renderAll();
+}
+init();
+</script>
+</body>
+</html>

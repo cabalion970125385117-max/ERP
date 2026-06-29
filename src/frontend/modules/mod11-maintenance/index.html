@@ -7,6 +7,34 @@
   <link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
   <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css" />
   <link rel="stylesheet" href="/assets/css/atca-erp.css" />
+  <style>
+    .rec-pm        { background:#d1e7dd; color:#0a3622; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+    .rec-breakdown { background:#f8d7da; color:#58151c; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+    .rec-repair    { background:#fff3cd; color:#664d03; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+    .rec-inspection{ background:#cff4fc; color:#055160; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; white-space:nowrap; }
+    .bd-reported   { background:#fff3cd; color:#664d03; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; }
+    .bd-resolved   { background:#d1e7dd; color:#0a3622; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; }
+    .bd-open       { background:#f8d7da; color:#58151c; font-size:.7rem; font-weight:700; padding:2px 7px; border-radius:3px; }
+    .part-row      { background:#f8f9fa; border-radius:4px; padding:.35rem .6rem; margin-bottom:.3rem; display:flex; align-items:center; gap:.5rem; font-size:.82rem; }
+    .cl-item-row   { background:#f8f9fa; border-radius:4px; padding:.4rem .7rem; margin-bottom:.35rem; display:flex; align-items:center; gap:.6rem; }
+    .cl-item-row.required-item { border-left:3px solid #dc3545; }
+    .cl-check-row  { padding:.45rem .6rem; border-bottom:1px solid #f0f0f0; display:flex; align-items:flex-start; gap:.7rem; }
+    .cl-check-row:last-child { border-bottom:none; }
+    .cl-check-row .cl-text { font-size:.85rem; flex:1; }
+    .cl-check-row .cl-val  { width:160px; }
+    .photo-thumb   { position:relative; width:80px; height:80px; border-radius:6px; overflow:hidden; border:2px solid #dee2e6; cursor:pointer; }
+    .photo-thumb img { width:100%; height:100%; object-fit:cover; }
+    .photo-thumb .rm { position:absolute; top:2px; right:2px; background:rgba(220,53,69,.85); color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:.65rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .cl-template-card { border:1px solid var(--atca-border,#dee2e6); border-radius:8px; padding:.9rem 1rem; margin-bottom:.75rem; background:#fff; }
+    .cl-template-card h6 { font-size:.88rem; font-weight:600; margin-bottom:.3rem; }
+    .cl-item-badge { font-size:.7rem; background:#e9ecef; color:#495057; padding:1px 6px; border-radius:3px; margin-right:.25rem; }
+    .cl-required-badge { font-size:.68rem; background:#f8d7da; color:#842029; padding:1px 5px; border-radius:3px; }
+    .cl-form-id { font-size:.72rem; font-weight:700; font-family:monospace; padding:2px 7px; border-radius:3px; background:#e9ecef; color:#212529; margin-right:.3rem; }
+    .cl-status-draft    { font-size:.68rem; font-weight:700; padding:2px 7px; border-radius:3px; background:#e9ecef; color:#495057; }
+    .cl-status-pending  { font-size:.68rem; font-weight:700; padding:2px 7px; border-radius:3px; background:#fff3cd; color:#856404; }
+    .cl-status-approved { font-size:.68rem; font-weight:700; padding:2px 7px; border-radius:3px; background:#d1e7dd; color:#0a3622; }
+    .cl-status-rejected { font-size:.68rem; font-weight:700; padding:2px 7px; border-radius:3px; background:#f8d7da; color:#58151c; }
+  </style>
 </head>
 <body>
 <nav class="navbar navbar-dark px-3 py-2" style="background:#1A2520;">
@@ -16,6 +44,15 @@
 </nav>
 
 <div class="container-fluid px-4 py-3">
+
+  <!-- Compliance topbar subtitle -->
+  <div id="topbar" class="d-flex align-items-start justify-content-between mb-3">
+    <div>
+      <h5 class="mb-0 fw-bold">Maintenance Management</h5>
+      <p class="topbar-subtitle mb-0">AS9100D §7.1.3 · NADCAP — Preventive Maintenance · Work Permits · Breakdown Log · Parts Traceability</p>
+    </div>
+  </div>
+
   <!-- KPI Cards -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3"><div class="kpi-card rag-amber"><div class="kpi-label">PM Due This Week</div><div id="kpi-due" class="kpi-value">—</div></div></div>
@@ -26,12 +63,16 @@
 
   <!-- Tabs -->
   <ul class="nav nav-tabs mb-3" id="mainTabs">
-    <li class="nav-item"><a class="nav-link active" href="#tab-assets" data-bs-toggle="tab">Asset Register</a></li>
-    <li class="nav-item"><a class="nav-link" href="#tab-schedules" data-bs-toggle="tab">PM Schedule</a></li>
-    <li class="nav-item"><a class="nav-link" href="#tab-permits" data-bs-toggle="tab">Work Permits</a></li>
+    <li class="nav-item"><a class="nav-link active" href="#tab-assets" data-bs-toggle="tab"><i class="bi bi-hdd-rack me-1"></i>Asset Register</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-schedules" data-bs-toggle="tab"><i class="bi bi-calendar-check me-1"></i>PM Schedule</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-records" data-bs-toggle="tab"><i class="bi bi-journal-text me-1"></i>Maintenance Records <span class="badge bg-secondary ms-1 d-none" id="records-badge">0</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-breakdowns" data-bs-toggle="tab"><i class="bi bi-exclamation-triangle me-1"></i>Breakdown Log <span class="badge bg-danger ms-1 d-none" id="bd-badge">0</span></a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-checklists" data-bs-toggle="tab"><i class="bi bi-list-check me-1"></i>PM Checklists</a></li>
+    <li class="nav-item"><a class="nav-link" href="#tab-permits" data-bs-toggle="tab"><i class="bi bi-shield-exclamation me-1"></i>Work Permits</a></li>
   </ul>
 
   <div class="tab-content">
+
     <!-- Assets Tab -->
     <div class="tab-pane fade show active" id="tab-assets">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -53,7 +94,7 @@
       <div class="table-responsive">
         <table class="table table-hover table-sm align-middle">
           <thead class="table-dark"><tr>
-            <th>Asset Code</th><th>Name</th><th>Category</th><th>Location</th><th>Next PM Due</th><th>Status</th><th>Actions</th>
+            <th>Asset Code</th><th>Name</th><th>Category</th><th>Location</th><th>Next PM Due</th><th>Last PM</th><th>Status</th><th>Actions</th>
           </tr></thead>
           <tbody id="assets-tbody"></tbody>
         </table>
@@ -62,6 +103,9 @@
 
     <!-- PM Schedule Tab -->
     <div class="tab-pane fade" id="tab-schedules">
+      <div class="alert alert-info py-2 px-3 small mb-3">
+        <i class="bi bi-info-circle me-1"></i><strong>AS9100D §7.1.3</strong> — All preventive maintenance must be recorded with technician, findings, parts used, and outcome. NADCAP-flagged schedules are mandatory.
+      </div>
       <div class="table-responsive mt-2">
         <table class="table table-hover table-sm align-middle">
           <thead class="table-dark"><tr>
@@ -70,6 +114,67 @@
           <tbody id="schedules-tbody"></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- Maintenance Records Tab -->
+    <div class="tab-pane fade" id="tab-records">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <span class="text-muted small">Full history of completed PM, repairs, and inspections — linked to asset register and inventory parts.</span>
+        <div class="d-flex gap-2">
+          <select id="filter-rec-type" class="form-select form-select-sm" style="width:150px" onchange="renderRecords()">
+            <option value="">All Types</option>
+            <option value="PM">PM</option>
+            <option value="REPAIR">Repair</option>
+            <option value="INSPECTION">Inspection</option>
+          </select>
+          <select id="filter-rec-outcome" class="form-select form-select-sm" style="width:130px" onchange="renderRecords()">
+            <option value="">All Outcomes</option>
+            <option value="PASS">Pass</option>
+            <option value="FAIL">Fail</option>
+            <option value="DEFERRED">Deferred</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Date</th><th>Asset</th><th>Type</th><th>Technician</th><th>Duration (h)</th><th>Parts Used</th><th>Findings</th><th>Outcome</th>
+          </tr></thead>
+          <tbody id="records-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Breakdown Log Tab -->
+    <div class="tab-pane fade" id="tab-breakdowns">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="alert alert-danger py-2 px-3 small mb-0 flex-grow-1 me-3">
+          <i class="bi bi-exclamation-triangle-fill me-1"></i><strong>Breakdown Compliance:</strong> All equipment failures must be logged. Root cause and corrective action required before return to service (AS9100D §7.1.3).
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="openBreakdownModal()"
+          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Log equipment breakdown or failure event">
+          <i class="bi bi-exclamation-triangle me-1"></i>Log Breakdown
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Date Reported</th><th>Asset</th><th>Failure Mode</th><th>Description</th><th>Downtime (h)</th><th>Root Cause</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="breakdowns-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PM Checklists Tab -->
+    <div class="tab-pane fade" id="tab-checklists">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted small">Define checklist templates per asset. The matching checklist loads automatically when completing a PM.</span>
+        <button class="btn btn-primary btn-sm" onclick="openChecklistModal()">
+          <i class="bi bi-plus-circle me-1"></i>New Checklist
+        </button>
+      </div>
+      <div id="checklists-container"></div>
     </div>
 
     <!-- Work Permits Tab -->
@@ -93,6 +198,7 @@
         </table>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -101,8 +207,8 @@
   <div class="modal-dialog"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">New Maintenance Asset</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
-      <div class="mb-2"><label class="form-label">Asset Name *</label><input id="a-name" class="form-control form-control-sm" /></div>
-      <div class="mb-2"><label class="form-label">Category *</label>
+      <div class="mb-2"><label class="form-label">Asset Name <span class="text-danger">*</span></label><input id="a-name" class="form-control form-control-sm" /></div>
+      <div class="mb-2"><label class="form-label">Category <span class="text-danger">*</span></label>
         <select id="a-category" class="form-select form-select-sm">
           <option>PRODUCTION</option><option>FACILITY</option><option>LAB</option><option>SAFETY</option><option>RECTIFIER</option>
         </select>
@@ -125,18 +231,187 @@
   </div></div>
 </div>
 
+<!-- PM Completion Modal -->
+<div class="modal fade" id="pmModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title"><i class="bi bi-clipboard2-check me-1"></i>Record PM Completion</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-secondary py-2 px-3 small mb-3" id="pm-asset-info"></div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-6">
+          <label class="form-label">Technician <span class="text-danger">*</span></label>
+          <select id="pm-technician" class="form-select form-select-sm">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Type</label>
+          <select id="pm-type" class="form-select form-select-sm">
+            <option value="PM">Preventive Maintenance</option>
+            <option value="INSPECTION">Inspection</option>
+            <option value="REPAIR">Repair</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Duration (hours)</label>
+          <input id="pm-duration" type="number" min="0.5" step="0.5" class="form-control form-control-sm" value="1" />
+        </div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-6">
+          <label class="form-label">Start Date/Time</label>
+          <input id="pm-start" type="datetime-local" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Outcome <span class="text-danger">*</span></label>
+          <select id="pm-outcome" class="form-select form-select-sm">
+            <option value="PASS">✅ PASS — Asset returned to service</option>
+            <option value="DEFERRED">⏳ DEFERRED — Work deferred, asset still serviceable</option>
+            <option value="FAIL">❌ FAIL — Asset requires further action before service</option>
+          </select>
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Findings <span class="text-danger">*</span></label>
+        <textarea id="pm-findings" class="form-control form-control-sm" rows="2" placeholder="Describe what was found during the maintenance activity…"></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Corrective Actions <small class="text-muted">(if any)</small></label>
+        <textarea id="pm-corrective" class="form-control form-control-sm" rows="2" placeholder="Actions taken to resolve findings…"></textarea>
+      </div>
+      <!-- Checklist section -->
+      <div id="pm-checklist-section" class="mb-3 d-none">
+        <label class="form-label fw-semibold"><i class="bi bi-list-check me-1"></i>PM Checklist — <span id="pm-checklist-name" class="text-primary"></span></label>
+        <div class="border rounded" id="pm-checklist-items" style="background:#fafafa;"></div>
+        <div class="text-muted small mt-1"><i class="bi bi-info-circle me-1"></i>All required items (<span class="text-danger">*</span>) must be checked before saving.</div>
+      </div>
+      <div id="pm-no-checklist" class="alert alert-secondary py-2 px-3 small mb-3 d-none">
+        <i class="bi bi-list-check me-1"></i>No <strong>approved</strong> checklist for this asset. Create one in the <a href="#" class="alert-link" onclick="event.preventDefault();pmModal.hide();document.querySelector('[href=\'#tab-checklists\']').click()">PM Checklists tab</a> and obtain QM approval before it can be used.
+      </div>
+
+      <!-- Parts Used section -->
+      <div class="mb-2">
+        <label class="form-label fw-semibold"><i class="bi bi-boxes me-1"></i>Parts / Spare Parts Used <small class="text-muted">(from Inventory MOD-14)</small></label>
+        <div class="d-flex gap-2 mb-2">
+          <select id="pm-part-select" class="form-select form-select-sm flex-grow-1">
+            <option value="">— Select spare part —</option>
+          </select>
+          <input id="pm-part-qty" type="number" min="1" class="form-control form-control-sm" style="width:80px" placeholder="Qty" value="1" />
+          <button class="btn btn-outline-secondary btn-sm" onclick="addPartRow()"><i class="bi bi-plus"></i></button>
+        </div>
+        <div id="pm-parts-list"></div>
+        <div class="text-muted small">Parts consumed will be issued from MOD-14 Inventory automatically.</div>
+      </div>
+
+      <!-- Photo Upload section -->
+      <div class="mb-2">
+        <label class="form-label fw-semibold"><i class="bi bi-camera me-1"></i>Photos / Evidence <small class="text-muted">(saved to File Repository MOD-37)</small></label>
+        <input type="file" id="pm-photo-input" class="form-control form-control-sm mb-2" accept="image/*" multiple onchange="handlePhotoUpload(this)" />
+        <div id="pm-photo-thumbs" class="d-flex flex-wrap gap-2 mt-1"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="savePmRecord()"
+        data-compliance="AS9100D §7.1.3" data-linked="MOD-11,MOD-14" data-action-desc="Record maintenance completion with parts and findings">
+        <i class="bi bi-check2-circle me-1"></i>Save Record
+      </button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Breakdown Modal -->
+<div class="modal fade" id="breakdownModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-1 text-danger"></i>Log Equipment Breakdown</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="row g-2 mb-2">
+        <div class="col-md-7">
+          <label class="form-label">Asset <span class="text-danger">*</span></label>
+          <select id="bd-asset" class="form-select form-select-sm">
+            <option value="">— Select asset —</option>
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Failure Mode <span class="text-danger">*</span></label>
+          <select id="bd-failure-mode" class="form-select form-select-sm">
+            <option value="MECHANICAL">Mechanical</option>
+            <option value="ELECTRICAL">Electrical</option>
+            <option value="CHEMICAL">Chemical / Process</option>
+            <option value="SOFTWARE">Software / Controls</option>
+            <option value="OPERATOR_ERROR">Operator Error</option>
+            <option value="WEAR">Wear / Degradation</option>
+            <option value="EXTERNAL">External (power, supply)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-6">
+          <label class="form-label">Date & Time Reported <span class="text-danger">*</span></label>
+          <input id="bd-reported-at" type="datetime-local" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Reported By</label>
+          <select id="bd-reporter" class="form-select form-select-sm">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Downtime (hours)</label>
+          <input id="bd-downtime" type="number" min="0" step="0.5" class="form-control form-control-sm" placeholder="0" />
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Description <span class="text-danger">*</span></label>
+        <textarea id="bd-description" class="form-control form-control-sm" rows="2" placeholder="What happened? Symptoms observed…"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Root Cause</label>
+        <textarea id="bd-root-cause" class="form-control form-control-sm" rows="2" placeholder="Identified root cause (leave blank if under investigation)…"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Resolution / Corrective Action</label>
+        <textarea id="bd-resolution" class="form-control form-control-sm" rows="2" placeholder="Action taken to restore service…"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Status</label>
+        <select id="bd-status" class="form-select form-select-sm">
+          <option value="REPORTED">Reported — under investigation</option>
+          <option value="RESOLVED">Resolved — returned to service</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="saveBreakdown()"
+        data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Record equipment breakdown event and root cause">
+        <i class="bi bi-exclamation-triangle me-1"></i>Log Breakdown
+      </button>
+    </div>
+  </div></div>
+</div>
+
 <!-- New Work Permit Modal -->
 <div class="modal fade" id="permitModal" tabindex="-1">
   <div class="modal-dialog"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">New Work Permit</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
-      <div class="mb-2"><label class="form-label">Asset *</label><input id="p-asset-id" type="hidden" /><input id="p-asset-display" class="form-control form-control-sm" placeholder="Asset code..." /></div>
-      <div class="mb-2"><label class="form-label">Hazard Type *</label>
+      <div class="mb-2"><label class="form-label">Asset <span class="text-danger">*</span></label>
+        <input id="p-asset-id" type="hidden" />
+        <input id="p-asset-display" class="form-control form-control-sm" placeholder="Asset code..." />
+      </div>
+      <div class="mb-2"><label class="form-label">Hazard Type <span class="text-danger">*</span></label>
         <select id="p-hazard" class="form-select form-select-sm">
           <option>ELECTRICAL</option><option>MECHANICAL</option><option>CHEMICAL</option><option>HEIGHT</option><option>CONFINED_SPACE</option><option>HOT_WORK</option>
         </select>
       </div>
-      <div class="mb-2"><label class="form-label">Description *</label><textarea id="p-desc" class="form-control form-control-sm" rows="2"></textarea></div>
+      <div class="mb-2"><label class="form-label">Description <span class="text-danger">*</span></label><textarea id="p-desc" class="form-control form-control-sm" rows="2"></textarea></div>
       <div class="mb-2"><label class="form-label">Safety Precautions</label><textarea id="p-safety" class="form-control form-control-sm" rows="2"></textarea></div>
       <div class="mb-2"><label class="form-label">PPE Required</label><input id="p-ppe" class="form-control form-control-sm" /></div>
     </div>
@@ -148,60 +423,805 @@
   </div></div>
 </div>
 
+<!-- Checklist Template Modal -->
+<div class="modal fade" id="checklistModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title"><i class="bi bi-list-check me-2"></i>PM Checklist Template</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cl-id" />
+      <div class="row g-2 mb-3">
+        <div class="col-md-7">
+          <label class="form-label fw-semibold">Checklist Name <span class="text-danger">*</span></label>
+          <input id="cl-name" class="form-control form-control-sm" placeholder="e.g. FPI Tank A — Weekly PM Checklist" />
+        </div>
+        <div class="col-md-5">
+          <label class="form-label fw-semibold">Apply to Asset</label>
+          <select id="cl-asset" class="form-select form-select-sm">
+            <option value="">— All assets (generic) —</option>
+          </select>
+        </div>
+      </div>
+      <!-- Work Instruction attachment -->
+      <div class="mb-3 p-2 border rounded" style="background:#f8f9fa">
+        <label class="form-label fw-semibold mb-1"><i class="bi bi-file-earmark-text me-1 text-info"></i>Work Instruction (WI) <small class="text-muted fw-normal">(optional)</small></label>
+        <div id="cl-wi-current" class="d-none mb-2 d-flex align-items-center gap-2">
+          <span class="badge bg-info text-dark"><i class="bi bi-file-earmark-text me-1"></i><span id="cl-wi-filename"></span></span>
+          <button class="btn btn-link btn-sm p-0" onclick="viewClWi()"><i class="bi bi-eye me-1"></i>View</button>
+          <button class="btn btn-link btn-sm p-0 text-danger" onclick="removeClWi()"><i class="bi bi-x-circle me-1"></i>Remove</button>
+        </div>
+        <input type="file" id="cl-wi-file" class="form-control form-control-sm" accept=".pdf,.doc,.docx,.xls,.xlsx,image/*" onchange="handleClWiUpload(this)" />
+        <div class="text-muted" style="font-size:.72rem;margin-top:.25rem">Attach the relevant work instruction — technicians can open it directly from the PM completion form.</div>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <label class="form-label fw-semibold mb-0">Checklist Items</label>
+        <button class="btn btn-outline-primary btn-sm" onclick="addChecklistItem()">
+          <i class="bi bi-plus me-1"></i>Add Item
+        </button>
+      </div>
+      <div id="cl-items-container">
+        <!-- items rendered here -->
+      </div>
+      <div class="text-muted small mt-2"><i class="bi bi-info-circle me-1"></i>TEXT items show a value input field during PM completion (for recording measurements). CHECK items use a checkbox only.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveChecklist()"
+        data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Save PM checklist template">
+        <i class="bi bi-floppy me-1"></i>Save Checklist
+      </button>
+    </div>
+  </div></div>
+</div>
+
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-demo.js?v=1"></script>
-<script src="/assets/js/atca-core.js?v=7"></script>
+<script src="/assets/js/atca-core.js?v=8"></script>
 <script>
 'use strict';
-const assetModal  = new bootstrap.Modal(document.getElementById('assetModal'));
-const permitModal = new bootstrap.Modal(document.getElementById('permitModal'));
+const assetModal      = new bootstrap.Modal(document.getElementById('assetModal'));
+const pmModal         = new bootstrap.Modal(document.getElementById('pmModal'));
+const breakdownModal  = new bootstrap.Modal(document.getElementById('breakdownModal'));
+const permitModal     = new bootstrap.Modal(document.getElementById('permitModal'));
+const checklistModal  = new bootstrap.Modal(document.getElementById('checklistModal'));
 
-async function init() {
-  await ATCA.initPage();
-  await loadKpis();
-  loadAssets();
-  ATCA.tooltips.init();
-  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(t =>
-    t.addEventListener('shown.bs.tab', e => {
-      const href = e.target.getAttribute('href');
-      if (href === '#tab-schedules') loadSchedules();
-      if (href === '#tab-permits') loadPermits();
-    })
-  );
+/* ---- File helper ---- */
+function readFile(file) {
+  return new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(file); });
 }
 
+/* ---- PM Checklist templates ---- */
+const CL_KEY = 'atca_pm_checklists';
+function loadChecklists()   { return JSON.parse(localStorage.getItem(CL_KEY) || '[]'); }
+function saveChecklists(cl) { localStorage.setItem(CL_KEY, JSON.stringify(cl)); }
+
+/* ---- Form ID sequence ---- */
+const FORM_SEQ_KEY = 'atca_form_id_seq';
+function nextFormId() {
+  const n = parseInt(localStorage.getItem(FORM_SEQ_KEY) || '0') + 1;
+  localStorage.setItem(FORM_SEQ_KEY, String(n));
+  return 'FM-' + String(n).padStart(3, '0');
+}
+
+function seedChecklistData() {
+  if (loadChecklists().length) return;
+  if (!localStorage.getItem(FORM_SEQ_KEY)) localStorage.setItem(FORM_SEQ_KEY, '3');
+  const APPROVED = { status:'APPROVED', status_by:'James Tan Wei Liang', status_at:'2026-06-01', reject_reason:null };
+  saveChecklists([
+    { checklist_id:'CL-001', form_id:'FM-001', form_version:1, ...APPROVED,
+      name:'FPI Tank — Weekly PM', asset_id: 1,
+      items:[
+        { item_id:1, text:'Check penetrant concentration (target: 20–30%)', type:'TEXT',  required:true  },
+        { item_id:2, text:'Measure pH level (target: 8.5–9.5)', type:'TEXT',  required:true  },
+        { item_id:3, text:'Inspect tank seals — no cracks or leaks', type:'CHECK', required:true  },
+        { item_id:4, text:'UV lamp intensity reading at 15" (min 1000 µW/cm²)', type:'TEXT',  required:true  },
+        { item_id:5, text:'Clean UV filter screen', type:'CHECK', required:false },
+        { item_id:6, text:'Check drip-off station drain — clear', type:'CHECK', required:false },
+      ], wi_file_id:null, wi_filename:null, created_by:'James Tan Wei Liang', created_at:'2026-06-01' },
+    { checklist_id:'CL-002', form_id:'FM-002', form_version:1, ...APPROVED,
+      name:'UV Light Station — Monthly PM', asset_id: 2,
+      items:[
+        { item_id:1, text:'UV intensity check (min 1000 µW/cm² at 15")', type:'TEXT',  required:true  },
+        { item_id:2, text:'Inspect lamp housing — no cracks or discolouration', type:'CHECK', required:true  },
+        { item_id:3, text:'Clean reflector surface', type:'CHECK', required:false },
+        { item_id:4, text:'Check power supply voltage', type:'TEXT',  required:false },
+      ], wi_file_id:null, wi_filename:null, created_by:'James Tan Wei Liang', created_at:'2026-06-01' },
+    { checklist_id:'CL-003', form_id:'FM-003', form_version:1, ...APPROVED,
+      name:'Air Compressor — Quarterly PM', asset_id: null,
+      items:[
+        { item_id:1, text:'Check oil level — top up if below MIN', type:'CHECK', required:true  },
+        { item_id:2, text:'Inspect air filter — replace if grey/blocked', type:'CHECK', required:true  },
+        { item_id:3, text:'Check belt tension and condition', type:'CHECK', required:true  },
+        { item_id:4, text:'Record discharge pressure (bar)', type:'TEXT',  required:true  },
+        { item_id:5, text:'Drain condensate tank', type:'CHECK', required:false },
+      ], wi_file_id:null, wi_filename:null, created_by:'James Tan Wei Liang', created_at:'2026-06-01' },
+  ]);
+}
+
+/* ---- Checklist modal state ---- */
+let _clItems      = [];    // working copy of items in modal
+let _clWiFileId   = null;  // file_id of attached WI (already in fileStore)
+let _clWiFilename = null;  // display name for current WI
+
+function openChecklistModal(id) {
+  _clItems = []; _clWiFileId = null; _clWiFilename = null;
+  document.getElementById('cl-id').value   = id || '';
+  document.getElementById('cl-name').value = '';
+  document.getElementById('cl-wi-file').value = '';
+  _updateWiDisplay();
+  // populate asset dropdown
+  document.getElementById('cl-asset').innerHTML =
+    '<option value="">— All assets (generic) —</option>' +
+    _assets.map(a => `<option value="${a.asset_id}">${a.asset_code} — ${a.name}</option>`).join('');
+  if (id) {
+    const cl = loadChecklists().find(c => c.checklist_id === id);
+    if (cl) {
+      document.getElementById('cl-name').value = cl.name;
+      document.getElementById('cl-asset').value = cl.asset_id || '';
+      _clItems = cl.items.map(i => ({ ...i }));
+      if (cl.wi_file_id) { _clWiFileId = cl.wi_file_id; _clWiFilename = cl.wi_filename || 'Work Instruction'; _updateWiDisplay(); }
+    }
+  }
+  renderClItems();
+  checklistModal.show();
+}
+
+function _updateWiDisplay() {
+  const wrap = document.getElementById('cl-wi-current');
+  const span = document.getElementById('cl-wi-filename');
+  if (_clWiFileId) {
+    wrap.classList.remove('d-none');
+    span.textContent = _clWiFilename || 'Work Instruction';
+  } else {
+    wrap.classList.add('d-none');
+  }
+}
+
+async function handleClWiUpload(input) {
+  if (!input.files[0]) return;
+  const file    = input.files[0];
+  const dataUrl = await readFile(file);
+  _clWiFileId = ATCA.fileStore.put({
+    module: 'MOD-11', entity_type: 'CHECKLIST_WI', entity_id: document.getElementById('cl-id').value || 'new',
+    filename: file.name, mime_type: file.type, size_bytes: file.size, file_tag: 'DOCUMENT',
+  }, dataUrl);
+  _clWiFilename = file.name;
+  input.value = '';
+  _updateWiDisplay();
+}
+
+function viewClWi() { if (_clWiFileId) ATCA.fileStore.open(_clWiFileId); }
+
+function removeClWi() { _clWiFileId = null; _clWiFilename = null; _updateWiDisplay(); }
+
+function renderClItems() {
+  const c = document.getElementById('cl-items-container');
+  if (!_clItems.length) {
+    c.innerHTML = '<div class="text-muted small text-center py-3 border rounded">No items yet — click "Add Item".</div>';
+    return;
+  }
+  c.innerHTML = _clItems.map((it, idx) => `
+    <div class="cl-item-row ${it.required ? 'required-item' : ''}">
+      <span class="text-muted small" style="width:24px">${idx + 1}</span>
+      <input class="form-control form-control-sm flex-grow-1" value="${it.text.replace(/"/g,'&quot;')}"
+        oninput="_clItems[${idx}].text=this.value" placeholder="Describe the check or measurement…" />
+      <select class="form-select form-select-sm" style="width:100px" onchange="_clItems[${idx}].type=this.value">
+        <option value="CHECK" ${it.type==='CHECK'?'selected':''}>✓ Check</option>
+        <option value="TEXT"  ${it.type==='TEXT' ?'selected':''}>📝 Text</option>
+      </select>
+      <div class="form-check mb-0 ms-1">
+        <input class="form-check-input" type="checkbox" id="req-${idx}" ${it.required?'checked':''}
+          onchange="_clItems[${idx}].required=this.checked" />
+        <label class="form-check-label small" for="req-${idx}">Req.</label>
+      </div>
+      <button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="removeClItem(${idx})"><i class="bi bi-trash3"></i></button>
+    </div>`).join('');
+}
+
+function addChecklistItem() {
+  _clItems.push({ item_id: Date.now(), text:'', type:'CHECK', required:false });
+  renderClItems();
+}
+
+function removeClItem(idx) {
+  _clItems.splice(idx, 1);
+  renderClItems();
+}
+
+function saveChecklist() {
+  const name = document.getElementById('cl-name').value.trim();
+  if (!name)           { ATCA.toast('Checklist name is required', 'danger'); return; }
+  if (!_clItems.length){ ATCA.toast('Add at least one item', 'danger'); return; }
+  const badItem = _clItems.find(i => !i.text.trim());
+  if (badItem)         { ATCA.toast('All items must have a description', 'danger'); return; }
+  const cl = loadChecklists();
+  const existId = document.getElementById('cl-id').value;
+  const assetId = document.getElementById('cl-asset').value;
+  const existing = existId ? cl.find(c => c.checklist_id === existId) : null;
+  const newVersion = existing ? (existing.form_version || 1) + (existing.status === 'APPROVED' ? 1 : 0) : 1;
+  const rec = {
+    checklist_id: existId || 'CL-' + Date.now(),
+    form_id: existing?.form_id || nextFormId(),
+    form_version: newVersion,
+    status: 'DRAFT',
+    status_by: null, status_at: null, reject_reason: null,
+    name,
+    asset_id: assetId ? +assetId : null,
+    items: _clItems.map((it, idx) => ({ ...it, item_id: idx + 1, text: it.text.trim() })),
+    wi_file_id:  _clWiFileId   || null,
+    wi_filename: _clWiFilename || null,
+    created_by: ATCA.currentUser?.full_name || 'System',
+    created_at: new Date().toISOString().slice(0, 10),
+  };
+  if (existId) {
+    const i = cl.findIndex(c => c.checklist_id === existId);
+    if (i >= 0) cl[i] = rec; else cl.push(rec);
+  } else { cl.push(rec); }
+  saveChecklists(cl);
+  checklistModal.hide();
+  ATCA.toast(`${rec.form_id} "${name}" saved as DRAFT — submit for QM approval to activate`, 'info');
+  renderChecklists();
+}
+
+function deleteChecklist(id) {
+  const cl   = loadChecklists();
+  const item = cl.find(c => c.checklist_id === id);
+  if (!item) return;
+  if (item.status === 'PENDING_QM') { ATCA.toast('Cannot delete — awaiting QM approval. Recall and edit first.', 'warning'); return; }
+  if (!confirm(`Delete ${item.form_id} "${item.name}"? This cannot be undone.`)) return;
+  saveChecklists(cl.filter(c => c.checklist_id !== id));
+  ATCA.toast('Checklist deleted', 'warning');
+  renderChecklists();
+}
+
+function submitChecklistForApproval(id) {
+  const cl   = loadChecklists();
+  const idx  = cl.findIndex(c => c.checklist_id === id);
+  if (idx < 0) return;
+  const item = cl[idx];
+  if (item.status === 'PENDING_QM') { ATCA.toast('Already awaiting QM approval', 'info'); return; }
+  // Push to pending approvals queue
+  const approvals = JSON.parse(localStorage.getItem('atca_pending_approvals') || '[]');
+  approvals.push({
+    approval_id:  'APV-' + Date.now(),
+    module:       'MOD-11',
+    movement_type:'FORM_APPROVAL',
+    reference_id:  id,
+    item_code:     item.form_id,
+    item_name:     item.name,
+    form_version:  item.form_version,
+    asset_name:    item.asset_id ? (_assets.find(a => a.asset_id === item.asset_id)?.name || 'Asset #' + item.asset_id) : 'All assets (generic)',
+    requested_by:  ATCA.currentUser?.full_name || 'System',
+    requested_at:  new Date().toISOString(),
+    status:        'PENDING',
+    qty:           null,
+  });
+  localStorage.setItem('atca_pending_approvals', JSON.stringify(approvals));
+  cl[idx].status = 'PENDING_QM';
+  saveChecklists(cl);
+  ATCA.toast(`${item.form_id} submitted to QM for approval`, 'success');
+  renderChecklists();
+}
+
+function renderChecklists() {
+  const cl  = loadChecklists();
+  const container = document.getElementById('checklists-container');
+  if (!cl.length) {
+    container.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-list-check" style="font-size:2rem"></i><p class="mt-2 mb-0">No PM checklists yet. Create one and submit for QM approval to activate.</p></div>';
+    return;
+  }
+  const statusBadge = s => {
+    if (s === 'APPROVED')   return '<span class="cl-status-approved">✓ APPROVED</span>';
+    if (s === 'PENDING_QM') return '<span class="cl-status-pending">⏳ AWAITING QM</span>';
+    if (s === 'REJECTED')   return '<span class="cl-status-rejected">✕ REJECTED</span>';
+    return '<span class="cl-status-draft">● DRAFT</span>';
+  };
+  container.innerHTML = cl.map(c => {
+    const asset    = _assets.find(a => a.asset_id === c.asset_id);
+    const reqCount = c.items.filter(i => i.required).length;
+    const st       = c.status || 'DRAFT';
+    const locked   = st === 'PENDING_QM';
+    const actionBtns = locked
+      ? `<span class="text-muted small fst-italic">Locked — awaiting QM</span>`
+      : `<button class="btn btn-outline-primary btn-sm py-0 px-2" onclick="openChecklistModal('${c.checklist_id}')" title="Edit${st === 'APPROVED' ? ' (creates new revision)' : ''}"><i class="bi bi-pencil"></i></button>
+         ${(st === 'DRAFT' || st === 'REJECTED') ? `<button class="btn btn-success btn-sm py-0 px-2" onclick="submitChecklistForApproval('${c.checklist_id}')" title="Submit for QM approval"><i class="bi bi-send me-1"></i>Submit</button>` : ''}
+         <button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="deleteChecklist('${c.checklist_id}')"><i class="bi bi-trash3"></i></button>`;
+    return `<div class="cl-template-card${st === 'APPROVED' ? ' border-success' : st === 'REJECTED' ? ' border-danger' : ''}">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <span class="cl-form-id">${c.form_id || '—'}</span>
+            <span class="cl-item-badge">v${c.form_version || 1}</span>
+            ${statusBadge(st)}
+          </div>
+          <h6 class="mb-1"><i class="bi bi-list-check me-1 text-primary"></i>${c.name}</h6>
+          <div class="mb-1">
+            <span class="cl-item-badge"><i class="bi bi-hdd-rack me-1"></i>${asset ? asset.asset_code + ' — ' + asset.name : 'All assets (generic)'}</span>
+            <span class="cl-item-badge">${c.items.length} items</span>
+            ${reqCount ? `<span class="cl-required-badge">${reqCount} required</span>` : ''}
+            ${c.wi_file_id ? `<span class="cl-item-badge text-info" style="background:#cff4fc;cursor:pointer" onclick="ATCA.fileStore.open('${c.wi_file_id}')" title="${c.wi_filename || 'Work Instruction'}"><i class="bi bi-file-earmark-text me-1"></i>WI</span>` : ''}
+          </div>
+          ${st === 'REJECTED' && c.reject_reason ? `<div class="text-danger small mt-1"><i class="bi bi-x-circle me-1"></i>Rejected: ${ATCA.utils.escHtml(c.reject_reason)}</div>` : ''}
+          ${c.status_by && st !== 'DRAFT' ? `<div class="text-muted" style="font-size:.7rem;margin-top:.2rem">${st === 'APPROVED' ? 'Approved' : st === 'REJECTED' ? 'Reviewed' : 'Submitted'} by ${c.status_by}${c.status_at ? ' · ' + new Date(c.status_at).toLocaleDateString('en-SG') : ''}</div>` : ''}
+          <div class="d-flex flex-wrap gap-1 mt-2">
+            ${c.items.map(i => `<span class="badge ${i.required ? 'bg-danger' : 'bg-secondary'} fw-normal" style="font-size:.68rem">${i.type === 'TEXT' ? '📝' : '✓'} ${i.text.length > 45 ? i.text.slice(0,45)+'…' : i.text}</span>`).join('')}
+          </div>
+        </div>
+        <div class="d-flex gap-1 ms-3 flex-shrink-0 align-items-start">
+          ${actionBtns}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---- Checklist in PM modal ---- */
+let _activeChecklist = null;
+
+function findChecklistForAsset(assetId) {
+  const cl = loadChecklists().filter(c => c.status === 'APPROVED');
+  return cl.find(c => c.asset_id === assetId) || cl.find(c => !c.asset_id) || null;
+}
+
+function renderPmChecklist(cl) {
+  _activeChecklist = cl;
+  const section = document.getElementById('pm-checklist-section');
+  const noClDiv = document.getElementById('pm-no-checklist');
+  if (!cl) { section.classList.add('d-none'); noClDiv.classList.remove('d-none'); return; }
+  noClDiv.classList.add('d-none');
+  document.getElementById('pm-checklist-name').textContent = cl.name;
+  const wiBtn = cl.wi_file_id
+    ? `<div class="mb-2 px-2 pt-2"><button class="btn btn-outline-info btn-sm py-0 px-2" onclick="ATCA.fileStore.open('${cl.wi_file_id}')"><i class="bi bi-file-earmark-text me-1"></i>View Work Instruction${cl.wi_filename ? ' — ' + cl.wi_filename : ''}</button></div>`
+    : '';
+  document.getElementById('pm-checklist-items').innerHTML = wiBtn + cl.items.map(it => `
+    <div class="cl-check-row">
+      <div class="mt-1">
+        <input class="form-check-input" type="checkbox" id="cl-chk-${it.item_id}" data-item="${it.item_id}" />
+      </div>
+      <div class="cl-text">
+        <label for="cl-chk-${it.item_id}" class="mb-0 fw-semibold" style="font-size:.84rem">
+          ${it.text}${it.required ? ' <span class="text-danger">*</span>' : ''}
+        </label>
+        ${it.type === 'TEXT' ? `<input class="form-control form-control-sm mt-1 cl-val" id="cl-val-${it.item_id}" placeholder="Record value…" />` : ''}
+      </div>
+    </div>`).join('');
+  section.classList.remove('d-none');
+}
+
+function collectChecklistResults() {
+  if (!_activeChecklist) return null;
+  return _activeChecklist.items.map(it => ({
+    item_id:  it.item_id,
+    text:     it.text,
+    type:     it.type,
+    required: it.required,
+    checked:  document.getElementById('cl-chk-' + it.item_id)?.checked || false,
+    value:    it.type === 'TEXT' ? (document.getElementById('cl-val-' + it.item_id)?.value.trim() || null) : null,
+  }));
+}
+
+function validateChecklist() {
+  if (!_activeChecklist) return true;
+  for (const it of _activeChecklist.items) {
+    if (!it.required) continue;
+    const checked = document.getElementById('cl-chk-' + it.item_id)?.checked;
+    if (!checked) { ATCA.toast(`Required item not checked: "${it.text.slice(0,50)}"`, 'danger'); return false; }
+    if (it.type === 'TEXT') {
+      const val = document.getElementById('cl-val-' + it.item_id)?.value.trim();
+      if (!val) { ATCA.toast(`Value required for: "${it.text.slice(0,50)}"`, 'danger'); return false; }
+    }
+  }
+  return true;
+}
+
+/* ---- Photo upload ---- */
+let _pmPhotos = [];   // { dataUrl, filename, mime_type, size_bytes }
+
+async function handlePhotoUpload(input) {
+  for (const file of input.files) {
+    const dataUrl = await readFile(file);
+    _pmPhotos.push({ dataUrl, filename: file.name, mime_type: file.type, size_bytes: file.size });
+  }
+  input.value = '';
+  renderPhotoThumbs();
+}
+
+function renderPhotoThumbs() {
+  const container = document.getElementById('pm-photo-thumbs');
+  container.innerHTML = _pmPhotos.map((p, i) => `
+    <div class="photo-thumb" title="${p.filename}">
+      <img src="${p.dataUrl}" />
+      <button class="rm" onclick="removePmPhoto(${i})">✕</button>
+    </div>`).join('');
+}
+
+function removePmPhoto(idx) {
+  _pmPhotos.splice(idx, 1);
+  renderPhotoThumbs();
+}
+
+/* ---- localStorage helpers ---- */
+const MR_KEY = 'atca_maintenance_records';
+const BD_KEY = 'atca_breakdown_log';
+function loadRecords()    { return JSON.parse(localStorage.getItem(MR_KEY) || '[]'); }
+function saveRecords(r)   { localStorage.setItem(MR_KEY, JSON.stringify(r)); }
+function loadBreakdowns() { return JSON.parse(localStorage.getItem(BD_KEY) || '[]'); }
+function saveBreakdowns(b){ localStorage.setItem(BD_KEY, JSON.stringify(b)); }
+
+/* ---- Seed demo records ---- */
+function seedDemoData() {
+  if (loadRecords().length) return;
+  const ago = d => { const dt = new Date(); dt.setDate(dt.getDate() - d); return dt.toISOString(); };
+  const records = [
+    { record_id:'MR-001', asset_id:1, asset_code:'AST-2026-001', asset_name:'FPI Fluorescent Penetrant Line 1',
+      type:'PM', schedule_id:1, technician:'James Tan Wei Liang',
+      start_datetime: ago(30), duration_hours:2,
+      findings:'All seals in good condition. Penetrant tank level nominal. UV lamp intensity checked — within spec.',
+      parts_used:[], corrective_action:null, outcome:'PASS',
+      created_at: ago(30), created_by:'James Tan Wei Liang' },
+    { record_id:'MR-002', asset_id:2, asset_code:'AST-2026-002', asset_name:'Anodising Rectifier Unit B',
+      type:'PM', schedule_id:2, technician:'Sarah Lim Mei Ling',
+      start_datetime: ago(14), duration_hours:1.5,
+      findings:'Rectifier output voltage slightly low at 23.8V (nominal 24V). Adjusted calibration.',
+      parts_used:[{ item_code:'SPARE-001', name:'Filter Element — FPI Tank A', qty:1, unit:'pcs' }],
+      corrective_action:'Voltage trimmer adjusted. Verified post-adjustment: 24.0V. No further action.',
+      outcome:'PASS', created_at: ago(14), created_by:'Sarah Lim Mei Ling' },
+    { record_id:'MR-003', asset_id:3, asset_code:'AST-2026-003', asset_name:'UV Inspection Lamp 400W',
+      type:'INSPECTION', schedule_id:null, technician:'James Tan Wei Liang',
+      start_datetime: ago(7), duration_hours:0.5,
+      findings:'UV intensity at 1200 µW/cm² at 15" distance. Minimum per AC7114 is 1000 µW/cm². Lamp OK.',
+      parts_used:[], corrective_action:null, outcome:'PASS',
+      created_at: ago(7), created_by:'James Tan Wei Liang' },
+  ];
+  saveRecords(records);
+
+  if (loadBreakdowns().length) return;
+  const bds = [
+    { record_id:'BD-001', asset_id:2, asset_code:'AST-2026-002', asset_name:'Anodising Rectifier Unit B',
+      failure_mode:'ELECTRICAL', description:'Rectifier tripped during production run. Output voltage dropped to 0.',
+      reported_by:'Kevin Raj Kumar', reported_at: ago(20),
+      root_cause:'Loose terminal connection on output bus bar — vibration over time.',
+      resolution:'Terminal re-torqued to 25Nm. Insulation tape replaced. Output verified.',
+      downtime_hours:3, status:'RESOLVED', created_at: ago(20) },
+  ];
+  saveBreakdowns(bds);
+}
+
+/* ---- Spare parts from MOD-14 inventory ---- */
+let _spareParts = [];
+function loadSpareParts() {
+  const raw = localStorage.getItem('atca_inventory_db');
+  const db  = raw ? JSON.parse(raw) : null;
+  _spareParts = (db && db.items) ? db.items.filter(i => i.category === 'Spare Part' || i.category === 'SPARE') : _demoSpares();
+}
+function _demoSpares() {
+  return [
+    { item_id:901, item_code:'SPARE-001', name:'Filter Element — FPI Tank A', unit:'pcs' },
+    { item_id:902, item_code:'SPARE-002', name:'UV Lamp 365nm 400W', unit:'pcs' },
+    { item_id:903, item_code:'SPARE-003', name:'O-Ring Kit (assorted)', unit:'set' },
+    { item_id:904, item_code:'SPARE-004', name:'Rectifier Fuse 20A', unit:'pcs' },
+    { item_id:905, item_code:'SPARE-005', name:'Pump Seal Kit', unit:'set' },
+  ];
+}
+
+/* ---- Personnel list ---- */
+let _personnel = [];
+async function loadPersonnelList() {
+  if (_personnel.length) return;
+  const d = await ATCA.api.get('/mod18/staff');
+  _personnel = (d || []).filter(s => s.status === 'ACTIVE');
+  if (!_personnel.length) _personnel = [
+    { staff_id:1, full_name:'James Tan Wei Liang' },
+    { staff_id:2, full_name:'Sarah Lim Mei Ling' },
+    { staff_id:3, full_name:'Kevin Raj Kumar' },
+  ];
+}
+
+/* ---- Cached API assets for modals ---- */
+let _assets = [];
+
+/* ---- PM Modal state ---- */
+let _pmScheduleId = null;
+let _pmAssetId    = null;
+let _pmParts      = [];
+
+function partsSelectOptions() {
+  return ['<option value="">— Select spare part —</option>']
+    .concat(_spareParts.map(p => `<option value="${p.item_id}" data-code="${p.item_code}" data-name="${p.name}" data-unit="${p.unit}">${p.item_code} — ${p.name}</option>`))
+    .join('');
+}
+
+function addPartRow() {
+  const sel  = document.getElementById('pm-part-select');
+  const opt  = sel.options[sel.selectedIndex];
+  const qty  = parseInt(document.getElementById('pm-part-qty').value) || 1;
+  if (!sel.value) { ATCA.toast('Select a part first', 'warning'); return; }
+  const existing = _pmParts.findIndex(p => p.item_id === +sel.value);
+  if (existing >= 0) { _pmParts[existing].qty += qty; }
+  else { _pmParts.push({ item_id: +sel.value, item_code: opt.dataset.code, name: opt.dataset.name, unit: opt.dataset.unit, qty }); }
+  renderPartsList();
+  sel.value = ''; document.getElementById('pm-part-qty').value = 1;
+}
+
+function removePartRow(idx) {
+  _pmParts.splice(idx, 1);
+  renderPartsList();
+}
+
+function renderPartsList() {
+  const container = document.getElementById('pm-parts-list');
+  container.innerHTML = _pmParts.length
+    ? _pmParts.map((p, i) => `<div class="part-row">
+        <span class="text-primary fw-semibold me-1">${p.item_code}</span>
+        <span class="flex-grow-1">${p.name}</span>
+        <span class="text-muted">${p.qty} ${p.unit}</span>
+        <button class="btn btn-link btn-sm p-0 ms-2 text-danger" onclick="removePartRow(${i})"><i class="bi bi-x-circle"></i></button>
+      </div>`).join('')
+    : '';
+}
+
+async function openPmModal(scheduleId, assetId, assetCode, assetName) {
+  _pmScheduleId = scheduleId;
+  _pmAssetId    = assetId;
+  _pmParts      = [];
+  document.getElementById('pm-asset-info').innerHTML =
+    `<strong>${assetCode}</strong> — ${assetName}`;
+  document.getElementById('pm-type').value       = 'PM';
+  document.getElementById('pm-outcome').value    = 'PASS';
+  document.getElementById('pm-findings').value   = '';
+  document.getElementById('pm-corrective').value = '';
+  document.getElementById('pm-duration').value   = '1';
+  document.getElementById('pm-start').value      = new Date().toISOString().slice(0,16);
+  renderPartsList();
+  // reset photos
+  _pmPhotos = [];
+  renderPhotoThumbs();
+  document.getElementById('pm-photo-input').value = '';
+  // populate part select
+  loadSpareParts();
+  document.getElementById('pm-part-select').innerHTML = partsSelectOptions();
+  // populate technician select
+  await loadPersonnelList();
+  document.getElementById('pm-technician').innerHTML =
+    '<option value="">— Select —</option>' +
+    _personnel.map(p => `<option value="${p.full_name}">${p.full_name}</option>`).join('');
+  // load matching checklist
+  const cl = findChecklistForAsset(assetId);
+  renderPmChecklist(cl);
+  pmModal.show();
+}
+
+async function savePmRecord() {
+  const technician = document.getElementById('pm-technician').value;
+  const findings   = document.getElementById('pm-findings').value.trim();
+  const outcome    = document.getElementById('pm-outcome').value;
+  if (!technician) { ATCA.toast('Select a technician', 'danger'); return; }
+  if (!findings)   { ATCA.toast('Findings are required', 'danger'); return; }
+  if (!validateChecklist()) return;
+  const recordId = 'MR-' + Date.now();
+  const asset    = _assets.find(a => a.asset_id === _pmAssetId) || { asset_code:'—', name:'—' };
+  // store general photos to file repository
+  const photoFileIds = [];
+  for (const p of _pmPhotos) {
+    const fid = ATCA.fileStore.put({
+      module: 'MOD-11', entity_type: 'MAINTENANCE_RECORD', entity_id: recordId,
+      filename: p.filename, mime_type: p.mime_type, size_bytes: p.size_bytes, file_tag: 'PM_PHOTO',
+    }, p.dataUrl);
+    photoFileIds.push(fid);
+  }
+  const records = loadRecords();
+  records.push({
+    record_id:   recordId,
+    asset_id:    _pmAssetId,
+    asset_code:  asset.asset_code,
+    asset_name:  asset.name,
+    type:        document.getElementById('pm-type').value,
+    schedule_id: _pmScheduleId,
+    technician,
+    start_datetime: document.getElementById('pm-start').value,
+    duration_hours: parseFloat(document.getElementById('pm-duration').value) || 1,
+    findings,
+    parts_used:  [..._pmParts],
+    corrective_action: document.getElementById('pm-corrective').value.trim() || null,
+    outcome,
+    checklist_id:      _activeChecklist?.checklist_id || null,
+    checklist_results: collectChecklistResults(),
+    photo_file_ids:    photoFileIds,
+    created_at:  new Date().toISOString(),
+    created_by:  technician,
+  });
+  saveRecords(records);
+  // also call the API to advance the schedule
+  ATCA.api.post('/mod11/records', {
+    asset_id: _pmAssetId, schedule_id: _pmScheduleId, type: 'PM',
+    start_datetime: document.getElementById('pm-start').value, outcome,
+  });
+  pmModal.hide();
+  ATCA.toast('Maintenance record saved', 'success');
+  renderRecords();
+  loadSchedules();
+  loadKpis();
+  updateBadges();
+}
+
+/* ---- Breakdown Modal ---- */
+async function openBreakdownModal(assetId) {
+  await loadPersonnelList();
+  document.getElementById('bd-reported-at').value = new Date().toISOString().slice(0,16);
+  document.getElementById('bd-reporter').innerHTML =
+    '<option value="">— Select —</option>' +
+    _personnel.map(p => `<option value="${p.full_name}">${p.full_name}</option>`).join('');
+  document.getElementById('bd-asset').innerHTML =
+    '<option value="">— Select asset —</option>' +
+    _assets.map(a => `<option value="${a.asset_id}" ${a.asset_id === assetId ? 'selected' : ''} data-code="${a.asset_code}" data-name="${a.name}">${a.asset_code} — ${a.name}</option>`).join('');
+  document.getElementById('bd-failure-mode').value = 'MECHANICAL';
+  document.getElementById('bd-description').value  = '';
+  document.getElementById('bd-root-cause').value   = '';
+  document.getElementById('bd-resolution').value   = '';
+  document.getElementById('bd-downtime').value     = '';
+  document.getElementById('bd-status').value       = 'REPORTED';
+  breakdownModal.show();
+}
+
+function saveBreakdown() {
+  const assetSel = document.getElementById('bd-asset');
+  const assetOpt = assetSel.options[assetSel.selectedIndex];
+  const desc     = document.getElementById('bd-description').value.trim();
+  const repAt    = document.getElementById('bd-reported-at').value;
+  if (!assetSel.value) { ATCA.toast('Select an asset', 'danger'); return; }
+  if (!desc)            { ATCA.toast('Description is required', 'danger'); return; }
+  if (!repAt)           { ATCA.toast('Date/time reported is required', 'danger'); return; }
+  const bds = loadBreakdowns();
+  bds.push({
+    record_id:    'BD-' + Date.now(),
+    asset_id:     +assetSel.value,
+    asset_code:   assetOpt.dataset.code,
+    asset_name:   assetOpt.dataset.name,
+    failure_mode: document.getElementById('bd-failure-mode').value,
+    description:  desc,
+    reported_by:  document.getElementById('bd-reporter').value || 'Unknown',
+    reported_at:  repAt,
+    root_cause:   document.getElementById('bd-root-cause').value.trim() || null,
+    resolution:   document.getElementById('bd-resolution').value.trim() || null,
+    downtime_hours: parseFloat(document.getElementById('bd-downtime').value) || 0,
+    status:       document.getElementById('bd-status').value,
+    created_at:   new Date().toISOString(),
+  });
+  saveBreakdowns(bds);
+  breakdownModal.hide();
+  ATCA.toast('Breakdown logged', 'danger');
+  renderBreakdowns();
+  loadKpis();
+  updateBadges();
+}
+
+function resolveBreakdown(recordId) {
+  const bds = loadBreakdowns();
+  const idx = bds.findIndex(b => b.record_id === recordId);
+  if (idx < 0) return;
+  bds[idx].status = 'RESOLVED';
+  saveBreakdowns(bds);
+  ATCA.toast('Breakdown marked resolved', 'success');
+  renderBreakdowns();
+  loadKpis();
+  updateBadges();
+}
+
+/* ---- Render: Maintenance Records ---- */
+function renderRecords() {
+  const type    = document.getElementById('filter-rec-type').value;
+  const outcome = document.getElementById('filter-rec-outcome').value;
+  let records   = loadRecords();
+  if (type)    records = records.filter(r => r.type === type);
+  if (outcome) records = records.filter(r => r.outcome === outcome);
+  const tbody = document.getElementById('records-tbody');
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No maintenance records yet.</td></tr>';
+    return;
+  }
+  const typeTag = t => t === 'PM' ? '<span class="rec-pm">PM</span>'
+    : t === 'BREAKDOWN' ? '<span class="rec-breakdown">BREAKDOWN</span>'
+    : t === 'REPAIR'    ? '<span class="rec-repair">REPAIR</span>'
+    : '<span class="rec-inspection">INSPECTION</span>';
+  const outTag = o => o === 'PASS' ? '<span class="badge bg-success">PASS</span>'
+    : o === 'FAIL'     ? '<span class="badge bg-danger">FAIL</span>'
+    : '<span class="badge bg-warning text-dark">DEFERRED</span>';
+  tbody.innerHTML = [...records].reverse().map(r => `<tr>
+    <td>${new Date(r.start_datetime || r.created_at).toLocaleDateString('en-SG')}</td>
+    <td><strong>${r.asset_code}</strong><br><small class="text-muted">${r.asset_name}</small></td>
+    <td>${typeTag(r.type)}</td>
+    <td>${r.technician || '—'}</td>
+    <td>${r.duration_hours ?? '—'}</td>
+    <td>${r.parts_used && r.parts_used.length
+      ? r.parts_used.map(p => `<span class="badge bg-secondary me-1">${p.item_code} ×${p.qty}</span>`).join('')
+      : '<span class="text-muted">—</span>'}</td>
+    <td class="small text-muted" style="max-width:220px;white-space:normal">${r.findings || '—'}</td>
+    <td>${outTag(r.outcome)}</td>
+  </tr>`).join('');
+}
+
+/* ---- Render: Breakdown Log ---- */
+function renderBreakdowns() {
+  const bds   = loadBreakdowns();
+  const tbody = document.getElementById('breakdowns-tbody');
+  if (!bds.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-3">No breakdowns logged.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = [...bds].reverse().map(b => {
+    const stTag = b.status === 'RESOLVED'
+      ? '<span class="bd-resolved">Resolved</span>'
+      : b.status === 'REPORTED'
+        ? '<span class="bd-reported">Reported</span>'
+        : '<span class="bd-open">Open</span>';
+    return `<tr class="${b.status !== 'RESOLVED' ? 'table-danger' : ''}">
+      <td>${new Date(b.reported_at).toLocaleDateString('en-SG')}</td>
+      <td><strong>${b.asset_code}</strong><br><small class="text-muted">${b.asset_name}</small></td>
+      <td><span class="badge bg-danger">${b.failure_mode}</span></td>
+      <td class="small" style="max-width:180px;white-space:normal">${b.description}</td>
+      <td>${b.downtime_hours ?? '—'}</td>
+      <td class="small text-muted" style="max-width:160px;white-space:normal">${b.root_cause || '<em>Under investigation</em>'}</td>
+      <td>${stTag}</td>
+      <td>${b.status !== 'RESOLVED'
+        ? `<button class="btn btn-success btn-sm py-0 px-2" onclick="resolveBreakdown('${b.record_id}')"><i class="bi bi-check2 me-1"></i>Resolve</button>`
+        : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---- Update tab badges ---- */
+function updateBadges() {
+  const openBds = loadBreakdowns().filter(b => b.status !== 'RESOLVED').length;
+  const badge   = document.getElementById('bd-badge');
+  if (openBds > 0) { badge.textContent = openBds; badge.classList.remove('d-none'); }
+  else { badge.classList.add('d-none'); }
+}
+
+/* ---- KPIs / Assets / Schedules / Permits (API-backed) ---- */
 async function loadKpis() {
   const d = await ATCA.api.get('/mod11/alerts/summary');
   if (!d) return;
-  document.getElementById('kpi-due').textContent = d.due_this_week ?? '—';
-  document.getElementById('kpi-overdue').textContent = d.overdue_pm ?? '—';
-  document.getElementById('kpi-permits').textContent = d.open_permits ?? '—';
-  document.getElementById('kpi-breakdowns').textContent = d.active_breakdowns ?? '—';
+  document.getElementById('kpi-due').textContent       = d.due_this_week ?? '—';
+  document.getElementById('kpi-overdue').textContent   = d.overdue_pm ?? '—';
+  document.getElementById('kpi-permits').textContent   = d.open_permits ?? '—';
+  document.getElementById('kpi-breakdowns').textContent = (loadBreakdowns().filter(b => b.status !== 'RESOLVED').length) || d.active_breakdowns || '—';
   const nav = document.getElementById('nav-alerts');
   if ((d.overdue_pm || 0) > 0) nav.innerHTML = `<span class="badge bg-danger">${d.overdue_pm} Overdue PM</span>`;
 }
 
 async function loadAssets() {
-  const cat = document.getElementById('filter-category').value;
+  const cat  = document.getElementById('filter-category').value;
   const stat = document.getElementById('filter-status').value;
   const params = new URLSearchParams();
-  if (cat) params.set('category', cat);
+  if (cat)  params.set('category', cat);
   if (stat) params.set('status', stat);
   const data = await ATCA.api.get('/mod11/assets?' + params);
-  ATCA.table.render('assets-tbody', data || [], a => {
-    const ragClass = a.status === 'UNDER_MAINTENANCE' ? 'text-warning fw-bold' : a.status === 'DECOMMISSIONED' ? 'text-muted' : '';
-    const pmBadge = a.next_pm_due
-      ? (new Date(a.next_pm_due) < new Date() ? `<span class="badge bg-danger">${a.next_pm_due}</span>` : `<span class="badge bg-success">${a.next_pm_due}</span>`)
+  _assets = data || [];
+  ATCA.table.render('assets-tbody', _assets, a => {
+    const ragClass  = a.status === 'UNDER_MAINTENANCE' ? 'text-warning fw-bold' : a.status === 'DECOMMISSIONED' ? 'text-muted' : '';
+    const pmBadge   = a.next_pm_due
+      ? (new Date(a.next_pm_due) < new Date()
+          ? `<span class="badge bg-danger">${a.next_pm_due}</span>`
+          : `<span class="badge bg-success">${a.next_pm_due}</span>`)
       : '<span class="text-muted">—</span>';
+    const lastPm = loadRecords().filter(r => r.asset_id === a.asset_id && r.type === 'PM').slice(-1)[0];
+    const lastPmDate = lastPm ? new Date(lastPm.created_at).toLocaleDateString('en-SG') : '<span class="text-muted">—</span>';
     return `<tr>
       <td><strong>${a.asset_code}</strong></td>
       <td>${a.name}</td>
       <td><span class="badge bg-secondary">${a.category}</span></td>
       <td>${a.location || '—'}</td>
       <td>${pmBadge}</td>
+      <td>${lastPmDate}</td>
       <td class="${ragClass}">${a.status}</td>
-      <td>
-        <button class="btn btn-outline-secondary btn-sm" onclick="viewAsset(${a.asset_id})"
+      <td class="d-flex gap-1">
+        <button class="btn btn-outline-warning btn-sm py-0 px-2" onclick="openBreakdownModal(${a.asset_id})"
+          title="Log a breakdown for this asset">
+          <i class="bi bi-exclamation-triangle"></i>
+        </button>
+        <button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="viewAsset(${a.asset_id})"
           data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="View asset details and maintenance history">
           <i class="bi bi-eye"></i>
         </button>
@@ -213,19 +1233,23 @@ async function loadAssets() {
 async function loadSchedules() {
   const data = await ATCA.api.get('/mod11/schedules');
   ATCA.table.render('schedules-tbody', data || [], s => {
-    const rag = s.rag_status === 'OVERDUE' ? 'danger' : s.rag_status === 'DUE_SOON' ? 'warning' : 'success';
+    const rag   = s.rag_status === 'OVERDUE' ? 'danger' : s.rag_status === 'DUE_SOON' ? 'warning' : 'success';
+    const asset = _assets.find(a => a.name === s.asset_name) || {};
+    const assetCode = asset.asset_code || '—';
+    const assetId   = asset.asset_id   || null;
+    const freqLabel = s.frequency_days ? `Every ${s.frequency_days}d` : (s.frequency_value ? `${s.frequency_value} × ${s.frequency_type}` : '—');
+    const safeName  = (s.asset_name || '').replace(/'/g, "\\'");
     return `<tr>
-      <td><strong>${s.asset_code}</strong> ${s.asset_name}</td>
-      <td><span class="badge bg-secondary">${s.category}</span></td>
-      <td>${s.frequency_value} × ${s.frequency_type}</td>
-      <td>${s.next_due_date}</td>
+      <td><strong>${assetCode}</strong><br><small>${s.asset_name || '—'}</small></td>
+      <td><span class="badge bg-secondary">${asset.category || '—'}</span></td>
+      <td>${freqLabel}</td>
+      <td>${s.next_due_date || '—'}</td>
       <td>${s.nadcap_flag ? '<span class="badge bg-info">NADCAP</span>' : '—'}</td>
-      <td>${s.assigned_name || '—'}</td>
+      <td>${s.assigned_name || s.task_description || '—'}</td>
       <td><span class="badge bg-${rag}">${s.rag_status}</span></td>
       <td>
-        <button class="btn btn-outline-primary btn-sm" onclick="completeSchedule(${s.schedule_id}, ${s.asset_id})"
-          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Record PM completion for this schedule">
-          <i class="bi bi-check2-circle"></i>
+        <button class="btn btn-outline-primary btn-sm py-0 px-2" onclick="openPmModal(${s.schedule_id}, ${assetId}, '${assetCode}', '${safeName}')">
+          <i class="bi bi-clipboard2-check me-1"></i>Complete PM
         </button>
       </td>
     </tr>`;
@@ -233,23 +1257,27 @@ async function loadSchedules() {
 }
 
 async function loadPermits() {
-  const stat = document.getElementById('filter-permit-status').value;
+  const stat   = document.getElementById('filter-permit-status').value;
   const params = stat ? '?status=' + stat : '';
-  const data = await ATCA.api.get('/mod11/permits' + params);
+  const data   = await ATCA.api.get('/mod11/permits' + params);
   ATCA.table.render('permits-tbody', data || [], p => {
-    const sc = p.status === 'ACTIVE' ? 'success' : p.status === 'OPEN' ? 'warning' : p.status === 'CLOSED' ? 'secondary' : 'danger';
+    const stat = p.status || 'OPEN';
+    const sc   = stat === 'ACTIVE' || stat === 'APPROVED' ? 'success' : stat === 'OPEN' || stat === 'PENDING' ? 'warning' : stat === 'CLOSED' ? 'secondary' : 'danger';
+    const risk = p.risk_level ? `<span class="badge bg-${p.risk_level === 'HIGH' ? 'danger' : p.risk_level === 'MEDIUM' ? 'warning text-dark' : 'secondary'}">${p.risk_level}</span>` : '—';
     return `<tr>
-      <td><strong>${p.permit_number}</strong></td>
-      <td>${p.asset_code} ${p.asset_name}</td>
-      <td><span class="badge bg-danger">${p.hazard_type}</span></td>
-      <td>${p.description}</td>
+      <td><strong>${p.permit_number || '—'}</strong></td>
+      <td>${p.asset_code || ''} ${p.asset_name || p.location || '—'}</td>
+      <td>${risk}</td>
+      <td>${p.description || p.work_description || '—'}</td>
       <td>${p.authorised_by_name || '—'}</td>
-      <td><span class="badge bg-${sc}">${p.status}</span></td>
+      <td><span class="badge bg-${sc}">${stat}</span></td>
       <td>
-        ${p.status === 'OPEN' ? `<button class="btn btn-success btn-sm" onclick="activatePermit(${p.permit_id})"
-          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Activate and authorise work permit">Activate</button>` : ''}
-        ${p.status === 'ACTIVE' ? `<button class="btn btn-secondary btn-sm" onclick="closePermit(${p.permit_id})"
-          data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Close completed work permit">Close</button>` : ''}
+        ${stat === 'OPEN' || stat === 'PENDING'
+          ? `<button class="btn btn-success btn-sm" onclick="activatePermit(${p.permit_id})"
+              data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Activate and authorise work permit">Activate</button>` : ''}
+        ${stat === 'ACTIVE' || stat === 'APPROVED'
+          ? `<button class="btn btn-secondary btn-sm" onclick="closePermit(${p.permit_id})"
+              data-compliance="AS9100D §7.1.3" data-linked="MOD-11" data-action-desc="Close completed work permit">Close</button>` : ''}
       </td>
     </tr>`;
   });
@@ -260,13 +1288,13 @@ function openNewPermitModal() { permitModal.show(); }
 
 async function saveAsset() {
   const payload = {
-    name: document.getElementById('a-name').value.trim(),
+    name:     document.getElementById('a-name').value.trim(),
     category: document.getElementById('a-category').value,
-    make: document.getElementById('a-make').value.trim() || null,
-    model: document.getElementById('a-model').value.trim() || null,
-    serial_no: document.getElementById('a-serial').value.trim() || null,
+    make:     document.getElementById('a-make').value.trim() || null,
+    model:    document.getElementById('a-model').value.trim() || null,
+    serial_no:document.getElementById('a-serial').value.trim() || null,
     location: document.getElementById('a-location').value.trim() || null,
-    notes: document.getElementById('a-notes').value.trim() || null,
+    notes:    document.getElementById('a-notes').value.trim() || null,
   };
   if (!payload.name) return ATCA.toast('Asset name required', 'danger');
   const r = await ATCA.api.post('/mod11/assets', payload);
@@ -275,11 +1303,11 @@ async function saveAsset() {
 
 async function savePermit() {
   const payload = {
-    asset_id: parseInt(document.getElementById('p-asset-id').value),
-    hazard_type: document.getElementById('p-hazard').value,
-    description: document.getElementById('p-desc').value.trim(),
+    asset_id:           parseInt(document.getElementById('p-asset-id').value),
+    hazard_type:        document.getElementById('p-hazard').value,
+    description:        document.getElementById('p-desc').value.trim(),
     safety_precautions: document.getElementById('p-safety').value.trim() || null,
-    ppe_required: document.getElementById('p-ppe').value.trim() || null,
+    ppe_required:       document.getElementById('p-ppe').value.trim() || null,
   };
   if (!payload.asset_id || !payload.description) return ATCA.toast('Asset and description required', 'danger');
   const r = await ATCA.api.post('/mod11/permits', payload);
@@ -290,25 +1318,36 @@ async function activatePermit(id) {
   const r = await ATCA.api.patch(`/mod11/permits/${id}/status`, { status: 'ACTIVE' });
   if (r) { ATCA.toast('Work permit activated', 'success'); loadPermits(); loadKpis(); }
 }
-
 async function closePermit(id) {
   const r = await ATCA.api.patch(`/mod11/permits/${id}/status`, { status: 'CLOSED' });
   if (r) { ATCA.toast('Work permit closed', 'success'); loadPermits(); loadKpis(); }
-}
-
-async function completeSchedule(schedId, assetId) {
-  const r = await ATCA.api.post('/mod11/records', {
-    asset_id: assetId, schedule_id: schedId, type: 'PM',
-    start_datetime: new Date().toISOString(), outcome: 'PASS',
-  });
-  if (r) { ATCA.toast('PM recorded', 'success'); loadSchedules(); loadKpis(); }
 }
 
 async function viewAsset(id) { ATCA.toast('Asset detail view — open job card in full implementation', 'info'); }
 
 document.getElementById('filter-category').addEventListener('change', loadAssets);
 document.getElementById('filter-status').addEventListener('change', loadAssets);
+document.getElementById('filter-permit-status').addEventListener('change', loadPermits);
 
+async function init() {
+  await ATCA.initPage();
+  seedDemoData();
+  seedChecklistData();
+  await loadKpis();
+  await loadAssets();
+  ATCA.tooltips.init();
+  updateBadges();
+  document.querySelectorAll('[data-bs-toggle="tab"]').forEach(t =>
+    t.addEventListener('shown.bs.tab', e => {
+      const href = e.target.getAttribute('href');
+      if (href === '#tab-schedules')  loadSchedules();
+      if (href === '#tab-permits')    loadPermits();
+      if (href === '#tab-records')    renderRecords();
+      if (href === '#tab-breakdowns') renderBreakdowns();
+      if (href === '#tab-checklists') renderChecklists();
+    })
+  );
+}
 init();
 </script>
 </body>

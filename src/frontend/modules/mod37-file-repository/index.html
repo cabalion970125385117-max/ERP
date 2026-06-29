@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Repository — ATCA-ERP</title>
+  <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/assets/fonts/bootstrap-icons.css">
+  <link rel="stylesheet" href="/assets/css/atca-erp.css">
+</head>
+<body>
+<nav id="atca-sidebar"></nav>
+<div class="atca-main">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <button id="sidebar-toggle" class="btn btn-outline-secondary btn-sm d-md-none me-2">
+      <i class="bi bi-list"></i>
+    </button>
+    <div>
+      <div class="topbar-title"><i class="bi bi-folder2-open me-2"></i>File Repository</div>
+      <div class="topbar-subtitle">MOD-37 · Central Document Store · AS9100D §7.5</div>
+    </div>
+    <div class="topbar-alerts">
+      <span id="nav-alerts"></span>
+      <button id="topbar-alert-btn" class="btn btn-sm btn-link text-muted p-0" style="font-size:1.1rem;">
+        <i class="bi bi-bell"></i>
+      </button>
+      <button id="user-menu-btn" class="btn btn-sm" style="border-radius:20px;background:var(--atca-light);border:1px solid var(--atca-border);padding:.25rem .75rem;">
+        <span id="user-avatar" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--atca-blue);color:#fff;font-size:.7rem;font-weight:700;margin-right:.4rem;"></span>
+        <span id="user-name" style="font-size:.78rem;"></span>
+        <i class="bi bi-chevron-down ms-1" style="font-size:.65rem;"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGE CONTENT -->
+  <main class="page-content">
+    <nav class="atca-breadcrumb"><a href="/">Home</a> / File Repository</nav>
+
+    <!-- KPI CARDS -->
+    <div class="row g-3 mb-4" id="kpi-row">
+      <div class="col-6 col-md">
+        <div class="kpi-card rag-green" id="kpi-total">
+          <div class="kpi-label">Total Files</div>
+          <div class="kpi-value" id="kv-total">—</div>
+          <div class="kpi-sub">In repository</div>
+        </div>
+      </div>
+      <div class="col-6 col-md">
+        <div class="kpi-card" id="kpi-size">
+          <div class="kpi-label">Storage Used</div>
+          <div class="kpi-value" id="kv-size">—</div>
+          <div class="kpi-sub">Estimated (data URLs)</div>
+        </div>
+      </div>
+      <div class="col-6 col-md">
+        <div class="kpi-card" id="kpi-month">
+          <div class="kpi-label">This Month</div>
+          <div class="kpi-value" id="kv-month">—</div>
+          <div class="kpi-sub">Files uploaded</div>
+        </div>
+      </div>
+      <div class="col-6 col-md">
+        <div class="kpi-card" id="kpi-modules">
+          <div class="kpi-label">Modules Linked</div>
+          <div class="kpi-value" id="kv-modules">—</div>
+          <div class="kpi-sub">Contributing modules</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-tabs mb-3" id="mainTabs">
+      <li class="nav-item"><a class="nav-link active" href="#tab-browser" data-bs-toggle="tab"><i class="bi bi-table me-1"></i>File Browser</a></li>
+      <li class="nav-item"><a class="nav-link" href="#tab-upload" data-bs-toggle="tab"><i class="bi bi-cloud-upload me-1"></i>Upload File</a></li>
+      <li class="nav-item"><a class="nav-link" href="#tab-overview" data-bs-toggle="tab"><i class="bi bi-bar-chart me-1"></i>Storage Overview</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+      <!-- ===== FILE BROWSER TAB ===== -->
+      <div class="tab-pane fade show active" id="tab-browser">
+        <div class="atca-card">
+          <div class="atca-card-header d-flex align-items-center gap-2 flex-wrap">
+            <i class="bi bi-folder2-open" style="color:var(--atca-blue)"></i>
+            <h5 class="mb-0">All Files</h5>
+            <div class="ms-auto d-flex gap-2 flex-wrap">
+              <input type="text" id="search-files" class="form-control form-control-sm" style="width:200px" placeholder="Search filename…">
+              <select id="filter-module" class="form-select form-select-sm" style="width:150px">
+                <option value="">All Modules</option>
+              </select>
+              <select id="filter-tag" class="form-select form-select-sm" style="width:140px">
+                <option value="">All Types</option>
+                <option value="COC">COC</option>
+                <option value="EVIDENCE">Evidence</option>
+                <option value="MSDS">MSDS/SDS</option>
+                <option value="CALIBRATION">Calibration</option>
+                <option value="AUDIT">Audit</option>
+                <option value="PERMIT">Work Permit</option>
+                <option value="TRAINING">Training</option>
+                <option value="DOCUMENT">Document</option>
+              </select>
+            </div>
+          </div>
+          <div class="atca-card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover table-sm align-middle mb-0" style="font-size:.83rem">
+                <thead class="table-dark">
+                  <tr>
+                    <th>File ID</th>
+                    <th>Module</th>
+                    <th>Type</th>
+                    <th>Filename</th>
+                    <th>Linked To</th>
+                    <th>Size</th>
+                    <th>Uploaded By</th>
+                    <th>Date</th>
+                    <th class="text-end text-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="files-tbody">
+                  <tr><td colspan="9" class="text-center text-muted py-4">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== UPLOAD TAB ===== -->
+      <div class="tab-pane fade" id="tab-upload">
+        <div class="atca-card" style="max-width:640px">
+          <div class="atca-card-header">
+            <i class="bi bi-cloud-upload" style="color:var(--atca-blue)"></i>
+            <h5 class="mb-0 ms-2">Upload File to Repository</h5>
+          </div>
+          <div class="atca-card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Source Module <span class="text-danger">*</span></label>
+                <select id="up-module" class="form-select form-select-sm">
+                  <option value="">— Select module —</option>
+                  <option value="MOD-01">MOD-01 QMS Core</option>
+                  <option value="MOD-02">MOD-02 Document Control</option>
+                  <option value="MOD-03">MOD-03 FPI Process</option>
+                  <option value="MOD-04">MOD-04 Personnel</option>
+                  <option value="MOD-05">MOD-05 Equipment &amp; Cal</option>
+                  <option value="MOD-06">MOD-06 Bath Control</option>
+                  <option value="MOD-07">MOD-07 NCR &amp; CAPA</option>
+                  <option value="MOD-08">MOD-08 Audit Management</option>
+                  <option value="MOD-09">MOD-09 Sales &amp; Customer</option>
+                  <option value="MOD-10">MOD-10 Production</option>
+                  <option value="MOD-11">MOD-11 Maintenance</option>
+                  <option value="MOD-12">MOD-12 Purchasing</option>
+                  <option value="MOD-13">MOD-13 Work Order</option>
+                  <option value="MOD-14">MOD-14 Inventory</option>
+                  <option value="MOD-17">MOD-17 MPT Process</option>
+                  <option value="MOD-19">MOD-19 Laboratory</option>
+                  <option value="MOD-24">MOD-24 Certificate of Conformance</option>
+                  <option value="MOD-33">MOD-33 Spec &amp; Flowdown</option>
+                  <option value="MOD-34">MOD-34 Chemical &amp; Hazmat</option>
+                  <option value="MOD-35">MOD-35 Regulatory Certs</option>
+                  <option value="MOD-36">MOD-36 Equipment PPM</option>
+                  <option value="SYSTEM">SYSTEM</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">File Type / Tag <span class="text-danger">*</span></label>
+                <select id="up-tag" class="form-select form-select-sm">
+                  <option value="">— Select type —</option>
+                  <option value="COC">COC — Certificate of Conformance</option>
+                  <option value="EVIDENCE">Evidence — Compliance/Extension</option>
+                  <option value="MSDS">MSDS/SDS — Safety Data Sheet</option>
+                  <option value="CALIBRATION">Calibration Certificate</option>
+                  <option value="AUDIT">Audit Finding / Report</option>
+                  <option value="PERMIT">Work Permit</option>
+                  <option value="TRAINING">Training Record</option>
+                  <option value="DOCUMENT">Document (General)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Entity Type</label>
+                <input type="text" id="up-entity-type" class="form-control form-control-sm" placeholder="e.g. lot_extension, calibration">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Entity ID / Reference</label>
+                <input type="text" id="up-entity-id" class="form-control form-control-sm" placeholder="e.g. LOT-2026-001, CAL-2026-005">
+              </div>
+              <div class="col-12">
+                <label class="form-label">File <span class="text-danger">*</span></label>
+                <input type="file" id="up-file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx">
+                <div class="form-text">Accepted: PDF, JPG, PNG, DOCX, XLSX. Stored as data URL in browser localStorage.</div>
+              </div>
+              <div class="col-12">
+                <div id="up-error" class="alert alert-danger py-1 px-2 small d-none"></div>
+                <button class="btn btn-primary btn-sm" onclick="uploadFile()">
+                  <i class="bi bi-cloud-upload me-1"></i>Upload to Repository
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STORAGE OVERVIEW TAB ===== -->
+      <div class="tab-pane fade" id="tab-overview">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="atca-card h-100">
+              <div class="atca-card-header">
+                <i class="bi bi-bar-chart" style="color:var(--atca-blue)"></i>
+                <h5 class="mb-0 ms-2">Files by Module</h5>
+              </div>
+              <div class="atca-card-body" id="overview-by-module">
+                <div class="text-center text-muted py-3">Loading…</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="atca-card h-100">
+              <div class="atca-card-header">
+                <i class="bi bi-tags" style="color:var(--atca-blue)"></i>
+                <h5 class="mb-0 ms-2">Files by Type</h5>
+              </div>
+              <div class="atca-card-body" id="overview-by-tag">
+                <div class="text-center text-muted py-3">Loading…</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="atca-card">
+              <div class="atca-card-header">
+                <i class="bi bi-clock-history" style="color:var(--atca-blue)"></i>
+                <h5 class="mb-0 ms-2">Recent Uploads (Last 10)</h5>
+              </div>
+              <div class="atca-card-body" id="overview-recent">
+                <div class="text-center text-muted py-3">Loading…</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-content -->
+  </main>
+</div>
+
+<!-- ===== VIEW FILE MODAL ===== -->
+<div class="modal fade" id="viewFileModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-file-earmark me-2"></i><span id="vf-title">File Details</span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-sm table-bordered" style="font-size:.83rem">
+          <tbody id="vf-tbody"></tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary btn-sm" id="vf-open-btn"><i class="bi bi-box-arrow-up-right me-1"></i>Open File</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION TIMEOUT MODAL -->
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">Session Expiring</h5>
+      </div>
+      <div class="modal-body">
+        <p>Your session will expire in <strong><span id="timeout-countdown">5:00</span></strong>.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" onclick="ATCA.session.logout()">Log Out</button>
+        <button class="btn btn-primary btn-sm" onclick="ATCA.session.extend()">Stay Logged In</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/assets/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/js/atca-demo.js?v=1"></script>
+<script src="/assets/js/atca-core.js?v=7"></script>
+<script>
+'use strict';
+
+const TAG_COLOR = {
+  COC:         'primary',
+  EVIDENCE:    'warning',
+  MSDS:        'danger',
+  CALIBRATION: 'info',
+  AUDIT:       'secondary',
+  PERMIT:      'dark',
+  TRAINING:    'success',
+  DOCUMENT:    'light',
+};
+const TAG_LABEL = {
+  COC:         'COC',
+  EVIDENCE:    'Evidence',
+  MSDS:        'MSDS/SDS',
+  CALIBRATION: 'Calibration',
+  AUDIT:       'Audit',
+  PERMIT:      'Work Permit',
+  TRAINING:    'Training',
+  DOCUMENT:    'Document',
+};
+
+const viewFileModal = new bootstrap.Modal(document.getElementById('viewFileModal'));
+let _currentFileId  = null;
+
+/* ---- helpers ---- */
+function esc(s) { return ATCA.utils.escHtml(String(s || '')); }
+function fmtBytes(b) {
+  if (!b) return '—';
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-SG', { day:'2-digit', month:'short', year:'numeric' });
+}
+function tagBadge(tag) {
+  const c = TAG_COLOR[tag] || 'secondary';
+  const l = TAG_LABEL[tag] || tag;
+  const textDark = ['warning','light'].includes(c) ? ' text-dark' : '';
+  return `<span class="badge bg-${c}${textDark}">${esc(l)}</span>`;
+}
+function moduleBadge(mod) {
+  return `<span class="badge" style="background:var(--atca-navy);font-size:.65rem">${esc(mod)}</span>`;
+}
+
+/* ---- seed demo files ---- */
+function _seedDemoFiles() {
+  if (ATCA.fileStore.list().length > 0) return;
+  const now = Date.now();
+  const dAgo = days => new Date(now - days * 86400000).toISOString();
+
+  function demoUrl(name, mod, tag) {
+    const html = '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem;max-width:600px;margin:0 auto">'
+      + '<h2 style="color:#1B2A4A">' + name + '</h2>'
+      + '<p style="color:#6C757D">Module: <strong>' + mod + '</strong> - Type: <strong>' + tag + '</strong></p>'
+      + '<p style="color:#6C757D">Demo file - ATCA-ERP Preview Mode</p></body></html>';
+    return 'data:text/html;base64,' + btoa(unescape(encodeURIComponent(html)));
+  }
+
+  const seeds = [
+    { module:'MOD-02', entity_type:'document',      entity_id:'DOC-2026-0001', filename:'SPC-ANODIZE-TYPE-II-REV3.pdf',    file_tag:'DOCUMENT',    mime_type:'application/pdf', size_bytes:245760, uploaded_by:'James Tan',   uploaded_at:dAgo(45) },
+    { module:'MOD-05', entity_type:'calibration',   entity_id:'CAL-2026-0012', filename:'UV_LAMP_UV001_CAL_CERT.pdf',      file_tag:'CALIBRATION', mime_type:'application/pdf', size_bytes:131072, uploaded_by:'Hendrich Lim', uploaded_at:dAgo(30) },
+    { module:'MOD-08', entity_type:'audit_finding', entity_id:'AF-2026-0003',  filename:'NADCAP_FINDING_AF003_EVIDENCE.pdf', file_tag:'AUDIT',    mime_type:'application/pdf', size_bytes:89088,  uploaded_by:'James Tan',   uploaded_at:dAgo(22) },
+    { module:'MOD-11', entity_type:'work_permit',   entity_id:'WP-2026-0021',  filename:'WORK_PERMIT_WP021_SIGNED.pdf',    file_tag:'PERMIT',      mime_type:'application/pdf', size_bytes:46080,  uploaded_by:'Azman Ayub',  uploaded_at:dAgo(18) },
+    { module:'MOD-14', entity_type:'receipt',       entity_id:'LOT-2026-001',  filename:'COC_LOT2026001_ARDROX.pdf',       file_tag:'COC',         mime_type:'application/pdf', size_bytes:193536, uploaded_by:'Cabal Lo',    uploaded_at:dAgo(12) },
+    { module:'MOD-14', entity_type:'lot_extension', entity_id:'LOT-2026-001',  filename:'LOT_EXT_EVIDENCE_LOT2026001.pdf', file_tag:'EVIDENCE',    mime_type:'application/pdf', size_bytes:239616, uploaded_by:'James Tan',   uploaded_at:dAgo(8)  },
+    { module:'MOD-19', entity_type:'sds',           entity_id:'SDS-H2SO4',     filename:'SDS_H2SO4_SULFURIC_ACID_V2.pdf', file_tag:'MSDS',        mime_type:'application/pdf', size_bytes:319488, uploaded_by:'Gary Tan',    uploaded_at:dAgo(6)  },
+    { module:'MOD-24', entity_type:'coc',           entity_id:'COC-2026-0008', filename:'COC_2026_0008_ISSUED.pdf',        file_tag:'COC',         mime_type:'application/pdf', size_bytes:159744, uploaded_by:'James Tan',   uploaded_at:dAgo(4)  },
+    { module:'MOD-04', entity_type:'training',      entity_id:'ATCA-002',      filename:'TRAINING_REC_HENDRICH_FPI_2026.pdf', file_tag:'TRAINING', mime_type:'application/pdf', size_bytes:100352, uploaded_by:'James Tan',   uploaded_at:dAgo(2)  },
+    { module:'MOD-33', entity_type:'ecn',           entity_id:'ECN-2026-0002', filename:'ECN_002_CUSTOMER_APPROVAL_BOEING.pdf', file_tag:'DOCUMENT', mime_type:'application/pdf', size_bytes:204800, uploaded_by:'James Tan',  uploaded_at:dAgo(1)  },
+    { module:'MOD-35', entity_type:'cert',          entity_id:'CERT-NADCAP-AC7108', filename:'NADCAP_AC7108_CERT_2026.pdf', file_tag:'DOCUMENT',  mime_type:'application/pdf', size_bytes:178176, uploaded_by:'James Tan',   uploaded_at:dAgo(0)  },
+  ];
+
+  seeds.forEach(s => {
+    const url = demoUrl(s.filename, s.module, s.file_tag);
+    const rec = Object.assign({}, s);
+    ATCA.fileStore.put(rec, url);
+  });
+}
+
+/* ---- render file browser ---- */
+function getFilteredFiles() {
+  const q   = document.getElementById('search-files').value.trim().toLowerCase();
+  const mod = document.getElementById('filter-module').value;
+  const tag = document.getElementById('filter-tag').value;
+  let files = ATCA.fileStore.list();
+  if (mod) files = files.filter(f => f.module === mod);
+  if (tag) files = files.filter(f => f.file_tag === tag);
+  if (q)   files = files.filter(f => f.filename.toLowerCase().includes(q) || f.file_id.toLowerCase().includes(q) || f.entity_id.toLowerCase().includes(q));
+  return files.slice().sort((a, b) => b.uploaded_at.localeCompare(a.uploaded_at));
+}
+
+function renderBrowser() {
+  const files = getFilteredFiles();
+  const tbody = document.getElementById('files-tbody');
+  if (!files.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No files found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = files.map(f => `
+    <tr>
+      <td><code style="font-size:.75rem">${esc(f.file_id)}</code></td>
+      <td>${moduleBadge(f.module)}</td>
+      <td>${tagBadge(f.file_tag)}</td>
+      <td>
+        <i class="bi bi-file-earmark-pdf text-danger me-1"></i>
+        <span title="${esc(f.filename)}">${esc(f.filename.length > 35 ? f.filename.slice(0,32)+'…' : f.filename)}</span>
+      </td>
+      <td>
+        <span class="text-muted" style="font-size:.75rem">${esc(f.entity_type || '—')}</span><br>
+        <code style="font-size:.72rem">${esc(f.entity_id || '—')}</code>
+      </td>
+      <td class="text-nowrap">${fmtBytes(f.size_bytes)}</td>
+      <td>${esc(f.uploaded_by || '—')}</td>
+      <td class="text-nowrap">${fmtDate(f.uploaded_at)}</td>
+      <td class="text-end text-nowrap">
+        <button class="btn btn-outline-primary btn-sm me-1" title="View details" onclick="viewFile('${esc(f.file_id)}')">
+          <i class="bi bi-eye"></i>
+        </button>
+        <button class="btn btn-outline-secondary btn-sm me-1" title="Open file" onclick="ATCA.fileStore.open('${esc(f.file_id)}')">
+          <i class="bi bi-box-arrow-up-right"></i>
+        </button>
+        <button class="btn btn-outline-danger btn-sm" title="Delete" onclick="deleteFile('${esc(f.file_id)}')">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+function viewFile(fileId) {
+  const f = ATCA.fileStore.get(fileId);
+  if (!f) return;
+  _currentFileId = fileId;
+  document.getElementById('vf-title').textContent = f.filename;
+  document.getElementById('vf-tbody').innerHTML = [
+    ['File ID',      `<code>${esc(f.file_id)}</code>`],
+    ['Module',       moduleBadge(f.module)],
+    ['File Type',    tagBadge(f.file_tag)],
+    ['Filename',     esc(f.filename)],
+    ['Entity Type',  esc(f.entity_type || '—')],
+    ['Entity ID',    `<code>${esc(f.entity_id || '—')}</code>`],
+    ['MIME Type',    esc(f.mime_type || '—')],
+    ['Size',         fmtBytes(f.size_bytes)],
+    ['Uploaded By',  esc(f.uploaded_by || '—')],
+    ['Uploaded At',  esc(new Date(f.uploaded_at).toLocaleString('en-SG'))],
+  ].map(([k,v]) => `<tr><td style="width:140px;font-weight:600;color:var(--atca-muted);font-size:.78rem">${k}</td><td style="font-size:.83rem">${v}</td></tr>`).join('');
+  document.getElementById('vf-open-btn').onclick = () => ATCA.fileStore.open(fileId);
+  viewFileModal.show();
+}
+
+function deleteFile(fileId) {
+  const f = ATCA.fileStore.get(fileId);
+  if (!f) return;
+  if (!confirm(`Delete "${f.filename}" from repository?\nThis cannot be undone.`)) return;
+  ATCA.fileStore.remove(fileId);
+  ATCA.toast('File deleted from repository.', 'success');
+  renderAll();
+}
+
+/* ---- render storage overview ---- */
+function renderOverview() {
+  const files = ATCA.fileStore.list();
+  if (!files.length) {
+    ['overview-by-module','overview-by-tag','overview-recent'].forEach(id =>
+      document.getElementById(id).innerHTML = '<p class="text-muted text-center py-2">No files.</p>');
+    return;
+  }
+
+  // By module
+  const byMod = {};
+  files.forEach(f => { byMod[f.module] = (byMod[f.module] || 0) + 1; });
+  const maxMod = Math.max(...Object.values(byMod));
+  document.getElementById('overview-by-module').innerHTML =
+    Object.entries(byMod).sort((a,b) => b[1]-a[1]).map(([m,c]) => `
+      <div class="mb-2">
+        <div class="d-flex justify-content-between mb-1">
+          <span style="font-size:.8rem;font-weight:600">${esc(m)}</span>
+          <span class="text-muted" style="font-size:.78rem">${c} file${c!==1?'s':''}</span>
+        </div>
+        <div class="progress" style="height:8px">
+          <div class="progress-bar" style="width:${Math.round(c/maxMod*100)}%;background:var(--atca-blue)"></div>
+        </div>
+      </div>`).join('');
+
+  // By tag
+  const byTag = {};
+  files.forEach(f => { byTag[f.file_tag] = (byTag[f.file_tag] || 0) + 1; });
+  const maxTag = Math.max(...Object.values(byTag));
+  document.getElementById('overview-by-tag').innerHTML =
+    Object.entries(byTag).sort((a,b) => b[1]-a[1]).map(([t,c]) => `
+      <div class="mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          ${tagBadge(t)}
+          <span class="text-muted" style="font-size:.78rem">${c} file${c!==1?'s':''}</span>
+        </div>
+        <div class="progress" style="height:8px">
+          <div class="progress-bar bg-secondary" style="width:${Math.round(c/maxTag*100)}%"></div>
+        </div>
+      </div>`).join('');
+
+  // Recent uploads
+  const recent = files.slice().sort((a,b) => b.uploaded_at.localeCompare(a.uploaded_at)).slice(0,10);
+  document.getElementById('overview-recent').innerHTML = `
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0" style="font-size:.8rem">
+        <thead class="table-dark"><tr><th>File</th><th>Module</th><th>Type</th><th>Date</th><th class="text-end">Size</th></tr></thead>
+        <tbody>
+          ${recent.map(f => `<tr>
+            <td><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${esc(f.filename.length>40?f.filename.slice(0,37)+'…':f.filename)}</td>
+            <td>${moduleBadge(f.module)}</td>
+            <td>${tagBadge(f.file_tag)}</td>
+            <td class="text-nowrap">${fmtDate(f.uploaded_at)}</td>
+            <td class="text-end text-nowrap">${fmtBytes(f.size_bytes)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+/* ---- upload ---- */
+function uploadFile() {
+  const mod     = document.getElementById('up-module').value.trim();
+  const tag     = document.getElementById('up-tag').value.trim();
+  const eType   = document.getElementById('up-entity-type').value.trim();
+  const eId     = document.getElementById('up-entity-id').value.trim();
+  const fileEl  = document.getElementById('up-file');
+  const errEl   = document.getElementById('up-error');
+
+  errEl.classList.add('d-none');
+  if (!mod || !tag || !fileEl.files.length) {
+    errEl.textContent = 'Module, File Type, and File are required.';
+    errEl.classList.remove('d-none');
+    return;
+  }
+
+  const file = fileEl.files[0];
+  const reader = new FileReader();
+  reader.onload = e => {
+    const fileId = ATCA.fileStore.put({
+      module:      mod,
+      entity_type: eType,
+      entity_id:   eId,
+      filename:    file.name,
+      mime_type:   file.type || 'application/octet-stream',
+      size_bytes:  file.size,
+      file_tag:    tag,
+    }, e.target.result);
+    ATCA.toast(`File stored: ${file.name} → ${fileId}`, 'success');
+    // clear form
+    document.getElementById('up-module').value = '';
+    document.getElementById('up-tag').value    = '';
+    document.getElementById('up-entity-type').value = '';
+    document.getElementById('up-entity-id').value   = '';
+    fileEl.value = '';
+    renderAll();
+    // switch to browser tab
+    document.querySelector('[href="#tab-browser"]').click();
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---- update KPIs ---- */
+function updateKpis() {
+  const s = ATCA.fileStore.summary();
+  document.getElementById('kv-total').textContent   = s.total;
+  document.getElementById('kv-size').textContent    = fmtBytes(s.total_bytes);
+  document.getElementById('kv-month').textContent   = s.this_month;
+  document.getElementById('kv-modules').textContent = s.modules;
+
+  // RAG: red if no files, green otherwise
+  document.getElementById('kpi-total').className = 'kpi-card ' + (s.total > 0 ? 'rag-green' : 'rag-red');
+}
+
+/* ---- populate module filter dropdown ---- */
+function populateModuleFilter() {
+  const mods = [...new Set(ATCA.fileStore.list().map(f => f.module))].sort();
+  const sel  = document.getElementById('filter-module');
+  sel.innerHTML = '<option value="">All Modules</option>'
+    + mods.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
+}
+
+/* ---- render everything ---- */
+function renderAll() {
+  updateKpis();
+  populateModuleFilter();
+  renderBrowser();
+  renderOverview();
+}
+
+/* ---- wire filters ---- */
+['search-files','filter-module','filter-tag'].forEach(id =>
+  document.getElementById(id).addEventListener('input', renderBrowser));
+
+document.querySelector('[href="#tab-overview"]').addEventListener('shown.bs.tab', renderOverview);
+
+/* ---- init ---- */
+(async () => {
+  await ATCA.initPage();
+  _seedDemoFiles();
+  renderAll();
+})();
+</script>
+</body>
+</html>

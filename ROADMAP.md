@@ -4,7 +4,7 @@
 
 This roadmap turns the structure-driven feature suggestions into sequenced, shippable phases. It is grounded in **ATC's actual structure** as evidenced by `ATC-PCM-001` (bays, tanks, ovens, customers), the SoR, and the 29 modules already built — *not* a generic ERP backlog.
 
-> **Built to date (Phases 1–8 + recent):** MOD-01…MOD-29, Change Log, Bug Report, Internal Chat, KPI Dashboard, Value Flow Tracker, Process Capability Master (PCM), Customer Qualification, plus the MOD-06 FPI/Electroplating split. See `MEMORY.md` / `PCM-QUAL-DEVPLAN.md`.
+> **Built to date (Phases 1–12 + enhancements):** MOD-01…MOD-36, Change Log, Bug Report, Internal Chat, KPI Dashboard, Value Flow Tracker, Process Capability Master (PCM), Customer Qualification, MOD-06 FPI/Electroplating split, plus **MOD-14 major enhancement (2026-06-24)**: lot expiry tracking, Lot Expiry tab, LOT_EXTENSION + DISPOSAL approval flows via `atca_pending_approvals`, Item Lots modal, Scrap popup, vendor/AVL + lead-time per item. See `MEMORY.md` / `MOD14-ENHANCEMENT-2026-06-24.md` / `PCM-QUAL-DEVPLAN.md`.
 
 ## Company structure (the lens for every phase)
 

@@ -22,6 +22,14 @@ STUBS = {
     "POST /api/v1/auth/session-extend": {"message": "Session extended."},
     "POST /api/v1/auth/logout": {"message": "Logged out."},
     "GET /api/v1/alerts/summary": {"total": 3},
+    "GET /api/v1/alerts/list": {"items": [
+        {"severity":"CRITICAL","module":"MOD-04","module_name":"Personnel / NAS410","message":"1 NDT certification has expired","link":"/modules/mod04-ndt-personnel/"},
+        {"severity":"WARNING","module":"MOD-05","module_name":"Equipment & Calibration","message":"1 instrument overdue for calibration","link":"/modules/mod05-equipment-calibration/"},
+        {"severity":"WARNING","module":"MOD-06","module_name":"Chemical / Bath Control","message":"Bath ANO-BK-001 is out of spec","link":"/modules/mod06-bath-control/"},
+    ]},
+    "GET /api/v1/mod37/alerts/summary": {
+        "total_files": 11, "files_this_month": 3, "modules_linked": 8, "total_size_mb": 1.7
+    },
     "GET /api/v1/mod04/alerts/summary": {
         "certs_expiring_90d": 2, "expired_certs": 1,
         "eye_expiring_60d": 1,   "expired_eye_exams": 0, "total": 3
@@ -566,7 +574,13 @@ class ATCAHandler(SimpleHTTPRequestHandler):
                     "username": "admin", "role": "ADMIN",
                     "full_name": "James Tan Wei Liang"
                 })
-            return self.send_json(401, {"message": "Preview mode — use: admin / preview123"})
+            if body.get("username") == "cabal" and body.get("password") == "cabal":
+                return self.send_json(200, {
+                    "message": "Login successful.", "user_id": 7,
+                    "username": "cabal", "role": "ADMIN",
+                    "full_name": "Cabal"
+                })
+            return self.send_json(401, {"message": "Preview mode — use: admin / preview123 or cabal / cabal"})
 
         key = f"POST {path}"
         if key in STUBS:

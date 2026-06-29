@@ -14,6 +14,11 @@ window.ATCA_DEMO = {
   "/alerts/summary": {
     "total": 3
   },
+  "/alerts/list": {"items": [
+    {"severity":"CRITICAL","module":"MOD-04","module_name":"Personnel / NAS410","message":"1 NDT certification has expired","link":"/modules/mod04-ndt-personnel/"},
+    {"severity":"WARNING","module":"MOD-05","module_name":"Equipment & Calibration","message":"1 instrument overdue for calibration","link":"/modules/mod05-equipment-calibration/"},
+    {"severity":"WARNING","module":"MOD-06","module_name":"Chemical / Bath Control","message":"Bath ANO-BK-001 is out of spec","link":"/modules/mod06-bath-control/"}
+  ]},
   "/mod04/alerts/summary": {
     "certs_expiring_90d": 2,
     "expired_certs": 1,

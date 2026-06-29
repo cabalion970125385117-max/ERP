@@ -31,15 +31,21 @@
 
   <div class="tab-content">
     <div class="tab-pane fade show active" id="tab-suppliers">
-      <div class="d-flex justify-content-between mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <select id="filter-sup-status" class="form-select form-select-sm" style="width:180px">
           <option value="">All Approval Statuses</option>
           <option>APPROVED</option><option>CONDITIONAL</option><option>SUSPENDED</option><option>BLACKLISTED</option>
         </select>
-        <button class="btn btn-primary btn-sm" onclick="openSupplierModal()"
-          data-compliance="AS9100D §8.4" data-linked="MOD-12" data-action-desc="Add new supplier to AVL register">
-          <i class="bi bi-plus-circle me-1"></i>New Supplier
-        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-info btn-sm" onclick="openPurchasedItems()"
+            data-bs-toggle="tooltip" title="View all items & chemicals currently purchased by ATCA">
+            <i class="bi bi-boxes me-1"></i>Purchased Items
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openSupplierModal()"
+            data-compliance="AS9100D §8.4" data-linked="MOD-12" data-action-desc="Add new supplier to AVL register">
+            <i class="bi bi-plus-circle me-1"></i>New Supplier
+          </button>
+        </div>
       </div>
       <div class="table-responsive">
         <table class="table table-hover table-sm align-middle">
@@ -155,14 +161,336 @@
   </div></div>
 </div>
 
+<!-- Purchased Items Modal -->
+<div class="modal fade" id="purchasedItemsModal" tabindex="-1">
+  <div class="modal-dialog modal-xl"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title"><i class="bi bi-boxes me-2"></i>Items & Chemicals Purchased by ATCA</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <p class="text-muted small mb-2">All items currently registered in the Inventory (MOD-14). Reflects current stock levels and supplier linkage from PO history.</p>
+      <div class="d-flex gap-2 mb-3">
+        <input id="pi-search" class="form-control form-control-sm" style="max-width:260px" placeholder="Search item / code…" oninput="filterPurchasedItems()" />
+        <select id="pi-cat" class="form-select form-select-sm" style="max-width:180px" onchange="filterPurchasedItems()">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+          <thead class="table-dark"><tr>
+            <th>Item Code</th><th>Name</th><th>Category</th><th>Stock</th><th>Unit</th><th>Location</th><th>Status</th>
+          </tr></thead>
+          <tbody id="pi-tbody"></tbody>
+        </table>
+      </div>
+      <div id="pi-count" class="text-muted small mt-1"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- Supplier Audit Modal -->
+<div class="modal fade" id="supplierAuditModal" tabindex="-1">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+      <h5 class="modal-title"><i class="bi bi-clipboard2-check me-2"></i>Supplier Audit Request</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info py-2 px-3 small mb-3">
+        <i class="bi bi-info-circle me-1"></i><strong>AS9100D §8.4.1</strong> — External supplier audits verify the supplier's quality management system and process controls. Records are retained as objective evidence.
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-8">
+          <label class="form-label fw-semibold">Supplier <span class="text-danger">*</span></label>
+          <input id="aud-supplier-name" class="form-control form-control-sm" readonly />
+          <input type="hidden" id="aud-supplier-id" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Audit Type <span class="text-danger">*</span></label>
+          <select id="aud-type" class="form-select form-select-sm" onchange="updateAuditorDropdown()">
+            <option value="SYSTEM_AUDIT">System Audit (QMS review)</option>
+            <option value="PROCESS_AUDIT">Process Audit (specific process)</option>
+            <option value="PRODUCT_AUDIT">Product Audit (output inspection)</option>
+            <option value="NADCAP_PRE">NADCAP Pre-audit / Witness</option>
+            <option value="INITIAL_APPROVAL">Initial Approval Audit</option>
+            <option value="SURVEILLANCE">Surveillance / Annual Audit</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 mb-2">
+        <div class="col-md-4">
+          <label class="form-label">Planned Date <span class="text-danger">*</span></label>
+          <input id="aud-date" type="date" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Lead Auditor <span class="text-danger">*</span></label>
+          <select id="aud-auditor" class="form-select form-select-sm">
+            <option value="">— Loading personnel… —</option>
+          </select>
+          <div id="aud-training-hint" class="form-text small mt-1"></div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Duration (days)</label>
+          <input id="aud-duration" type="number" min="0.5" step="0.5" class="form-control form-control-sm" value="1" />
+        </div>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Audit Scope <span class="text-danger">*</span></label>
+        <textarea id="aud-scope" class="form-control form-control-sm" rows="2" placeholder="e.g. Chemical bath preparation process, calibration system, document control, AS9100D §8.5 production controls…"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Criteria / Standards</label>
+        <input id="aud-criteria" class="form-control form-control-sm" placeholder="e.g. AS9100D Rev D, NADCAP AC7108, customer-specific requirements" />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Notes</label>
+        <textarea id="aud-notes" class="form-control form-control-sm" rows="2" placeholder="Pre-audit concerns, travel arrangements, points of contact…"></textarea>
+      </div>
+      <!-- Past audits for this supplier -->
+      <div id="aud-history-wrap" class="d-none">
+        <hr class="my-2" />
+        <p class="fw-semibold small mb-1"><i class="bi bi-clock-history me-1"></i>Previous Audits for this Supplier</p>
+        <div class="table-responsive"><table class="table table-sm table-hover align-middle mb-0">
+          <thead class="table-secondary"><tr><th>Date</th><th>Type</th><th>Auditor</th><th>Scope</th><th>Status</th></tr></thead>
+          <tbody id="aud-history-tbody"></tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveAudit()"
+        data-compliance="AS9100D §8.4.1" data-linked="MOD-12" data-action-desc="Schedule external supplier audit">
+        <i class="bi bi-send me-1"></i>Schedule Audit
+      </button>
+    </div>
+  </div></div>
+</div>
+
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-demo.js?v=1"></script>
-<script src="/assets/js/atca-core.js?v=7"></script>
+<script src="/assets/js/atca-core.js?v=8"></script>
 <script>
 'use strict';
-const supplierModal = new bootstrap.Modal(document.getElementById('supplierModal'));
-const prModal = new bootstrap.Modal(document.getElementById('prModal'));
-const poModal = new bootstrap.Modal(document.getElementById('poModal'));
+const supplierModal       = new bootstrap.Modal(document.getElementById('supplierModal'));
+const prModal             = new bootstrap.Modal(document.getElementById('prModal'));
+const poModal             = new bootstrap.Modal(document.getElementById('poModal'));
+const purchasedItemsModal = new bootstrap.Modal(document.getElementById('purchasedItemsModal'));
+const supplierAuditModal  = new bootstrap.Modal(document.getElementById('supplierAuditModal'));
+
+/* ---- Purchased Items ---- */
+let _piItems = [];
+function openPurchasedItems() {
+  const raw = localStorage.getItem('atca_inventory_db');
+  const db  = raw ? JSON.parse(raw) : null;
+  _piItems  = (db && db.items) ? db.items : _demoItems();
+  // populate category filter
+  const cats = [...new Set(_piItems.map(i => i.category).filter(Boolean))].sort();
+  const catSel = document.getElementById('pi-cat');
+  catSel.innerHTML = '<option value="">All Categories</option>' +
+    cats.map(c => `<option>${c}</option>`).join('');
+  document.getElementById('pi-search').value = '';
+  filterPurchasedItems();
+  purchasedItemsModal.show();
+}
+function _demoItems() {
+  return [
+    { item_code:'CHM-001', name:'Sodium Hydroxide (NaOH)', category:'Chemical', qty_on_hand:45, unit:'kg', location:'Chemical Store', hazardous_flag:true },
+    { item_code:'CHM-002', name:'Hydrofluoric Acid (HF)', category:'Chemical', qty_on_hand:8, unit:'L', location:'Chemical Store', hazardous_flag:true },
+    { item_code:'CHM-003', name:'Aluminium Sulphate', category:'Chemical', qty_on_hand:120, unit:'kg', location:'Chemical Store', hazardous_flag:false },
+    { item_code:'PPE-001', name:'Nitrile Gloves (M)', category:'PPE', qty_on_hand:500, unit:'pcs', location:'PPE Store', hazardous_flag:false },
+    { item_code:'PPE-002', name:'Safety Goggles', category:'PPE', qty_on_hand:30, unit:'pcs', location:'PPE Store', hazardous_flag:false },
+    { item_code:'CON-001', name:'Shop Rags (Blue)', category:'Consumable', qty_on_hand:200, unit:'pcs', location:'General Store', hazardous_flag:false },
+    { item_code:'SPARE-001', name:'Filter Element — FPI Tank A', category:'Spare Part', qty_on_hand:4, unit:'pcs', location:'Maintenance Store', hazardous_flag:false },
+    { item_code:'SPARE-002', name:'UV Lamp 365nm 400W', category:'Spare Part', qty_on_hand:2, unit:'pcs', location:'Maintenance Store', hazardous_flag:false },
+  ];
+}
+function filterPurchasedItems() {
+  const q   = document.getElementById('pi-search').value.toLowerCase();
+  const cat = document.getElementById('pi-cat').value;
+  const list = _piItems.filter(i =>
+    (!cat || i.category === cat) &&
+    (!q || (i.item_code||'').toLowerCase().includes(q) || (i.name||'').toLowerCase().includes(q))
+  );
+  const ragCls = i => i.qty_on_hand <= 0 ? 'danger' : i.qty_on_hand <= (i.reorder_level || 5) ? 'warning text-dark' : 'success';
+  const ragLbl = i => i.qty_on_hand <= 0 ? 'Out of Stock' : i.qty_on_hand <= (i.reorder_level || 5) ? 'Low Stock' : 'In Stock';
+  document.getElementById('pi-tbody').innerHTML = list.length ? list.map(i => `<tr>
+    <td><strong>${i.item_code}</strong></td>
+    <td>${i.name}${i.hazardous_flag ? ' <span class="badge bg-danger ms-1" style="font-size:.6rem">HAZMAT</span>' : ''}</td>
+    <td><span class="badge bg-secondary">${i.category||'—'}</span></td>
+    <td>${i.qty_on_hand ?? '—'}</td>
+    <td>${i.unit||'—'}</td>
+    <td>${i.location||'—'}</td>
+    <td><span class="badge bg-${ragCls(i)}">${ragLbl(i)}</span></td>
+  </tr>`).join('') : '<tr><td colspan="7" class="text-center text-muted py-3">No items match.</td></tr>';
+  document.getElementById('pi-count').textContent = `Showing ${list.length} of ${_piItems.length} items`;
+}
+
+/* ---- Supplier Audit ---- */
+const AUDIT_KEY    = 'atca_supplier_audits';
+const TRAINING_KEY = 'atca_training_records';
+function _loadAudits()    { return JSON.parse(localStorage.getItem(AUDIT_KEY)    || '[]'); }
+function _saveAudits(a)   { localStorage.setItem(AUDIT_KEY, JSON.stringify(a)); }
+function _loadTraining()  { return JSON.parse(localStorage.getItem(TRAINING_KEY) || '[]'); }
+
+// Which training code is required for each audit type
+const AUDIT_TRAINING_REQ = {
+  SYSTEM_AUDIT:      'AS9100D_INTERNAL_AUDITOR',
+  SURVEILLANCE:      'AS9100D_INTERNAL_AUDITOR',
+  PROCESS_AUDIT:     'PROCESS_AUDIT_TECHNIQUE',
+  PRODUCT_AUDIT:     'PRODUCT_AUDIT_TECHNIQUE',
+  NADCAP_PRE:        'NADCAP_AUDITOR',
+  INITIAL_APPROVAL:  'SUPPLIER_AUDIT_TECHNIQUE',
+};
+const TRAINING_LABELS = {
+  AS9100D_INTERNAL_AUDITOR: 'AS9100D Internal Auditor (MOD-18)',
+  PROCESS_AUDIT_TECHNIQUE:  'Process Audit Technique (MOD-18)',
+  PRODUCT_AUDIT_TECHNIQUE:  'Product Audit Technique (MOD-18)',
+  NADCAP_AUDITOR:           'NADCAP Auditor Qualification (MOD-18)',
+  SUPPLIER_AUDIT_TECHNIQUE: 'Supplier Audit Technique (MOD-18)',
+};
+
+function _seedTrainingIfEmpty() {
+  if (_loadTraining().length) return;
+  const now = new Date().toISOString().slice(0, 10);
+  const records = [
+    // James Tan — QM: AS9100D Internal Auditor + Supplier Audit
+    { record_id:'TR-001', staff_id:1, staff_name:'James Tan Wei Liang', job_title:'Quality Manager',
+      training_code:'AS9100D_INTERNAL_AUDITOR', training_name:'AS9100D Internal Auditor',
+      completion_date:'2024-03-10', expiry_date:'2027-03-10', provider:'Bureau Veritas', status:'VALID' },
+    { record_id:'TR-002', staff_id:1, staff_name:'James Tan Wei Liang', job_title:'Quality Manager',
+      training_code:'SUPPLIER_AUDIT_TECHNIQUE', training_name:'Supplier Audit Technique',
+      completion_date:'2024-06-01', expiry_date:'2027-06-01', provider:'SGS', status:'VALID' },
+    { record_id:'TR-003', staff_id:1, staff_name:'James Tan Wei Liang', job_title:'Quality Manager',
+      training_code:'PROCESS_AUDIT_TECHNIQUE', training_name:'Process Audit Technique',
+      completion_date:'2023-11-15', expiry_date:'2026-11-15', provider:'In-house', status:'VALID' },
+    // Sarah Lim — NDT Inspector: AS9100D IA + NADCAP Auditor
+    { record_id:'TR-004', staff_id:2, staff_name:'Sarah Lim Mei Ling', job_title:'NDT Level II Inspector',
+      training_code:'AS9100D_INTERNAL_AUDITOR', training_name:'AS9100D Internal Auditor',
+      completion_date:'2025-01-20', expiry_date:'2028-01-20', provider:'TÜV SÜD', status:'VALID' },
+    { record_id:'TR-005', staff_id:2, staff_name:'Sarah Lim Mei Ling', job_title:'NDT Level II Inspector',
+      training_code:'NADCAP_AUDITOR', training_name:'NADCAP Auditor Qualification',
+      completion_date:'2025-03-05', expiry_date:'2028-03-05', provider:'PRI NADCAP', status:'VALID' },
+    // Kevin Raj — Production Tech: no audit training yet (intentionally absent for demo)
+  ];
+  localStorage.setItem(TRAINING_KEY, JSON.stringify(records));
+}
+
+let _allStaff = [];
+async function _ensureStaff() {
+  if (_allStaff.length) return;
+  const data = await ATCA.api.get('/mod18/staff');
+  _allStaff = (data || []).filter(s => s.status === 'ACTIVE');
+}
+
+async function updateAuditorDropdown() {
+  _seedTrainingIfEmpty();
+  await _ensureStaff();
+  const audType  = document.getElementById('aud-type').value;
+  const reqCode  = AUDIT_TRAINING_REQ[audType] || null;
+  const reqLabel = reqCode ? TRAINING_LABELS[reqCode] : null;
+  const training = _loadTraining();
+  const today    = new Date().toISOString().slice(0, 10);
+
+  const sel   = document.getElementById('aud-auditor');
+  const hint  = document.getElementById('aud-training-hint');
+  const opts  = ['<option value="">— Select lead auditor —</option>'];
+  const unqualified = [];
+
+  _allStaff.forEach(s => {
+    if (!reqCode) {
+      opts.push(`<option value="${s.staff_id}" data-name="${s.full_name}">${s.full_name} — ${s.job_title}</option>`);
+      return;
+    }
+    const rec = training.find(t =>
+      String(t.staff_id) === String(s.staff_id) &&
+      t.training_code === reqCode &&
+      t.status === 'VALID' &&
+      (!t.expiry_date || t.expiry_date >= today)
+    );
+    if (rec) {
+      opts.push(`<option value="${s.staff_id}" data-name="${s.full_name}">✓ ${s.full_name} — ${s.job_title}</option>`);
+    } else {
+      unqualified.push(s.full_name);
+    }
+  });
+
+  sel.innerHTML = opts.join('');
+
+  if (reqLabel) {
+    const qualCount = opts.length - 1;
+    if (qualCount === 0) {
+      hint.innerHTML = `<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>No personnel have completed <strong>${reqLabel}</strong>. Record training in MOD-18 first.</span>`;
+    } else {
+      hint.innerHTML = `<span class="text-success"><i class="bi bi-shield-check me-1"></i>Requires: <strong>${reqLabel}</strong></span>`
+        + (unqualified.length ? `<br><span class="text-muted" style="font-size:.75rem">Not qualified: ${unqualified.join(', ')}</span>` : '');
+    }
+  } else {
+    hint.innerHTML = '';
+  }
+}
+
+function openAuditModal(supplierId, supplierName) {
+  document.getElementById('aud-supplier-id').value   = supplierId;
+  document.getElementById('aud-supplier-name').value = supplierName;
+  document.getElementById('aud-type').value     = 'SYSTEM_AUDIT';
+  document.getElementById('aud-date').value     = '';
+  document.getElementById('aud-duration').value = '1';
+  updateAuditorDropdown();
+  document.getElementById('aud-scope').value    = '';
+  document.getElementById('aud-criteria').value = 'AS9100D Rev D';
+  document.getElementById('aud-notes').value    = '';
+  // load history
+  const past = _loadAudits().filter(a => String(a.supplier_id) === String(supplierId));
+  const wrap  = document.getElementById('aud-history-wrap');
+  if (past.length) {
+    const TYPE_LBL = { SYSTEM_AUDIT:'System', PROCESS_AUDIT:'Process', PRODUCT_AUDIT:'Product', NADCAP_PRE:'NADCAP Pre', INITIAL_APPROVAL:'Initial Approval', SURVEILLANCE:'Surveillance' };
+    const ST_CLR   = { SCHEDULED:'primary', COMPLETED:'success', CANCELLED:'danger', IN_PROGRESS:'warning' };
+    document.getElementById('aud-history-tbody').innerHTML = [...past].reverse().map(a => `<tr>
+      <td>${a.planned_date}</td>
+      <td>${TYPE_LBL[a.audit_type]||a.audit_type}</td>
+      <td>${a.lead_auditor||'—'}</td>
+      <td class="small text-muted" style="max-width:220px;white-space:normal">${a.scope||'—'}</td>
+      <td><span class="badge bg-${ST_CLR[a.status]||'secondary'}">${a.status}</span></td>
+    </tr>`).join('');
+    wrap.classList.remove('d-none');
+  } else { wrap.classList.add('d-none'); }
+  supplierAuditModal.show();
+}
+
+function saveAudit() {
+  const supplierId   = document.getElementById('aud-supplier-id').value;
+  const supplierName = document.getElementById('aud-supplier-name').value;
+  const date         = document.getElementById('aud-date').value;
+  const scope        = document.getElementById('aud-scope').value.trim();
+  const audSel       = document.getElementById('aud-auditor');
+  const auditorName  = audSel.options[audSel.selectedIndex]?.dataset.name || '';
+  if (!date)        { ATCA.toast('Planned date is required.', 'danger'); return; }
+  if (!scope)       { ATCA.toast('Audit scope is required.', 'danger'); return; }
+  if (!auditorName) { ATCA.toast('Select a qualified lead auditor.', 'danger'); return; }
+  const audits = _loadAudits();
+  audits.push({
+    audit_id:     'AUD-' + Date.now(),
+    supplier_id:  supplierId,
+    supplier_name: supplierName,
+    audit_type:   document.getElementById('aud-type').value,
+    planned_date: date,
+    lead_auditor: auditorName || null,
+    duration_days: parseFloat(document.getElementById('aud-duration').value) || 1,
+    scope,
+    criteria:     document.getElementById('aud-criteria').value.trim() || null,
+    notes:        document.getElementById('aud-notes').value.trim() || null,
+    status:       'SCHEDULED',
+    created_by:   ATCA.currentUser?.full_name || 'System',
+    created_at:   new Date().toISOString(),
+  });
+  _saveAudits(audits);
+  supplierAuditModal.hide();
+  ATCA.toast(`Supplier audit scheduled for ${date}`, 'success');
+}
 
 async function init() {
   await ATCA.initPage();
@@ -201,8 +529,11 @@ async function loadSuppliers() {
     <td>${s.accreditation_expiry ? (new Date(s.accreditation_expiry) < new Date() ? `<span class="text-danger fw-bold">${s.accreditation_expiry}</span>` : s.accreditation_expiry) : '—'}</td>
     <td>${s.performance_score != null ? s.performance_score + '/100' : '—'}</td>
     <td><span class="badge bg-${statusColor[s.approval_status] || 'secondary'}">${s.approval_status}</span></td>
-    <td>
-      ${s.approval_status === 'APPROVED' ? `<button class="btn btn-outline-warning btn-sm" onclick="suspendSupplier(${s.supplier_id})"
+    <td class="d-flex gap-1 flex-wrap">
+      <button class="btn btn-outline-primary btn-sm py-0 px-2" onclick="openAuditModal(${s.supplier_id}, '${s.name.replace(/'/g, "\\'")}')"
+        data-bs-toggle="tooltip" title="Call for an external supplier audit (AS9100D §8.4.1)">
+        <i class="bi bi-clipboard2-check me-1"></i>Request Audit</button>
+      ${s.approval_status === 'APPROVED' ? `<button class="btn btn-outline-warning btn-sm py-0 px-2" onclick="suspendSupplier(${s.supplier_id})"
         data-compliance="AS9100D §8.4" data-linked="MOD-12" data-action-desc="Suspend supplier from AVL — blocks new POs">Suspend</button>` : ''}
     </td>
   </tr>`);

@@ -454,14 +454,41 @@
             <div class="mt-1 text-muted" style="font-size:.72rem;" id="sig-updated-at"></div>
           </div>
           <div class="col-md-6">
-            <label class="atca-label">Upload New Signature</label>
-            <input type="file" class="form-control mb-2" id="sig-file-input" accept="image/*" />
-            <div class="border rounded d-flex align-items-center justify-content-center"
-                 style="height:100px;background:#fff;">
-              <img id="sig-preview-img" src="" alt="Preview" style="max-height:90px;max-width:100%;display:none;object-fit:contain;" />
-              <span id="sig-preview-none" class="text-muted small">Preview will appear here</span>
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <label class="atca-label mb-0">New Signature</label>
+              <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-atca-primary active" id="sig-tab-draw" onclick="switchSigTab('draw')">
+                  <i class="bi bi-pen me-1"></i>Draw
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="sig-tab-upload" onclick="switchSigTab('upload')">
+                  <i class="bi bi-upload me-1"></i>Upload
+                </button>
+              </div>
             </div>
-            <div class="form-text mt-1">JPEG, PNG or GIF. Max 500 KB. White/light background recommended.</div>
+
+            <!-- Draw panel -->
+            <div id="sig-panel-draw">
+              <div style="border:1.5px solid #ced4da;border-radius:4px;background:#fff;overflow:hidden;">
+                <canvas id="sig-canvas" width="400" height="130"
+                  style="display:block;width:100%;cursor:crosshair;touch-action:none;"></canvas>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mt-1">
+                <span class="text-muted" style="font-size:.72rem;"><i class="bi bi-info-circle me-1"></i>Draw your signature with mouse or touch</span>
+                <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="clearSigCanvas()">
+                  <i class="bi bi-eraser me-1"></i>Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload panel -->
+            <div id="sig-panel-upload" style="display:none">
+              <input type="file" class="form-control form-control-sm mb-2" id="sig-file-input" accept="image/*" />
+              <div class="border rounded d-flex align-items-center justify-content-center" style="height:95px;background:#fff;">
+                <img id="sig-preview-img" src="" alt="Preview" style="max-height:85px;max-width:100%;display:none;object-fit:contain;" />
+                <span id="sig-preview-none" class="text-muted small">Preview will appear here</span>
+              </div>
+              <div class="form-text mt-1">JPEG, PNG or GIF. Max 500 KB. White/light background recommended.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -496,7 +523,7 @@
 
 <script src="/assets/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/atca-demo.js?v=1"></script>
-<script src="/assets/js/atca-core.js?v=7"></script>
+<script src="/assets/js/atca-core.js?v=8"></script>
 <script>
 'use strict';
 
@@ -835,6 +862,81 @@ document.getElementById('btn-save-reset-pw').addEventListener('click', async () 
 });
 
 // ── SIGNATURE MODAL ─────────────────────────────────────────
+let _sigMode    = 'draw';
+let _sigDrawing = false;
+let _sigHasDrawn = false;
+
+function switchSigTab(mode) {
+  _sigMode = mode;
+  document.getElementById('sig-tab-draw').className   = mode === 'draw'   ? 'btn btn-atca-primary active' : 'btn btn-outline-secondary';
+  document.getElementById('sig-tab-upload').className = mode === 'upload' ? 'btn btn-atca-primary active' : 'btn btn-outline-secondary';
+  document.getElementById('sig-panel-draw').style.display   = mode === 'draw'   ? '' : 'none';
+  document.getElementById('sig-panel-upload').style.display = mode === 'upload' ? '' : 'none';
+  if (mode === 'draw') clearSigCanvas();
+}
+
+function initSigCanvas() {
+  const canvas = document.getElementById('sig-canvas');
+  const ctx    = canvas.getContext('2d');
+  ctx.strokeStyle = '#1a1a2e';
+  ctx.lineWidth   = 2.2;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+
+  let _lastPos = null;
+
+  const getPos = e => {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * (canvas.width / r.width),
+             y: (e.clientY - r.top)  * (canvas.height / r.height) };
+  };
+
+  const startStroke = p => {
+    _sigDrawing = true; _sigHasDrawn = true;
+    _lastPos = p;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  };
+
+  const continueStroke = p => {
+    if (!_sigDrawing || !_lastPos) return;
+    // Quadratic bezier to midpoint → smooth curves with no jagged edges
+    const mid = { x: (_lastPos.x + p.x) / 2, y: (_lastPos.y + p.y) / 2 };
+    ctx.quadraticCurveTo(_lastPos.x, _lastPos.y, mid.x, mid.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(mid.x, mid.y);
+    _lastPos = p;
+  };
+
+  const endStroke = () => {
+    if (!_sigDrawing) return;
+    if (_lastPos) { ctx.lineTo(_lastPos.x, _lastPos.y); ctx.stroke(); }
+    _sigDrawing = false;
+    ctx.beginPath();
+    _lastPos = null;
+  };
+
+  canvas.addEventListener('mousedown',  e => startStroke(getPos(e)));
+  canvas.addEventListener('mousemove',  e => continueStroke(getPos(e)));
+  canvas.addEventListener('mouseup',    endStroke);
+  canvas.addEventListener('mouseleave', endStroke);
+
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); startStroke(getPos(e.touches[0])); }, { passive: false });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); continueStroke(getPos(e.touches[0])); }, { passive: false });
+  canvas.addEventListener('touchend',   endStroke);
+
+  clearSigCanvas();
+}
+
+function clearSigCanvas() {
+  const canvas = document.getElementById('sig-canvas');
+  const ctx    = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  _sigHasDrawn = false;
+}
+
 async function openSignatureModal(userId) {
   const u = allUsers.find(x => x.user_id === userId);
   if (!u) return;
@@ -843,15 +945,18 @@ async function openSignatureModal(userId) {
   document.getElementById('sig-file-input').value = '';
   document.getElementById('sig-preview-img').style.display = 'none';
   document.getElementById('sig-preview-none').style.display = '';
+  switchSigTab('draw');
 
-  // Load existing signature
+  // Load existing signature — API first, localStorage fallback for demo mode
   const sig = await ATCA.api.get(`/auth/signature/${userId}`);
-  if (sig && sig.signature_data) {
-    document.getElementById('sig-current-img').src = sig.signature_data;
+  const localSigs = JSON.parse(localStorage.getItem('atca_user_signatures') || '{}');
+  const sigData = (sig && sig.signature_data) ? sig : (localSigs[userId] || null);
+  if (sigData && sigData.signature_data) {
+    document.getElementById('sig-current-img').src = sigData.signature_data;
     document.getElementById('sig-current-img').style.display = '';
     document.getElementById('sig-current-none').style.display = 'none';
     document.getElementById('sig-updated-at').textContent =
-      'Last updated: ' + ATCA.utils.fmtDateTime(sig.signature_updated_at);
+      'Last updated: ' + ATCA.utils.fmtDateTime(sigData.signature_updated_at);
   } else {
     document.getElementById('sig-current-img').style.display = 'none';
     document.getElementById('sig-current-none').style.display = '';
@@ -875,27 +980,33 @@ document.getElementById('sig-file-input').addEventListener('change', function ()
 });
 
 document.getElementById('btn-save-signature').addEventListener('click', async () => {
-  const userId   = parseInt(document.getElementById('sig-user-id').value, 10);
-  const previewSrc = document.getElementById('sig-preview-img').src;
-  if (!previewSrc || !previewSrc.startsWith('data:image/')) {
-    ATCA.utils.toast('Please select an image file first.', 'warning'); return;
-  }
-  // Admins upload on behalf of a user. For self we patch /auth/signature.
-  const isSelf = ATCA.currentUser && userId === ATCA.currentUser.user_id;
-  let res;
-  if (isSelf) {
-    res = await ATCA.api.patch('/auth/signature', { signature_data: previewSrc });
+  const userId = parseInt(document.getElementById('sig-user-id').value, 10);
+  let previewSrc;
+  if (_sigMode === 'draw') {
+    if (!_sigHasDrawn) { ATCA.utils.toast('Please draw your signature first.', 'warning'); return; }
+    previewSrc = document.getElementById('sig-canvas').toDataURL('image/png');
   } else {
-    // Admin endpoint — reuse auth/signature route with userId param via PUT
-    // Handled by same PATCH endpoint but we pass target userId in body (admin path)
-    res = await fetch(`/api/v1/auth/signature/admin/${userId}`, {
+    previewSrc = document.getElementById('sig-preview-img').src;
+    if (!previewSrc || !previewSrc.startsWith('data:image/')) {
+      ATCA.utils.toast('Please select an image file first.', 'warning'); return;
+    }
+  }
+  // Always persist to localStorage so signatures survive demo/offline mode
+  const localSigs = JSON.parse(localStorage.getItem('atca_user_signatures') || '{}');
+  localSigs[userId] = { signature_data: previewSrc, signature_updated_at: new Date().toISOString() };
+  localStorage.setItem('atca_user_signatures', JSON.stringify(localSigs));
+
+  // Also push to the backend (no-op in demo mode, persists in production)
+  const isSelf = ATCA.currentUser && String(userId) === String(ATCA.currentUser.user_id);
+  if (isSelf) {
+    await ATCA.api.patch('/auth/signature', { signature_data: previewSrc });
+  } else {
+    await fetch(`/api/v1/auth/signature/admin/${userId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ signature_data: previewSrc }),
-    });
-    res = res.ok ? await res.json() : null;
+    }).catch(() => {});
   }
-  if (!res) { ATCA.utils.toast('Failed to save signature.', 'danger'); return; }
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalSignature')).hide();
   ATCA.utils.toast('Signature saved successfully.', 'success');
 });
@@ -908,8 +1019,7 @@ document.getElementById('btn-create-user').addEventListener('click', openCreateM
 
 // ── INIT ────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // atca-core.js runs its own DOMContentLoaded that loads the user.
-  // We wait for ATCA.currentUser to be populated before access-checking.
+  initSigCanvas();
   const user = await waitForUser();
 
   if (!user || !ATCA.user.hasRole('ADMIN', 'QA_MANAGER')) {

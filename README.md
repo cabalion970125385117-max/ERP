@@ -2,7 +2,7 @@
 
 **ATC Aviation Pte Ltd — Enterprise Resource Planning System**  
 AS9100D · NADCAP AC7108 · NADCAP AC7110 · NADCAP AC7114 · NAS410  
-LAN-only · Version 1.0 · SoR Rev. 1.0 (9 June 2026) · Last updated: 2026-06-21 · MOD-07 NCR/CAPA detail workflow + persistent sidebar across all layouts
+LAN-only · Version 1.0 · SoR Rev. 1.0 (9 June 2026) · Last updated: 2026-06-22 · MOD-14 inventory docs/hazmat + persistent sidebar across all layouts
 
 ---
 
@@ -189,6 +189,7 @@ ATCA-ERP/
 ├── preview_server.py               # Local preview server (no DB required)
 ├── vercel.json                     # Vercel static deployment config
 ├── TEST-PLAN.md                    # System test plan v1.2 (170+ test cases)
+├── DEVELOPMENT-STANDARDS.md        # Mandatory dev governance: audit log, form numbers, revision history
 ├── MEMORY.md                       # Build log and dev reference
 └── package.json
 ```
