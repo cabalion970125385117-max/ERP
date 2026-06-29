@@ -419,6 +419,11 @@ ATCA.clock = {
 ATCA.sidebar = {
   _html: `
 <div class="sidebar-brand"><h6>ATCA-ERP</h6><small>ATC Aviation Pte Ltd</small></div>
+<a href="/user-dashboard.html" class="nav-dash-pin" id="sidebar-dash-link">
+  <span class="nav-icon"><i class="bi bi-person-circle"></i></span>
+  <span>My Dashboard</span>
+  <span class="badge bg-danger" id="sidebar-dash-badge" style="display:none;"></span>
+</a>
 <div class="nav-section-label" onclick="ATCA.sidebar._toggle(this)"><span>Quality Management</span><i class="bi bi-chevron-right nav-chevron"></i></div>
 <div class="nav-group nav-collapsed">
 <a href="/modules/mod01-qms-core/" class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
@@ -550,6 +555,25 @@ ATCA.sidebar = {
     // Wire mobile toggle
     document.getElementById('sidebar-toggle')
       ?.addEventListener('click', () => bar.classList.toggle('open'));
+    // Live badge on the pinned My Dashboard link
+    this._updateBadge();
+  },
+
+  _updateBadge() {
+    try {
+      const pending = JSON.parse(localStorage.getItem('atca_pending_approvals') || '[]')
+        .filter(a => a.status === 'PENDING').length;
+      const me = ATCA.currentUser?.full_name;
+      const notifs = me
+        ? JSON.parse(localStorage.getItem('atca_notifications') || '[]')
+            .filter(n => n.recipient_name === me && !n.read).length
+        : 0;
+      const total = pending + notifs;
+      const badge = document.getElementById('sidebar-dash-badge');
+      if (!badge) return;
+      badge.textContent = total > 9 ? '9+' : (total || '');
+      badge.style.display = total ? '' : 'none';
+    } catch {}
   },
 };
 

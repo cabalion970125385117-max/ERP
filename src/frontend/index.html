@@ -133,6 +133,11 @@
     <small>ATC Aviation Pte Ltd</small>
   </div>
 
+  <a href="/user-dashboard.html" class="nav-dash-pin" id="sidebar-dash-link">
+    <span class="nav-icon"><i class="bi bi-person-circle"></i></span>
+    <span>My Dashboard</span>
+    <span class="badge bg-danger" id="sidebar-dash-badge" style="display:none;"></span>
+  </a>
   <div class="nav-section-label">Quality Management</div>
   <a href="/modules/mod01-qms-core/"     class="nav-link"><span class="nav-icon"><i class="bi bi-award"></i></span>QMS Core</a>
   <a href="/modules/mod02-document-control/"  class="nav-link"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Document Control</a>
@@ -237,6 +242,32 @@
           System Online · LAN-Only · AS9100D Compliant
         </div>
       </div>
+    </div>
+
+    <!-- My Dashboard Quick Access -->
+    <div class="my-dash-widget mb-4">
+      <div class="myw-left">
+        <div class="myw-avatar" id="myw-avatar">??</div>
+        <div>
+          <div class="myw-name" id="myw-name">—</div>
+          <div class="myw-role" id="myw-role">—</div>
+        </div>
+        <div class="myw-chips">
+          <div class="myw-chip" id="myw-chip-approvals">
+            <i class="bi bi-hourglass-split"></i>
+            <span class="myw-count" id="myw-count-approvals">0</span>
+            <span>Pending Approvals</span>
+          </div>
+          <div class="myw-chip" id="myw-chip-notifs">
+            <i class="bi bi-bell"></i>
+            <span class="myw-count" id="myw-count-notifs">0</span>
+            <span>Notifications</span>
+          </div>
+        </div>
+      </div>
+      <a href="/user-dashboard.html" class="btn btn-warning fw-bold">
+        <i class="bi bi-person-circle me-1"></i>My Dashboard
+      </a>
     </div>
 
     <!-- Cross-Module Alert KPI Grid -->
@@ -713,11 +744,51 @@ function initWelcomeBanner() {
 }
 
 /* ============================================================
+   MY DASHBOARD WIDGET
+   ============================================================ */
+function initMyDashWidget() {
+  const user = ATCA.currentUser;
+  if (!user) return;
+
+  const name = user.full_name || user.username || '';
+  const initials = name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  const el = id => document.getElementById(id);
+
+  if (el('myw-avatar')) el('myw-avatar').textContent = initials || '?';
+  if (el('myw-name'))   el('myw-name').textContent   = name;
+  if (el('myw-role'))   el('myw-role').textContent   = (user.role || '').replace(/_/g, ' ');
+
+  // Count pending approvals
+  let pending = 0;
+  try {
+    pending = JSON.parse(localStorage.getItem('atca_pending_approvals') || '[]')
+      .filter(a => a.status === 'PENDING').length;
+  } catch {}
+
+  // Count unread notifications for this user
+  let notifs = 0;
+  try {
+    notifs = JSON.parse(localStorage.getItem('atca_notifications') || '[]')
+      .filter(n => n.recipient_name === name && !n.read).length;
+  } catch {}
+
+  if (el('myw-count-approvals')) el('myw-count-approvals').textContent = pending;
+  if (el('myw-count-notifs'))    el('myw-count-notifs').textContent    = notifs;
+
+  if (pending > 0) el('myw-chip-approvals')?.classList.add('has-items');
+  if (notifs  > 0) el('myw-chip-notifs')?.classList.add('has-items');
+
+  // Also update the sidebar badge
+  ATCA.sidebar._updateBadge();
+}
+
+/* ============================================================
    INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', async () => {
   await ATCA.initPage();
   initWelcomeBanner();
+  initMyDashWidget();
   await loadAllAlerts();
 });
 </script>

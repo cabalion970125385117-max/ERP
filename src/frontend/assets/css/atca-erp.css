@@ -179,6 +179,98 @@ body.atca-body {
   color: rgba(255,255,255,0.35);
 }
 
+/* ── Pinned My Dashboard link (top of every sidebar) ── */
+#sidebar .nav-dash-pin,
+#atca-sidebar .nav-dash-pin {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-left: 3px solid var(--atca-gold);
+  background: rgba(200,146,42,0.13);
+  transition: background 0.15s;
+  margin-bottom: 4px;
+}
+#sidebar .nav-dash-pin:hover,
+#atca-sidebar .nav-dash-pin:hover {
+  background: rgba(200,146,42,0.25);
+  color: #fff;
+}
+#sidebar .nav-dash-pin .nav-icon,
+#atca-sidebar .nav-dash-pin .nav-icon {
+  width: 18px;
+  text-align: center;
+  font-size: 1rem;
+  color: var(--atca-gold);
+}
+#sidebar .nav-dash-pin .badge,
+#atca-sidebar .nav-dash-pin .badge {
+  margin-left: auto;
+  font-size: 0.62rem;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── My Dashboard widget on home page ── */
+.my-dash-widget {
+  background: var(--atca-navy);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-left: 4px solid var(--atca-gold);
+}
+.my-dash-widget .myw-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.my-dash-widget .myw-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--atca-gold);
+  color: var(--atca-navy);
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.my-dash-widget .myw-name  { font-weight: 700; color: #fff; font-size: .9rem; }
+.my-dash-widget .myw-role  { font-size: .7rem; color: rgba(255,255,255,0.5); }
+.my-dash-widget .myw-chips { display: flex; gap: .5rem; flex-wrap: wrap; }
+.my-dash-widget .myw-chip  {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: .25rem .7rem;
+  font-size: .75rem;
+  color: rgba(255,255,255,0.8);
+  cursor: default;
+}
+.my-dash-widget .myw-chip .myw-count {
+  font-weight: 800;
+  font-size: .85rem;
+  color: #fff;
+}
+.my-dash-widget .myw-chip.has-items {
+  border-color: var(--atca-gold);
+  color: #fff;
+}
+.my-dash-widget .myw-chip.has-items .myw-count { color: var(--atca-gold); }
+
 /* ============================================================
    MAIN CONTENT AREA
    ============================================================ */
