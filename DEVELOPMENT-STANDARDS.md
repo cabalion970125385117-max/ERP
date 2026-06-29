@@ -2,7 +2,7 @@
 
 **ATC Aviation Pte Ltd — Internal Development Governance**  
 AS9100D · NADCAP AC7108 · NADCAP AC7110 · NADCAP AC7114 · NAS410  
-Version: 1.0 · Effective: 2026-06-29
+Version: 1.1 · Effective: 2026-06-30 (added Rules 4–7: default QM approver, 3-step sign-off, forms→records, revision/trial change-control)
 
 ---
 
@@ -207,6 +207,59 @@ Use consistent badge CSS classes:
 
 ---
 
+## Rule 4 — The Quality Manager is the Default Approver
+
+Every controlled form's **final acceptance** routes to the **Quality Manager (QA_MANAGER)** by default. No form becomes a record without QM acceptance.
+
+- Resolve the QM via `ATCA.approvals.defaultApprover()` (configurable override per module in `atca_org_config`).
+- Every push to `atca_pending_approvals` must carry `final_approver_role: 'QA_MANAGER'` and `final_approver_id`.
+- The final **Accept** action is enabled only for `QA_MANAGER` / `ADMIN`.
+- The default-approver user is set in MOD-25 (ADMIN-only) and changes are audit-logged.
+
+---
+
+## Rule 5 — Every Form is Signed Off by a 3-Step Chain (Raiser → Superior → QM)
+
+A **form** is any popup, modal, or collection of fields a user fills in. Once filled **and signed off** it becomes a **record**. Every form follows the same non-repudiable sign-off chain:
+
+```
+DRAFT ──[raiser PIN-signs]──► PENDING_VERIFY ──[direct superior PIN-verifies]──► PENDING_QM ──[QM PIN-accepts]──► ACCEPTED (RECORD)
+   ▲                                  │ reject                         │ reject
+   └──────────────────────────────────┴────────────────────────────────┘
+```
+
+- **Raiser** signs their own form (self-attestation).
+- **Direct superior** (resolved from MOD-18 `reports_to`) verifies. Fallback: SUPERVISOR+, else escalate to QM.
+- **QM** accepts (Rule 4). Each step captures a **MOD-31 PIN signature** (the electronic signature) and an audit-log entry.
+- On acceptance the form is frozen to an immutable record (Rule 6).
+
+---
+
+## Rule 6 — Filled Forms Become Records in the File Repository (Withdrawable)
+
+When a form reaches `ACCEPTED` it is rendered to an **immutable snapshot** and stored in the **File Repository (MOD-37)** with `file_tag: 'RECORD'`, indexed in `atca_records`.
+
+- Records are **withdrawable by any other module** via `ATCA.fileStore.list({ file_tag:'RECORD', … })` or `ATCA.records.withdraw({ entity_id })`.
+- Records are **immutable**: an accepted form cannot be edited. To change it, raise a new **revision** (Rule 7), which produces `form_version + 1` and a fresh record; the prior record is retained (full revision history).
+- `ATCA.fileStore.remove()` is blocked for `RECORD` files except by ADMIN with an audit reason.
+- **All module approval flows are surfaced in MOD-27 Value Flow** (the "Approval Flow Map" view), driven by the `ATCA.approvalFlows` registry.
+
+---
+
+## Rule 7 — Form-Format Changes are QM-Approved and Trialled Before Deploy
+
+Any change to a form's **format** (fields, layout, labels) requires QM approval and an isolated trial before it ships.
+
+- A **"Request for Revision"** button sits beside every `[FM-NNN] [v#]` badge. It raises an `atca_revisions` entry routed to the QM (`FORM_REVISION_REQUEST`).
+- Revision lifecycle: `DRAFT → PENDING_QM → APPROVED → IN_DEVELOPMENT → READY_FOR_DEPLOY → DEPLOYED` (or `REJECTED`).
+- The code change itself is made in Claude, recorded against the revision entry, and the form definition's `format_version` + revision history are updated on deploy.
+- **Trial environment:** all changes are validated in an **isolated trial environment accessible only to QM and ADMIN** before production. In-app this is `ATCA.env` TRIAL mode (governance keys namespaced under `trial__`); for the real deploy it is a `trial`-branch Vercel preview URL restricted to QM/ADMIN.
+- **Deploy gate:** a build may be promoted to production only if every form-format change has an `APPROVED` (QM-signed) revision entry validated in trial (`READY_FOR_DEPLOY`).
+
+> Rules 4–7 are specified in full, with data models, service APIs, file lists, sequencing, and test cases, in **[GOVERNANCE-FORMS-DEVPLAN.md](GOVERNANCE-FORMS-DEVPLAN.md)**. Build from that plan.
+
+---
+
 ## Development Checklist (apply before marking any feature complete)
 
 Before calling a feature done, verify all three rules are satisfied:
@@ -218,6 +271,11 @@ Before calling a feature done, verify all three rules are satisfied:
 - [ ] Form numbers and status badges are displayed on all list and detail views
 - [ ] Editing an APPROVED document resets to DRAFT and bumps `form_version`
 - [ ] Deleting a PENDING_QM document is blocked
+- [ ] Final acceptance routes to the QM (`final_approver_role: 'QA_MANAGER'`) — Rule 4
+- [ ] New forms run the 3-step sign-off chain (raiser → superior → QM) with PIN signatures — Rule 5
+- [ ] Accepted forms are promoted to `RECORD` files in MOD-37 and are withdrawable — Rule 6
+- [ ] The module's approval flow is registered in `ATCA.approvalFlows` and visible in MOD-27 — Rule 6
+- [ ] Form-format changes carry a QM-approved `atca_revisions` entry, trialled before deploy — Rule 7
 
 ---
 

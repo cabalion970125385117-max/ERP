@@ -2,7 +2,7 @@
 
 **ATC Aviation Pte Ltd — Enterprise Resource Planning System**  
 AS9100D · NADCAP AC7108 · NADCAP AC7110 · NADCAP AC7114 · NAS410  
-LAN-only · Version 1.0 · SoR Rev. 1.0 (9 June 2026) · Last updated: 2026-06-22 · MOD-14 inventory docs/hazmat + persistent sidebar across all layouts
+LAN-only · Version 1.0 · SoR Rev. 1.0 (9 June 2026) · Last updated: 2026-06-30 · Multi-entity switcher (ATCA/ATCT/APF) + Inter-Company Trading; Governance/Forms dev plan added
 
 ---
 
@@ -44,7 +44,9 @@ Six roles in ascending privilege order:
 
 ---
 
-## Modules (31 SoR + Phase 12 Modules — All Complete)
+## Modules (MOD-01–37 + Inter-Company Trading — All Complete)
+
+> **Governance (Phase 14, planned):** a forms/records/approval-control spine cuts across every module below — QM as default approver, a 3-step form sign-off chain (raiser → superior → QM), accepted forms promoted to withdrawable records, all approval flows surfaced in MOD-27, form-format change control, and an isolated trial environment. Design: **[GOVERNANCE-FORMS-DEVPLAN.md](GOVERNANCE-FORMS-DEVPLAN.md)**.
 
 ### Quality Management
 
@@ -106,6 +108,9 @@ Six roles in ascending privilege order:
 | **MOD-34** Chemical & Hazmat Control | SDS register (12 chemicals, OVERDUE/DUE_SOON RAG, controlled-substance flags); **bath make-up calculator** (sequenced addition steps, CONTROLLED warning banner); replenishment queue (OUT_OF_SPEC/SCHEDULED/LOW_STOCK triggers); chemical inventory; **Alert Escalation Engine** (10 cross-module rules, CRITICAL/ALERT/WARNING, acknowledge workflow); AC7108/AC7110, WSH/SDS, REACH/RoHS, AS9100D §9.1 |
 | **MOD-35** Government & Regulatory Certification Renewal Monitoring | Cert register for all NADCAP accreditations, customer approvals, government licenses, ISO registrations; configurable renewal lead days; OVERDUE/DUE_SOON/OK RAG; renewal action workflow (INITIATE→SUBMIT_APPLICATION→AUDIT_SCHEDULED→AUDIT_COMPLETE→CERT_RECEIVED); body-type filtering (NADCAP/CUSTOMER/GOVERNMENT/ISO_BODY/INDUSTRY); AS9100D §7.1.2, NADCAP AC7102/AC7108/AC7114, MOM WSH Act, CAAS AMO |
 | **MOD-36** Equipment Periodic Preventive Maintenance | Asset register (15 assets: OVEN/TANK/NDT_EQUIPMENT/COMPRESSOR/RECTIFIER/HVAC/INSTRUMENT); cross-ref to MOD-30 ovens; PM schedules (DAILY→ANNUAL); checklist tasks; log PM completion with auto-advance `next_due_date` (DATEADD by frequency); OVERDUE/DUE_SOON (≤7 days)/OK RAG; AS9100D §7.1.3, AMS 2750H equipment requirements, NADCAP AC7108 |
+| **MOD-37** File Repository | Central document store for all modules; `ATCA.fileStore` API (`put/get/list/open/summary`, `FILE-NNNN`, file tags, cross-module entity linking); File Browser / Upload / Storage Overview; AS9100D §7.5 |
+| **Inter-Company Trading** (mod-interco) | Multi-entity (ATCA/ATCT/APF) trading — Interco PO (`ICO-PO-YYYY-NNN`), Interco DO (`ICO-DO-YYYY-NNN`), Shared Assets register (`scope:'ALL'`); entity switcher pill (`ATCA.entity`) in every topbar; active entity in `atca_active_entity` |
+| **MOD-39** Forms, Records & Change Control *(planned — Phase 14)* | Governance console: Form Register (FM-NNN + 3-step sign-off), Records (accepted forms in MOD-37), Revision Register (form-format change control), Approval Flow Map, Trial Environment; see GOVERNANCE-FORMS-DEVPLAN.md |
 
 ### Phase 8 Utilities
 
@@ -189,7 +194,11 @@ ATCA-ERP/
 ├── preview_server.py               # Local preview server (no DB required)
 ├── vercel.json                     # Vercel static deployment config
 ├── TEST-PLAN.md                    # System test plan v1.2 (170+ test cases)
-├── DEVELOPMENT-STANDARDS.md        # Mandatory dev governance: audit log, form numbers, revision history
+├── DEVELOPMENT-STANDARDS.md        # Mandatory dev governance: Rules 1–7 (audit log, form numbers, revision history, QM approver, 3-step sign-off, forms→records, change control)
+├── GOVERNANCE-FORMS-DEVPLAN.md     # Phase 14 dev plan: forms→records, 3-step sign-off, approval-flow map, revision control, trial env (MOD-39)
+├── MOD27-DEVPLAN.md                # MOD-27 Value Flow Tracker dev plan
+├── PCM-QUAL-DEVPLAN.md             # MOD-28/29 Process Capability + Qualification dev plan
+├── ROADMAP.md                      # Forward roadmap (Phases 9–14)
 ├── MEMORY.md                       # Build log and dev reference
 └── package.json
 ```
@@ -299,9 +308,9 @@ See [TEST-PLAN.md](TEST-PLAN.md) for the full test plan (v1.9, 210+ test cases).
 
 ---
 
-## Roadmap (Phases 9–13)
+## Roadmap (Phases 9–14)
 
-Forward features are sequenced into five structure-driven phases — see **[ROADMAP.md](ROADMAP.md)** for the full plan. Grounded in ATC's actual structure (process bays, AMS 2750 ovens, aerospace + semiconductor markets) from `ATC-PCM-001` and the SoR.
+Forward features are sequenced into structure-driven phases — see **[ROADMAP.md](ROADMAP.md)** for the full plan. Grounded in ATC's actual structure (process bays, AMS 2750 ovens, aerospace + semiconductor markets) from `ATC-PCM-001` and the SoR. Phases 9–12 are built; Phase 13 is partial (MOD-37 + multi-entity built); Phase 14 (governance) is planned.
 
 | Phase | Theme | New modules |
 |---|---|---|
@@ -309,9 +318,10 @@ Forward features are sequenced into five structure-driven phases — see **[ROAD
 | **10** Capacity & Process Control ✅ **BUILT** | **MOD-32 Bay Load Scheduler + tank-fit**, **MOD-33 Spec & Flowdown / Frozen Process**, ECN, AAM |
 | **11** Chemicals, Safety & Escalation ✅ **BUILT** | **MOD-34 Chemical & Hazmat control** (SDS, bath make-up/replenishment, cyanide/cadmium controls), Alert Escalation Engine |
 | **12** Compliance Monitoring & Asset Management ✅ **BUILT** | **MOD-35 Government & Regulatory Cert Renewal Monitoring**, **MOD-36 Equipment Periodic Preventive Maintenance** |
-| **13** Market Expansion & Group Scale | **MOD-37 Semiconductor Segment**, Multi-entity isolation, Document Template & Rule Engine |
+| **13** Group Scale & Central Document Store ✅ **PARTIAL** | **MOD-37 File Repository** ✅, **Multi-entity switcher + Inter-Company Trading** (ATCA/ATCT/APF) ✅, Document Template & Rule Engine 📋, Semiconductor Segment 📋 |
+| **14** Governance, Forms & Change Control 📋 **PLANNED** | **MOD-39 Forms/Records/Change-Control console**; QM default approver; 3-step form sign-off → withdrawable records; approval-flow map in MOD-27; form-format revision control; isolated trial environment — see **[GOVERNANCE-FORMS-DEVPLAN.md](GOVERNANCE-FORMS-DEVPLAN.md)** |
 
-**Recommended next:** Phase 13 → MOD-37 Semiconductor Segment (cleanroom + ASML/LAM/Applied Materials customer requirements).
+**Recommended next:** Phase 14 → build the governance spine (`ATCA.forms/records/approvals/revision/env` shared services + MOD-39 console) per **[GOVERNANCE-FORMS-DEVPLAN.md](GOVERNANCE-FORMS-DEVPLAN.md)**.
 
 ---
 

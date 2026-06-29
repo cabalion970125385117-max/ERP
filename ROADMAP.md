@@ -1,6 +1,6 @@
-# ATCA-ERP — Forward Roadmap (Phases 9–13)
+# ATCA-ERP — Forward Roadmap (Phases 9–14)
 **ATC Aviation Pte Ltd | NADCAP special-process + NDT job shop (Singapore)**
-**Authored:** 2026-06-17 | **Last Updated:** 2026-06-21 | **Status:** PHASES 9–12 BUILT
+**Authored:** 2026-06-17 | **Last Updated:** 2026-06-30 | **Status:** PHASES 9–12 BUILT · PHASE 13 PARTIAL · PHASE 14 PLANNED
 
 This roadmap turns the structure-driven feature suggestions into sequenced, shippable phases. It is grounded in **ATC's actual structure** as evidenced by `ATC-PCM-001` (bays, tanks, ovens, customers), the SoR, and the 29 modules already built — *not* a generic ERP backlog.
 
@@ -82,17 +82,37 @@ This roadmap turns the structure-driven feature suggestions into sequenced, ship
 
 ---
 
-## Phase 13 — Market Expansion & Group Scale
-*Theme: serve the semiconductor segment properly and prepare for multi-entity scale.*
+## Phase 13 — Group Scale & Central Document Store  ✅ PARTIALLY BUILT 2026-06-28 / 2026-06-29
 
-| Module | Feature | Ties to structure | Compliance | Key build |
+> **Built:** **MOD-37 File Repository** (2026-06-28 — central document store; `ATCA.fileStore` API; localStorage-backed; 11 demo files; AS9100D §7.5). **Multi-entity switcher + Inter-Company Trading** (2026-06-29 — `ATCA.entity` ATCA/ATCT/APF switcher pill in every topbar; `mod-interco` module: Interco PO `ICO-PO-YYYY-NNN`, Interco DO `ICO-DO-YYYY-NNN`, Shared Assets register with `scope:'ALL'`; entity stored in `atca_active_entity`).
+
+| Module | Feature | Status | Compliance | Key build |
 |---|---|---|---|---|
-| **MOD-37** | **Semiconductor Segment** | Cleanroom + ~9 semicon customers (ASML, LAM, Applied Materials…) run to *different* requirements than aerospace | SEMI standards, RoHS/REACH, ultrapure cleanliness | Cleanliness/ionic certs, particle counts, RoHS/REACH declarations, PVD/CVD (upcoming) capability, semicon-specific CoC |
-| *(x-cut)* | **Multi-entity Data Isolation** | Group operations / future legal entities | — | Every record tagged to legal entity; row-level scoping |
-| *(x-cut)* | **Document Template & Rule Engine** | Auto-generate CoC, FAI, traveler forms with clause injection | AS9100D §7.5 | Template engine with compliance-clause injection feeding MOD-24/MOD-29/MOD-30 outputs |
+| **MOD-37** | **File Repository** | ✅ BUILT 2026-06-28 | AS9100D §7.5 | Central document store; `ATCA.fileStore.put/get/list/open/summary`; `FILE-NNNN`; file tags; cross-module entity linking |
+| **Multi-entity** | **Entity switcher + Inter-Company Trading** | ✅ BUILT 2026-06-29 | — | ATCA/ATCT/APF switcher; Interco PO/DO; shared assets (`scope:'ALL'`); per-entity colour badges |
+| *(x-cut)* | **Document Template & Rule Engine** | 📋 PLANNED | AS9100D §7.5 | Template engine with compliance-clause injection feeding MOD-24/MOD-29/MOD-30 outputs |
+| *(future)* | **Semiconductor Segment** | 📋 PLANNED | SEMI, RoHS/REACH | Cleanliness/ionic certs, particle counts, RoHS/REACH declarations, semicon-specific CoC |
 
-**Why last:** highest-leverage *new revenue* segment but depends on the special-process core being solid; multi-entity and the template engine are scale enablers, not day-1 needs.
-**Dependencies:** MOD-06, MOD-19, MOD-24, MOD-28. **Est:** ~30h.
+**Note:** MOD-37 was delivered as the **File Repository** (not the originally-sketched Semiconductor Segment, which is deferred). The semiconductor segment and the template/rule engine remain on the backlog.
+
+---
+
+## Phase 14 — Governance, Forms & Change Control  📋 PLANNED (dev plan ready)
+*Theme: make every form a controlled record, route all approvals to the QM, surface all approval flows, and gate every form-format change behind QM approval + an isolated trial environment.*
+
+> **Driver:** four cross-cutting governance requirements (2026-06-30). Full design — data models, service APIs (`ATCA.approvals/forms/records/revision/env/approvalFlows`), file lists, sequencing, and 18 test cases — is in **[GOVERNANCE-FORMS-DEVPLAN.md](GOVERNANCE-FORMS-DEVPLAN.md)**.
+
+| Item | Feature | Compliance | Key build |
+|---|---|---|---|
+| **1** | **QM is the default approver** | AS9100D §8.6 | `ATCA.approvals.defaultApprover()`; final accept gated to QA_MANAGER; MOD-25 default-approver setting |
+| **2** | **Forms → Records (3-step sign-off)** | AS9100D §7.5.3 | `ATCA.forms` (raiser→superior→QM PIN chain) → `ATCA.records` → MOD-37 `RECORD` files, withdrawable cross-module |
+| **2b** | **All approval flows in MOD-27** | AS9100D §8.5 | `ATCA.approvalFlows` registry → MOD-27 "Approval Flow Map" with live stage counts |
+| **3** | **Form-format change control** | AS9100D §8.5.6 | "Request for Revision" button beside every FM number; `atca_revisions` register; QM-approved before deploy |
+| **4** | **Isolated trial environment** | NADCAP change control | `ATCA.env` TRIAL sandbox (QM/ADMIN only) + `trial`-branch preview-deploy; production deploy gate |
+| **MOD-39** | **Forms, Records & Change Control console** | — | New page: Form Register, Records, Revision Register, Approval Flow Map, Trial Environment |
+
+**Why this phase:** the system already captures data everywhere, but "filled form → signed record → controlled change" is the AS9100D §7.5/§8.5.6 backbone an aerospace QMS is audited on. This phase turns ad-hoc module modals into a single, enforceable governance spine.
+**Dependencies:** MOD-18 (org chart / superior), MOD-25 (users), MOD-27 (value flow), MOD-31 (PIN sign-off), MOD-37 (file repo). **Est:** ~26.5h.
 
 ---
 
@@ -104,9 +124,10 @@ This roadmap turns the structure-driven feature suggestions into sequenced, ship
 | **10** | Bay Scheduler · Frozen Process/Flowdown · ECN · AAM | MOD-32, MOD-33 | Capacity & process control | ~26h |
 | **11** | Chemical/Hazmat · Alert Escalation | MOD-34 | Chemicals, safety & escalation | ~18h |
 | **12** | Regulatory Cert Renewal · Equipment PPM | MOD-35, MOD-36 | Compliance monitoring & asset management | ~20h |
-| **13** | Semiconductor Segment · Multi-entity · Template engine | MOD-37 | Market expansion & group scale | ~30h |
+| **13** | File Repository ✅ · Multi-entity + Interco ✅ · Template engine 📋 | MOD-37, mod-interco | Group scale & central document store | ~30h |
+| **14** | QM default approver · Forms→Records · Approval-flow map · Revision control · Trial env | MOD-39 | Governance, forms & change control | ~26.5h |
 
-**Recommended start:** Phase 9 → **MOD-30 Pyrometry & Heat-Treat** (largest compliance gap; data already in the PCM Equipment sheet), then **MOD-31 Operator Competency & PIN**.
+**Recommended next:** Phase 14 → governance spine (**[GOVERNANCE-FORMS-DEVPLAN.md](GOVERNANCE-FORMS-DEVPLAN.md)**) — build the shared services first (`ATCA.forms/records/approvals`), then surface flows in MOD-27 + the dashboard, then layer revision + trial control, finishing with the MOD-39 console.
 
 ## Notes & open inputs
 - This roadmap assumes the structure inferred from `ATC-PCM-001` + SoR + built modules. **If the company-structure presentation slides exist, share them** — they may reorder priorities (e.g. if semiconductor is a nearer-term growth target, Phase 13 moves up).
