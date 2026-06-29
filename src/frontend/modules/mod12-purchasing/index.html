@@ -56,10 +56,10 @@
     </div>
 
     <div class="tab-pane fade" id="tab-pr">
-      <div class="d-flex justify-content-between mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <select id="filter-pr-status" class="form-select form-select-sm" style="width:180px">
           <option value="">All Statuses</option>
-          <option>DRAFT</option><option>APPROVED</option><option>PO_RAISED</option><option>FULFILLED</option><option>CANCELLED</option>
+          <option>DRAFT</option><option>PENDING_QM</option><option>APPROVED</option><option>PO_RAISED</option><option>FULFILLED</option><option>CANCELLED</option>
         </select>
         <button class="btn btn-primary btn-sm" onclick="openPrModal()"
           data-compliance="AS9100D §8.4" data-linked="MOD-12" data-action-desc="Create purchase requisition">
@@ -68,7 +68,7 @@
       </div>
       <div class="table-responsive">
         <table class="table table-hover table-sm align-middle">
-          <thead class="table-dark"><tr><th>PR No.</th><th>Item Description</th><th>Qty / Unit</th><th>Required Date</th><th>Est. Cost</th><th>Status</th><th>Actions</th></tr></thead>
+          <thead class="table-dark"><tr><th>Form No.</th><th>PR No.</th><th>Rev</th><th>Item Description</th><th>Qty / Unit</th><th>Required Date</th><th>Est. Cost</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="pr-tbody"></tbody>
         </table>
       </div>
@@ -122,22 +122,96 @@
 
 <!-- PR Modal -->
 <div class="modal fade" id="prModal" tabindex="-1">
-  <div class="modal-dialog"><div class="modal-content">
-    <div class="modal-header"><h5 class="modal-title">New Purchase Requisition</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-    <div class="modal-body">
-      <div class="mb-2"><label class="form-label">Item Description *</label><input id="pr-desc" class="form-control form-control-sm" /></div>
-      <div class="row g-2 mb-2">
-        <div class="col"><label class="form-label">Qty *</label><input id="pr-qty" type="number" class="form-control form-control-sm" /></div>
-        <div class="col"><label class="form-label">Unit *</label><input id="pr-unit" class="form-control form-control-sm" /></div>
-        <div class="col"><label class="form-label">Required Date *</label><input id="pr-date" type="date" class="form-control form-control-sm" /></div>
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header" style="background:var(--atca-navy);color:#fff;">
+      <div>
+        <h5 class="modal-title mb-0">Purchase Requisition</h5>
+        <div class="d-flex gap-2 align-items-center mt-1" style="font-size:.75rem;">
+          <span id="pr-form-badge" class="badge" style="background:rgba(255,255,255,0.18);font-size:.7rem;">NEW — Form No. assigned on save</span>
+          <span id="pr-rev-badge" class="badge bg-secondary" style="display:none;"></span>
+          <span id="pr-status-badge" class="badge bg-warning text-dark" style="display:none;"></span>
+        </div>
       </div>
-      <div class="mb-2"><label class="form-label">Estimated Cost (SGD)</label><input id="pr-cost" type="number" class="form-control form-control-sm" /></div>
-      <div class="mb-2"><label class="form-label">Justification</label><textarea id="pr-just" class="form-control form-control-sm" rows="2"></textarea></div>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <!-- Rejection notice -->
+      <div id="pr-rejection-notice" class="alert alert-danger py-2 px-3 small mb-3" style="display:none;">
+        <i class="bi bi-x-circle-fill me-1"></i><strong>Rejected by QM:</strong> <span id="pr-rejection-reason"></span>
+      </div>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-semibold">Item Description <span class="text-danger">*</span></label>
+          <input id="pr-desc" class="form-control" placeholder="Describe the item or service required…" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Quantity <span class="text-danger">*</span></label>
+          <input id="pr-qty" type="number" class="form-control" min="0" step="any" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Unit <span class="text-danger">*</span></label>
+          <input id="pr-unit" class="form-control" placeholder="pcs / kg / L…" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Required Date <span class="text-danger">*</span></label>
+          <input id="pr-date" type="date" class="form-control" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Estimated Cost (SGD)</label>
+          <input id="pr-cost" type="number" class="form-control" placeholder="0.00" min="0" step="0.01" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Requested By</label>
+          <input id="pr-requested-by" class="form-control" readonly />
+        </div>
+        <div class="col-12">
+          <label class="form-label fw-semibold">Justification / Business Need</label>
+          <textarea id="pr-just" class="form-control" rows="2" placeholder="Why is this purchase required?"></textarea>
+        </div>
+      </div>
+      <!-- Revision history (shown when editing) -->
+      <div id="pr-history-wrap" style="display:none;" class="mt-3">
+        <hr class="my-2"/>
+        <p class="fw-semibold small mb-1"><i class="bi bi-clock-history me-1"></i>Revision History</p>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered mb-0" style="font-size:.78rem;">
+            <thead class="table-secondary"><tr><th>Rev</th><th>Action</th><th>By</th><th>Date</th><th>Note</th></tr></thead>
+            <tbody id="pr-history-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer justify-content-between">
+      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+      <div class="d-flex gap-2">
+        <button id="pr-save-draft-btn" class="btn btn-outline-secondary btn-sm" onclick="savePrDraft()">
+          <i class="bi bi-floppy me-1"></i>Save as Draft
+        </button>
+        <button id="pr-submit-btn" class="btn btn-primary btn-sm" onclick="submitPrForApproval()"
+          data-compliance="AS9100D §8.4" data-linked="MOD-12" data-action-desc="Submit purchase requisition for QM approval">
+          <i class="bi bi-send me-1"></i>Submit for QM Approval
+        </button>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- PR Reject Modal -->
+<div class="modal fade" id="prRejectModal" tabindex="-1">
+  <div class="modal-dialog modal-sm"><div class="modal-content">
+    <div class="modal-header bg-danger text-white">
+      <h6 class="modal-title"><i class="bi bi-x-circle me-1"></i>Reject PR</h6>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+      <p class="small text-muted mb-2">Provide a reason. The requisitioner will see this before resubmitting.</p>
+      <input type="hidden" id="pr-reject-id" />
+      <label class="form-label fw-semibold">Rejection Reason <span class="text-danger">*</span></label>
+      <textarea id="pr-reject-reason" class="form-control" rows="3" placeholder="e.g. Budget not approved for this period…"></textarea>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="savePr()"
-        data-compliance="AS9100D §8.4" data-linked="MOD-12" data-action-desc="Submit purchase requisition for approval">Submit PR</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmRejectPr()">Confirm Reject</button>
     </div>
   </div></div>
 </div>
@@ -496,7 +570,9 @@ async function init() {
   await ATCA.initPage();
   await loadKpis();
   loadSuppliers();
+  _seedDemoPrs();
   ATCA.tooltips.init();
+  document.getElementById('filter-pr-status').addEventListener('change', loadPrs);
   document.querySelectorAll('[data-bs-toggle="tab"]').forEach(t =>
     t.addEventListener('shown.bs.tab', e => {
       const href = e.target.getAttribute('href');
@@ -539,22 +615,132 @@ async function loadSuppliers() {
   </tr>`);
 }
 
-async function loadPrs() {
-  const stat = document.getElementById('filter-pr-status').value;
-  const data = await ATCA.api.get('/mod12/requisitions' + (stat ? '?status=' + stat : ''));
-  const sc = { DRAFT: 'secondary', APPROVED: 'success', PO_RAISED: 'primary', FULFILLED: 'success', CANCELLED: 'dark' };
-  ATCA.table.render('pr-tbody', data || [], p => `<tr>
-    <td><strong>${p.pr_number}</strong></td>
-    <td>${p.item_description}</td>
-    <td>${p.qty} ${p.unit}</td>
-    <td>${p.required_date}</td>
-    <td>${p.estimated_cost ? 'SGD ' + Number(p.estimated_cost).toFixed(2) : '—'}</td>
-    <td><span class="badge bg-${sc[p.status] || 'secondary'}">${p.status}</span></td>
-    <td>
-      ${p.status === 'DRAFT' ? `<button class="btn btn-success btn-sm" onclick="approvePr(${p.pr_id})"
-        data-compliance="AS9100D §8.4" data-linked="MOD-12" data-action-desc="Approve purchase requisition">Approve</button>` : ''}
-    </td>
-  </tr>`);
+/* ══════════════════════════════════════════════════
+   PR — Controlled Document (FM-NNN + revision + QM workflow)
+   Storage key: atca_pr_db
+   State machine: DRAFT → PENDING_QM → APPROVED → PO_RAISED → FULFILLED
+                                  ↓
+                               DRAFT (rev+1, rejection reason stored)
+   ══════════════════════════════════════════════════ */
+const PR_KEY = 'atca_pr_db';
+const FM_KEY = 'atca_fm_sequence';
+
+function _getPrDb()   { return JSON.parse(localStorage.getItem(PR_KEY) || '[]'); }
+function _savePrDb(a) { localStorage.setItem(PR_KEY, JSON.stringify(a)); }
+
+function _nextFmNumber() {
+  const n = parseInt(localStorage.getItem(FM_KEY) || '0') + 1;
+  localStorage.setItem(FM_KEY, String(n));
+  return 'FM-' + String(n).padStart(3, '0');
+}
+
+function _nextPrNumber(arr) {
+  return 'PR-' + new Date().getFullYear() + '-' + String(arr.length + 1).padStart(3, '0');
+}
+
+function _seedDemoPrs() {
+  if (_getPrDb().length) return;
+  const demo = [
+    { pr_id: 1, pr_number: 'PR-2026-001', form_number: 'FM-001', revision: 1,
+      item_description: 'Sodium Hydroxide (NaOH) 25kg bags', qty: 10, unit: 'bag',
+      required_date: '2026-07-15', estimated_cost: 320, justification: 'Bath replenishment MOD-06',
+      requested_by: 'Kevin Raj', status: 'APPROVED',
+      created_by: 'Kevin Raj', created_at: '2026-06-10T08:00:00Z',
+      submitted_at: '2026-06-10T08:05:00Z', approved_by: 'James Tan Wei Liang', approved_at: '2026-06-10T10:00:00Z',
+      revision_history: [
+        { revision: 1, action: 'CREATED', by: 'Kevin Raj', at: '2026-06-10T08:00:00Z', note: '' },
+        { revision: 1, action: 'SUBMITTED', by: 'Kevin Raj', at: '2026-06-10T08:05:00Z', note: '' },
+        { revision: 1, action: 'APPROVED', by: 'James Tan Wei Liang', at: '2026-06-10T10:00:00Z', note: '' },
+      ]
+    },
+    { pr_id: 2, pr_number: 'PR-2026-002', form_number: 'FM-002', revision: 2,
+      item_description: 'UV Lamp 365nm 400W replacement', qty: 4, unit: 'pcs',
+      required_date: '2026-07-20', estimated_cost: 480, justification: 'Preventive stock for NDT Bay',
+      requested_by: 'Sarah Lim Mei Ling', status: 'PENDING_QM',
+      created_by: 'Sarah Lim Mei Ling', created_at: '2026-06-18T09:00:00Z',
+      submitted_at: '2026-06-25T11:00:00Z',
+      revision_history: [
+        { revision: 1, action: 'CREATED', by: 'Sarah Lim Mei Ling', at: '2026-06-18T09:00:00Z', note: '' },
+        { revision: 1, action: 'SUBMITTED', by: 'Sarah Lim Mei Ling', at: '2026-06-18T09:10:00Z', note: '' },
+        { revision: 1, action: 'REJECTED', by: 'James Tan Wei Liang', at: '2026-06-20T14:00:00Z', note: 'Qty too high — justify based on consumption rate' },
+        { revision: 2, action: 'RESUBMITTED', by: 'Sarah Lim Mei Ling', at: '2026-06-25T11:00:00Z', note: 'Revised qty from 8 to 4 based on 6-month consumption' },
+      ]
+    },
+    { pr_id: 3, pr_number: 'PR-2026-003', form_number: 'FM-003', revision: 1,
+      item_description: 'Nitrile Gloves (M) box of 100', qty: 20, unit: 'box',
+      required_date: '2026-07-05', estimated_cost: 160, justification: 'Monthly PPE replenishment',
+      requested_by: 'Kevin Raj', status: 'DRAFT',
+      created_by: 'Kevin Raj', created_at: '2026-06-28T07:30:00Z',
+      revision_history: [
+        { revision: 1, action: 'CREATED', by: 'Kevin Raj', at: '2026-06-28T07:30:00Z', note: '' },
+      ]
+    },
+  ];
+  _savePrDb(demo);
+  localStorage.setItem(FM_KEY, '3');
+}
+
+const PR_SC = {
+  DRAFT:      'secondary',
+  PENDING_QM: 'warning',
+  APPROVED:   'success',
+  PO_RAISED:  'primary',
+  FULFILLED:  'success',
+  CANCELLED:  'dark',
+};
+const PR_ST_LABEL = {
+  DRAFT:      'DRAFT',
+  PENDING_QM: 'PENDING QM',
+  APPROVED:   'APPROVED',
+  PO_RAISED:  'PO RAISED',
+  FULFILLED:  'FULFILLED',
+  CANCELLED:  'CANCELLED',
+};
+
+function loadPrs() {
+  _seedDemoPrs();
+  const filter = document.getElementById('filter-pr-status').value;
+  const isQM   = ['QA_MANAGER','ADMIN'].includes(ATCA.currentUser?.role);
+  let rows = _getPrDb();
+  if (filter) rows = rows.filter(p => p.status === filter);
+  const tbody = document.getElementById('pr-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">No purchase requisitions found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(p => {
+    const sc   = PR_SC[p.status] || 'secondary';
+    const lbl  = PR_ST_LABEL[p.status] || p.status;
+    const cost = p.estimated_cost ? 'SGD ' + Number(p.estimated_cost).toFixed(2) : '—';
+    let actions = '';
+    if (p.status === 'DRAFT') {
+      actions = `<button class="btn btn-outline-primary btn-sm py-0 px-2 me-1" onclick="editPr(${p.pr_id})" title="Edit"><i class="bi bi-pencil"></i></button>
+                 <button class="btn btn-primary btn-sm py-0 px-2" onclick="submitPrById(${p.pr_id})"
+                   data-compliance="AS9100D §8.4" title="Submit for QM approval">
+                   <i class="bi bi-send me-1"></i>Submit</button>`;
+    } else if (p.status === 'PENDING_QM' && isQM) {
+      actions = `<button class="btn btn-success btn-sm py-0 px-2 me-1" onclick="qmApprovePr(${p.pr_id})"
+                   data-compliance="AS9100D §8.4" data-linked="MOD-12" data-action-desc="QM approves PR">
+                   <i class="bi bi-check-lg me-1"></i>Approve</button>
+                 <button class="btn btn-danger btn-sm py-0 px-2" onclick="openRejectModal(${p.pr_id})">
+                   <i class="bi bi-x-lg me-1"></i>Reject</button>`;
+    } else if (p.status === 'PENDING_QM') {
+      actions = '<span class="text-warning small"><i class="bi bi-hourglass-split me-1"></i>Awaiting QM</span>';
+    } else if (p.status === 'APPROVED') {
+      actions = `<button class="btn btn-outline-secondary btn-sm py-0 px-2" onclick="viewPr(${p.pr_id})" title="View"><i class="bi bi-eye"></i></button>`;
+    }
+    return `<tr>
+      <td><span class="badge bg-dark" style="font-size:.7rem;">${p.form_number}</span></td>
+      <td><a href="#" onclick="viewPr(${p.pr_id});return false;" class="fw-bold">${p.pr_number}</a></td>
+      <td><span class="badge bg-secondary">v${p.revision}</span></td>
+      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.item_description}">${p.item_description}</td>
+      <td>${p.qty} ${p.unit}</td>
+      <td>${p.required_date}</td>
+      <td>${cost}</td>
+      <td><span class="badge bg-${sc}">${lbl}</span></td>
+      <td class="text-nowrap">${actions}</td>
+    </tr>`;
+  }).join('');
 }
 
 async function loadPos() {
@@ -576,8 +762,211 @@ async function loadPos() {
 }
 
 function openSupplierModal() { supplierModal.show(); }
-function openPrModal() { prModal.show(); }
 function openPoModal() { poModal.show(); }
+
+/* ── PR modal helpers ── */
+let _prEditId = null;  // null = new PR; int = editing existing
+
+function openPrModal() {
+  _prEditId = null;
+  document.getElementById('pr-desc').value  = '';
+  document.getElementById('pr-qty').value   = '';
+  document.getElementById('pr-unit').value  = '';
+  document.getElementById('pr-date').value  = '';
+  document.getElementById('pr-cost').value  = '';
+  document.getElementById('pr-just').value  = '';
+  document.getElementById('pr-requested-by').value = ATCA.currentUser?.full_name || '';
+  document.getElementById('pr-form-badge').textContent  = 'NEW — Form No. assigned on save';
+  document.getElementById('pr-form-badge').style.background = 'rgba(255,255,255,0.18)';
+  document.getElementById('pr-rev-badge').style.display    = 'none';
+  document.getElementById('pr-status-badge').style.display = 'none';
+  document.getElementById('pr-rejection-notice').style.display = 'none';
+  document.getElementById('pr-history-wrap').style.display     = 'none';
+  document.getElementById('pr-save-draft-btn').style.display   = '';
+  document.getElementById('pr-submit-btn').style.display       = '';
+  prModal.show();
+}
+
+function editPr(prId) {
+  _prEditId = prId;
+  const pr  = _getPrDb().find(p => p.pr_id === prId);
+  if (!pr) return;
+  document.getElementById('pr-desc').value  = pr.item_description;
+  document.getElementById('pr-qty').value   = pr.qty;
+  document.getElementById('pr-unit').value  = pr.unit;
+  document.getElementById('pr-date').value  = pr.required_date;
+  document.getElementById('pr-cost').value  = pr.estimated_cost || '';
+  document.getElementById('pr-just').value  = pr.justification || '';
+  document.getElementById('pr-requested-by').value = pr.requested_by || '';
+  document.getElementById('pr-form-badge').textContent  = pr.form_number;
+  document.getElementById('pr-form-badge').style.background = '';
+  document.getElementById('pr-form-badge').className = 'badge bg-dark';
+  const revBadge = document.getElementById('pr-rev-badge');
+  revBadge.textContent = 'v' + pr.revision;
+  revBadge.style.display = '';
+  const stBadge = document.getElementById('pr-status-badge');
+  stBadge.textContent = PR_ST_LABEL[pr.status] || pr.status;
+  stBadge.className = `badge bg-${PR_SC[pr.status] || 'secondary'}`;
+  stBadge.style.display = '';
+  // rejection notice
+  const lastRejection = [...(pr.revision_history || [])].reverse().find(h => h.action === 'REJECTED');
+  const rejNotice = document.getElementById('pr-rejection-notice');
+  if (lastRejection && pr.status === 'DRAFT' && pr.revision > 1) {
+    document.getElementById('pr-rejection-reason').textContent = lastRejection.note;
+    rejNotice.style.display = '';
+  } else { rejNotice.style.display = 'none'; }
+  // revision history
+  if (pr.revision_history?.length) {
+    document.getElementById('pr-history-tbody').innerHTML = [...pr.revision_history].reverse().map(h => `
+      <tr>
+        <td>v${h.revision}</td>
+        <td><span class="badge bg-${h.action==='APPROVED'?'success':h.action==='REJECTED'?'danger':h.action==='SUBMITTED'||h.action==='RESUBMITTED'?'primary':'secondary'}">${h.action}</span></td>
+        <td>${h.by}</td>
+        <td>${new Date(h.at).toLocaleDateString()}</td>
+        <td class="text-muted">${h.note || '—'}</td>
+      </tr>`).join('');
+    document.getElementById('pr-history-wrap').style.display = '';
+  }
+  prModal.show();
+}
+
+function viewPr(prId) { editPr(prId); }
+
+function _buildPrPayload() {
+  const desc = document.getElementById('pr-desc').value.trim();
+  const qty  = parseFloat(document.getElementById('pr-qty').value);
+  const unit = document.getElementById('pr-unit').value.trim();
+  const date = document.getElementById('pr-date').value;
+  if (!desc || isNaN(qty) || !unit || !date) {
+    ATCA.toast('Fill in Item Description, Quantity, Unit, and Required Date.', 'danger');
+    return null;
+  }
+  return { desc, qty, unit, date,
+    cost: parseFloat(document.getElementById('pr-cost').value) || null,
+    just: document.getElementById('pr-just').value.trim() || null };
+}
+
+function savePrDraft() {
+  const p = _buildPrPayload(); if (!p) return;
+  const db   = _getPrDb();
+  const user = ATCA.currentUser?.full_name || 'Unknown';
+  const now  = new Date().toISOString();
+  if (_prEditId) {
+    const idx = db.findIndex(r => r.pr_id === _prEditId);
+    if (idx < 0) return;
+    const rec = db[idx];
+    rec.item_description = p.desc; rec.qty = p.qty; rec.unit = p.unit;
+    rec.required_date = p.date; rec.estimated_cost = p.cost; rec.justification = p.just;
+    rec.revision_history.push({ revision: rec.revision, action: 'EDITED', by: user, at: now, note: '' });
+  } else {
+    const fm = _nextFmNumber();
+    db.push({ pr_id: Date.now(), pr_number: _nextPrNumber(db), form_number: fm, revision: 1,
+      item_description: p.desc, qty: p.qty, unit: p.unit, required_date: p.date,
+      estimated_cost: p.cost, justification: p.just,
+      requested_by: user, status: 'DRAFT',
+      created_by: user, created_at: now,
+      revision_history: [{ revision: 1, action: 'CREATED', by: user, at: now, note: '' }] });
+  }
+  _savePrDb(db);
+  ATCA.audit && ATCA.audit.log({ action: 'PR_SAVED_DRAFT', by: user });
+  prModal.hide();
+  ATCA.toast('PR saved as Draft.', 'success');
+  loadPrs();
+}
+
+function submitPrForApproval() {
+  const p = _buildPrPayload(); if (!p) return;
+  const db   = _getPrDb();
+  const user = ATCA.currentUser?.full_name || 'Unknown';
+  const now  = new Date().toISOString();
+  if (_prEditId) {
+    const rec = db.find(r => r.pr_id === _prEditId);
+    if (!rec) return;
+    rec.item_description = p.desc; rec.qty = p.qty; rec.unit = p.unit;
+    rec.required_date = p.date; rec.estimated_cost = p.cost; rec.justification = p.just;
+    rec.status = 'PENDING_QM';
+    rec.submitted_at = now;
+    const action = rec.revision > 1 ? 'RESUBMITTED' : 'SUBMITTED';
+    rec.revision_history.push({ revision: rec.revision, action, by: user, at: now, note: '' });
+  } else {
+    const fm = _nextFmNumber();
+    db.push({ pr_id: Date.now(), pr_number: _nextPrNumber(db), form_number: fm, revision: 1,
+      item_description: p.desc, qty: p.qty, unit: p.unit, required_date: p.date,
+      estimated_cost: p.cost, justification: p.just,
+      requested_by: user, status: 'PENDING_QM',
+      created_by: user, created_at: now, submitted_at: now,
+      revision_history: [
+        { revision: 1, action: 'CREATED',   by: user, at: now, note: '' },
+        { revision: 1, action: 'SUBMITTED', by: user, at: now, note: '' },
+      ] });
+  }
+  _savePrDb(db);
+  ATCA.audit && ATCA.audit.log({ action: 'PR_SUBMITTED_FOR_QM', by: user });
+  prModal.hide();
+  ATCA.toast('PR submitted for QM approval.', 'info');
+  loadPrs(); loadKpis();
+}
+
+function submitPrById(prId) {
+  const db  = _getPrDb();
+  const rec = db.find(r => r.pr_id === prId);
+  if (!rec) return;
+  const user = ATCA.currentUser?.full_name || 'Unknown';
+  const now  = new Date().toISOString();
+  rec.status = 'PENDING_QM';
+  rec.submitted_at = now;
+  const action = rec.revision > 1 ? 'RESUBMITTED' : 'SUBMITTED';
+  rec.revision_history.push({ revision: rec.revision, action, by: user, at: now, note: '' });
+  _savePrDb(db);
+  ATCA.audit && ATCA.audit.log({ action: 'PR_SUBMITTED_FOR_QM', record_id: rec.pr_number });
+  ATCA.toast(`${rec.pr_number} submitted for QM approval.`, 'info');
+  loadPrs(); loadKpis();
+}
+
+function qmApprovePr(prId) {
+  const db  = _getPrDb();
+  const rec = db.find(r => r.pr_id === prId);
+  if (!rec || rec.status !== 'PENDING_QM') return;
+  const user = ATCA.currentUser?.full_name || 'QM';
+  const now  = new Date().toISOString();
+  rec.status = 'APPROVED';
+  rec.approved_by = user;
+  rec.approved_at = now;
+  rec.revision_history.push({ revision: rec.revision, action: 'APPROVED', by: user, at: now, note: '' });
+  _savePrDb(db);
+  ATCA.audit && ATCA.audit.log({ action: 'PR_APPROVED', record_id: rec.pr_number, approved_by: user });
+  ATCA.toast(`${rec.pr_number} approved.`, 'success');
+  loadPrs(); loadKpis();
+}
+
+function openRejectModal(prId) {
+  document.getElementById('pr-reject-id').value    = prId;
+  document.getElementById('pr-reject-reason').value = '';
+  new bootstrap.Modal(document.getElementById('prRejectModal')).show();
+}
+
+function confirmRejectPr() {
+  const prId  = parseInt(document.getElementById('pr-reject-id').value);
+  const reason = document.getElementById('pr-reject-reason').value.trim();
+  if (!reason) { ATCA.toast('Rejection reason is required.', 'danger'); return; }
+  const db  = _getPrDb();
+  const rec = db.find(r => r.pr_id === prId);
+  if (!rec) return;
+  const user = ATCA.currentUser?.full_name || 'QM';
+  const now  = new Date().toISOString();
+  rec.revision_history.push({ revision: rec.revision, action: 'REJECTED', by: user, at: now, note: reason });
+  rec.revision += 1;
+  rec.status = 'DRAFT';
+  rec.rejected_by = user;
+  rec.rejected_at = now;
+  rec.rejection_reason = reason;
+  rec.revision_history.push({ revision: rec.revision, action: 'REVISION_INCREMENTED', by: 'System', at: now, note: `Rev ${rec.revision} created after rejection` });
+  _savePrDb(db);
+  ATCA.audit && ATCA.audit.log({ action: 'PR_REJECTED', record_id: rec.pr_number, rejected_by: user, reason });
+  bootstrap.Modal.getInstance(document.getElementById('prRejectModal')).hide();
+  ATCA.toast(`${rec.pr_number} rejected — returned to requisitioner as v${rec.revision}.`, 'warning');
+  loadPrs(); loadKpis();
+}
 
 async function saveSupplier() {
   const r = await ATCA.api.post('/mod12/suppliers', {
@@ -594,17 +983,6 @@ async function saveSupplier() {
   if (r) { supplierModal.hide(); ATCA.toast(`Supplier ${r.supplier_code} added to AVL`, 'success'); loadSuppliers(); loadKpis(); }
 }
 
-async function savePr() {
-  const r = await ATCA.api.post('/mod12/requisitions', {
-    item_description: document.getElementById('pr-desc').value.trim(),
-    qty: parseFloat(document.getElementById('pr-qty').value),
-    unit: document.getElementById('pr-unit').value.trim(),
-    required_date: document.getElementById('pr-date').value,
-    estimated_cost: parseFloat(document.getElementById('pr-cost').value) || null,
-    justification: document.getElementById('pr-just').value.trim() || null,
-  });
-  if (r) { prModal.hide(); ATCA.toast(`PR ${r.pr_number} created`, 'success'); loadPrs(); loadKpis(); }
-}
 
 async function savePo() {
   const r = await ATCA.api.post('/mod12/purchase-orders', {
